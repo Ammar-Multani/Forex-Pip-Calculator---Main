@@ -1,4 +1,4 @@
-import { CurrencyPair } from '../constants/currencies';
+import { CurrencyPair } from "../constants/currencies";
 
 // Calculate pip value in quote currency
 export const calculatePipValueInQuoteCurrency = (
@@ -7,9 +7,9 @@ export const calculatePipValueInQuoteCurrency = (
   pipCount: number
 ): number => {
   // For JPY pairs, pip value is different
-  const isJpyPair = currencyPair.quote === 'JPY';
+  const isJpyPair = currencyPair.quote === "JPY";
   const pipValue = isJpyPair ? 0.01 : 0.0001;
-  
+
   // Calculate pip value in quote currency
   return positionSize * pipValue * pipCount;
 };
@@ -25,9 +25,16 @@ export const calculatePipValueInAccountCurrency = (
   if (quoteCurrency === accountCurrency) {
     return pipValueInQuoteCurrency;
   }
-  
-  // Convert pip value to account currency
-  return pipValueInQuoteCurrency * exchangeRate;
+
+  // Direct quote: account currency is the base (e.g., EUR/USD with USD account)
+  // In this case, divide by the exchange rate
+  // Example: If 10 USD per pip, and EUR/USD = 1.10, then 10 / 1.10 = 9.09 EUR per pip
+  if (exchangeRate > 0) {
+    return pipValueInQuoteCurrency / exchangeRate;
+  }
+
+  // Fallback (should not happen with proper rates)
+  return pipValueInQuoteCurrency;
 };
 
 // Format currency value for display
@@ -37,8 +44,8 @@ export const formatCurrencyValue = (
   currencySymbol: string
 ): string => {
   // Format with 2 decimal places for most currencies, 0 for JPY
-  const decimalPlaces = currencyCode === 'JPY' ? 0 : 2;
-  
+  const decimalPlaces = currencyCode === "JPY" ? 0 : 2;
+
   return `${currencySymbol}${value.toFixed(decimalPlaces)}`;
 };
 
@@ -49,7 +56,7 @@ export const formatPipValue = (
   currencySymbol: string
 ): string => {
   // Format with more precision for pip values
-  const decimalPlaces = currencyCode === 'JPY' ? 2 : 4;
-  
+  const decimalPlaces = currencyCode === "JPY" ? 2 : 4;
+
   return `${currencySymbol}${value.toFixed(decimalPlaces)}`;
 };

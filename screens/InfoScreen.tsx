@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,18 +6,20 @@ import {
   ScrollView,
   SafeAreaView,
   TouchableOpacity,
-} from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import { StatusBar } from 'expo-status-bar';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+} from "react-native";
+import { useTheme } from "../contexts/ThemeContext";
+import { StatusBar } from "expo-status-bar";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 const InfoScreen: React.FC = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <StatusBar style="auto" />
       <View style={[styles.header, { backgroundColor: colors.card }]}>
         <TouchableOpacity
@@ -33,18 +35,29 @@ const InfoScreen: React.FC = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             What is a Pip?
           </Text>
           <Text style={[styles.paragraph, { color: colors.subtext }]}>
-            A pip (percentage in point) is the smallest price movement in a trading pair. For most
-            currency pairs, a pip is a movement in the fourth decimal place (0.0001). For pairs
-            involving the Japanese Yen (JPY), a pip is a movement in the second decimal place (0.01).
+            A pip (percentage in point) is the smallest price movement in a
+            trading pair. For most currency pairs, a pip is a movement in the
+            fourth decimal place (0.0001). For pairs involving the Japanese Yen
+            (JPY), a pip is a movement in the second decimal place (0.01).
           </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Lot Sizes Explained
           </Text>
@@ -65,7 +78,12 @@ const InfoScreen: React.FC = () => {
           </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             How Pip Value is Calculated
           </Text>
@@ -82,13 +100,48 @@ const InfoScreen: React.FC = () => {
             Pip Value = (0.01 × Position Size)
           </Text>
           <Text style={[styles.paragraph, { color: colors.subtext }]}>
-            The pip value is calculated in the quote currency. To convert to your account currency,
-            the app uses the current exchange rate between the quote currency and your account
-            currency.
+            The pip value is calculated in the quote currency. To convert to
+            your account currency, the app uses the current exchange rate
+            between the quote currency and your account currency.
           </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Real-Time Exchange Rates
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            This app uses real-time exchange rates to provide accurate pip value
+            calculations. The exchange rates are fetched from a reliable forex
+            data provider whenever you:
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            • Change currency pair or account currency
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            • Tap the Calculate button
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            • Pull down to refresh
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            An active internet connection is required for real-time rates. If
+            you're offline, the app will use the last known exchange rate or
+            display an error message.
+          </Text>
+        </View>
+
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Example Calculation
           </Text>
@@ -109,7 +162,12 @@ const InfoScreen: React.FC = () => {
           </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Using This Calculator
           </Text>
@@ -126,10 +184,15 @@ const InfoScreen: React.FC = () => {
             4. Enter the number of pips
           </Text>
           <Text style={[styles.paragraph, { color: colors.subtext }]}>
-            5. View the calculated pip value in both quote and account currencies
+            5. View the calculated pip value in both quote and account
+            currencies
           </Text>
           <Text style={[styles.paragraph, { color: colors.subtext }]}>
-            6. Pull down to refresh exchange rates
+            6. Pull down to refresh exchange rates for the most up-to-date
+            calculations
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            7. An internet connection is required for real-time rates
           </Text>
         </View>
       </ScrollView>
@@ -142,17 +205,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: "#E0E0E0",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   backButton: {
     padding: 8,
@@ -171,7 +234,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 12,
   },
   paragraph: {
@@ -181,9 +244,9 @@ const styles = StyleSheet.create({
   },
   formula: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginVertical: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

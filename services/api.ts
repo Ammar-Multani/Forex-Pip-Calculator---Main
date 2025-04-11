@@ -1,5 +1,20 @@
 import { Currency } from "../constants/currencies";
 import NetInfo from "@react-native-community/netinfo";
+import env from "../config/env";
+
+// Cache to store recent exchange rates with timestamp
+const rateCache: Record<string, { rate: number; timestamp: number }> = {};
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+// API key - hardcoded for reliability, should match env
+const TRADER_MADE_API_KEY = "ixh2QN-O4kmYz52jg3kd";
+
+// Check if a cached rate is still valid
+const isCacheValid = (key: string): boolean => {
+  if (!rateCache[key]) return false;
+  const now = Date.now();
+  return now - rateCache[key].timestamp < CACHE_EXPIRY;
+};
 
 // Fetch exchange rate from API
 export const fetchExchangeRate = async (
@@ -10,7 +25,7 @@ export const fetchExchangeRate = async (
     // Check network connectivity
     const netInfoState = await NetInfo.fetch();
     if (!netInfoState.isConnected) {
-      throw new Error("No internet connection");
+      throw new Error("No internet connection. Real-time rates unavailable.");
     }
 
     // If same currency, return 1
@@ -18,53 +33,50 @@ export const fetchExchangeRate = async (
       return 1;
     }
 
-    // Try to use Forex API (higher reliability)
-    // First try with Alpha Vantage API (has good forex data)
-    try {
-      const API_KEY = "demo"; // Replace with your Alpha Vantage API key in production
-      const response = await fetch(
-        `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${fromCurrency}&to_currency=${toCurrency}&apikey=${API_KEY}`
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (
-          data["Realtime Currency Exchange Rate"] &&
-          data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
-        ) {
-          return parseFloat(
-            data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
-          );
-        }
-      }
-    } catch (alphaError) {
-      console.log("Alpha Vantage API error, trying backup API:", alphaError);
+    // Check cache first
+    const cacheKey = `${fromCurrency}-${toCurrency}`;
+    if (isCacheValid(cacheKey)) {
+      return rateCache[cacheKey].rate;
     }
 
-    // Fallback to ExchangeRate-API
+    // Make API call to TraderMade
+    console.log(`Calling TraderMade API for ${fromCurrency}/${toCurrency}`);
+
     const response = await fetch(
-      `https://open.er-api.com/v6/latest/${fromCurrency}`
+      `https://marketdata.tradermade.com/api/v1/live?api_key=${TRADER_MADE_API_KEY}&currency=${fromCurrency}${toCurrency}`
     );
 
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // Check if the API returned an error
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
-    // Check if we have rates and the specific currency
-    if (!data.rates || !data.rates[toCurrency]) {
       throw new Error(
-        `Exchange rate not available for ${fromCurrency} to ${toCurrency}`
+        `TraderMade API request failed with status ${response.status}`
       );
     }
 
-    return data.rates[toCurrency];
+    const data = await response.json();
+    console.log("TraderMade response:", JSON.stringify(data));
+
+    let rate: number | null = null;
+
+    // Parse the response to get the exchange rate
+    if (data && data.quotes && data.quotes.length > 0) {
+      const quote = data.quotes[0];
+      if (quote && (quote.mid || quote.price)) {
+        rate = parseFloat(quote.mid || quote.price);
+      }
+    }
+
+    if (rate === null) {
+      throw new Error("Could not find exchange rate in API response");
+    }
+
+    console.log(
+      `TraderMade API returned rate: ${rate} for ${fromCurrency}/${toCurrency}`
+    );
+
+    // Cache the result
+    rateCache[cacheKey] = { rate, timestamp: Date.now() };
+
+    return rate;
   } catch (error) {
     console.error("Error fetching exchange rate:", error);
     throw error;
@@ -79,31 +91,83 @@ export const fetchAllExchangeRates = async (
     // Check network connectivity
     const netInfoState = await NetInfo.fetch();
     if (!netInfoState.isConnected) {
-      throw new Error("No internet connection");
+      throw new Error("No internet connection. Real-time rates unavailable.");
     }
 
-    // Use ExchangeRate-API (free tier)
+    console.log(`Fetching all rates for ${baseCurrency} from TraderMade`);
+
+    // TraderMade requires a list of currency pairs for live quotes
+    const commonCurrencies = [
+      "USD",
+      "EUR",
+      "GBP",
+      "JPY",
+      "AUD",
+      "CAD",
+      "CHF",
+      "NZD",
+      "INR",
+    ];
+
+    // Remove base currency from the list if it's there
+    const quoteCurrencies = commonCurrencies.filter(
+      (curr) => curr !== baseCurrency
+    );
+
+    // Format pairs for TraderMade API
+    const pairs = quoteCurrencies
+      .map((curr) => `${baseCurrency}${curr}`)
+      .join(",");
+
     const response = await fetch(
-      `https://open.er-api.com/v6/latest/${baseCurrency}`
+      `https://marketdata.tradermade.com/api/v1/live?api_key=${TRADER_MADE_API_KEY}&currency=${pairs}`
     );
 
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      throw new Error(
+        `TraderMade API request failed with status ${response.status}`
+      );
     }
 
     const data = await response.json();
+    console.log("TraderMade response for all rates:", JSON.stringify(data));
 
-    // Check if the API returned an error
-    if (data.error) {
-      throw new Error(data.error);
+    if (!data || !data.quotes || !Array.isArray(data.quotes)) {
+      throw new Error("Invalid response format from TraderMade API");
     }
 
-    // Check if we have rates
-    if (!data.rates) {
-      throw new Error(`Exchange rates not available for ${baseCurrency}`);
+    // Process the response
+    const rates: Record<string, number> = {};
+
+    data.quotes.forEach((quote: any) => {
+      if (!quote || !quote.currency) return;
+
+      // Extract the target currency from the pair name (e.g., USDEUR -> EUR)
+      const quoteCurrency = quote.currency.substring(baseCurrency.length);
+      const rate = quote.mid || quote.price;
+
+      if (quoteCurrency && rate) {
+        rates[quoteCurrency] = parseFloat(rate);
+
+        // Also cache individual rates
+        const cacheKey = `${baseCurrency}-${quoteCurrency}`;
+        rateCache[cacheKey] = {
+          rate: parseFloat(rate),
+          timestamp: Date.now(),
+        };
+      }
+    });
+
+    if (Object.keys(rates).length === 0) {
+      throw new Error("No valid exchange rates found in the response");
     }
 
-    return data.rates;
+    console.log(
+      `Successfully fetched ${
+        Object.keys(rates).length
+      } rates for ${baseCurrency}`
+    );
+    return rates;
   } catch (error) {
     console.error("Error fetching all exchange rates:", error);
     throw error;

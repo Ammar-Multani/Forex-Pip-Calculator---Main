@@ -1,46 +1,70 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import { MaterialIcons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../contexts/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
 
 interface HeaderProps {
   title: string;
-  onThemeToggle: () => void;
+  onThemeToggle?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ title, onThemeToggle }) => {
-  const { theme, colors } = useTheme();
+  const { colors, theme } = useTheme();
+  const navigation = useNavigation();
+
+  const isDarkMode = theme === "dark";
+
+  const handleSettingsPress = () => {
+    // @ts-ignore - Using expo-router navigation
+    navigation.navigate("settings");
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card }]}>
+    <View style={[styles.header, { backgroundColor: colors.card }]}>
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-      <TouchableOpacity onPress={onThemeToggle} style={styles.themeToggle}>
-        <MaterialIcons
-          name={theme === 'light' ? 'dark-mode' : 'light-mode'}
-          size={24}
-          color={colors.text}
-        />
-      </TouchableOpacity>
+      <View style={styles.buttonsContainer}>
+        {onThemeToggle && (
+          <TouchableOpacity style={styles.iconButton} onPress={onThemeToggle}>
+            <MaterialIcons
+              name={isDarkMode ? "light-mode" : "dark-mode"}
+              size={24}
+              color={colors.text}
+            />
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={handleSettingsPress}
+        >
+          <MaterialIcons name="settings" size={24} color={colors.text} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: "#E0E0E0",
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-  themeToggle: {
+  buttonsContainer: {
+    flexDirection: "row",
+  },
+  iconButton: {
     padding: 8,
+    marginLeft: 8,
   },
 });
 

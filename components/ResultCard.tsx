@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { Currency, CurrencyPair } from "../constants/currencies";
 import { formatCurrencyValue, formatPipValue } from "../utils/pipCalculator";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface ResultCardProps {
   accountCurrency: Currency;
@@ -38,23 +39,24 @@ const ResultCard: React.FC<ResultCardProps> = ({
       ? "€"
       : quoteCurrencyCode === "GBP"
       ? "£"
+      : quoteCurrencyCode === "INR"
+      ? "₹"
       : "";
 
-  // Determine exchange rate display text
+  // Determine exchange rate display text and explanation
   let exchangeRateText = "";
+  let conversionExplanation = "";
 
   if (quoteCurrencyCode === accountCurrency.code) {
+    // Same currency case
     exchangeRateText = `Same currency (${quoteCurrencyCode})`;
-  } else if (currencyPair.base === accountCurrency.code) {
-    // If account currency is the base currency (e.g., EUR account with EUR/USD pair)
-    exchangeRateText = `1 ${accountCurrency.code} = ${(
-      1 / exchangeRate
-    ).toFixed(4)} ${quoteCurrencyCode}`;
+    conversionExplanation = "No conversion needed";
   } else {
-    // Regular conversion from quote to account currency
+    // Direct rate display matching professional trading platforms
     exchangeRateText = `1 ${quoteCurrencyCode} = ${
       accountCurrency.symbol
-    }${exchangeRate.toFixed(4)} ${accountCurrency.code}`;
+    }${exchangeRate.toFixed(6)} ${accountCurrency.code}`;
+    conversionExplanation = `Converting ${quoteCurrencyCode} to ${accountCurrency.code} using real-time rates`;
   }
 
   return (
@@ -98,7 +100,8 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
       <View style={styles.resultRow}>
         <Text style={[styles.label, { color: colors.subtext }]}>
-          Total for {pipCount} pips in {quoteCurrencyCode}:
+          Total for {pipCount} pip{pipCount !== 1 ? "s" : ""} in{" "}
+          {quoteCurrencyCode}:
         </Text>
         <Text style={[styles.totalValue, { color: colors.primary }]}>
           {formatCurrencyValue(
@@ -111,7 +114,8 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
       <View style={styles.resultRow}>
         <Text style={[styles.label, { color: colors.subtext }]}>
-          Total for {pipCount} pips in {accountCurrency.code}:
+          Total for {pipCount} pip{pipCount !== 1 ? "s" : ""} in{" "}
+          {accountCurrency.code}:
         </Text>
         <Text style={[styles.totalValue, { color: colors.primary }]}>
           {formatCurrencyValue(
@@ -122,13 +126,53 @@ const ResultCard: React.FC<ResultCardProps> = ({
         </Text>
       </View>
 
+      <View style={styles.divider} />
+
       <View style={styles.exchangeRateContainer}>
-        <Text style={[styles.exchangeRateLabel, { color: colors.subtext }]}>
+        <Text style={[styles.exchangeRateLabel, { color: colors.text }]}>
           Exchange Rate: {exchangeRateText}
         </Text>
-        <Text style={[styles.dataSourceLabel, { color: colors.info }]}>
-          Using real-time market data
+
+        <Text style={[styles.conversionExplanation, { color: colors.info }]}>
+          {conversionExplanation}
         </Text>
+
+        <View style={styles.dataSourceContainer}>
+          <MaterialIcons name="public" size={14} color={colors.success} />
+          <Text style={[styles.dataSourceLabel, { color: colors.success }]}>
+            USING TRADERMADE LIVE RATES
+          </Text>
+        </View>
+      </View>
+
+      {/* Standard lot size reference */}
+      <View style={styles.lotSizesContainer}>
+        <View style={styles.lotSizeRow}>
+          <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
+            Standard lot:
+          </Text>
+          <Text style={[styles.lotSizeValue, { color: colors.text }]}>
+            100,000 units
+          </Text>
+        </View>
+
+        <View style={styles.lotSizeRow}>
+          <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
+            Mini lot:
+          </Text>
+          <Text style={[styles.lotSizeValue, { color: colors.text }]}>
+            10,000 units
+          </Text>
+        </View>
+
+        <View style={styles.lotSizeRow}>
+          <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
+            Micro lot:
+          </Text>
+          <Text style={[styles.lotSizeValue, { color: colors.text }]}>
+            1,000 units
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -171,17 +215,45 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   exchangeRateContainer: {
-    marginTop: 12,
+    marginVertical: 8,
     alignItems: "center",
   },
   exchangeRateLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  conversionExplanation: {
     fontSize: 12,
-    fontStyle: "italic",
+    marginBottom: 4,
+  },
+  dataSourceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
   },
   dataSourceLabel: {
     fontSize: 10,
-    marginTop: 4,
-    fontStyle: "italic",
+    fontWeight: "bold",
+    marginLeft: 4,
+  },
+  lotSizesContainer: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+    paddingTop: 12,
+  },
+  lotSizeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 4,
+  },
+  lotSizeLabel: {
+    fontSize: 13,
+  },
+  lotSizeValue: {
+    fontSize: 13,
+    fontWeight: "500",
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,61 +8,53 @@ import {
   TextInput,
   SafeAreaView,
   Platform,
-  ScrollView,
-} from 'react-native';
-import Modal from 'react-native-modal';
-import { useTheme } from '../contexts/ThemeContext';
+  Modal,
+} from "react-native";
+import { useTheme } from "../contexts/ThemeContext";
 import {
   CurrencyPair,
+  currencyPairs,
   filterCurrencyPairs,
-  getCurrencyPairGroups,
-  getCurrencyPairsByGroup,
-} from '../constants/currencies';
-import { MaterialIcons } from '@expo/vector-icons';
+} from "../constants/currencies";
+import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface CurrencyPairModalProps {
-  isVisible: boolean;
   onClose: () => void;
-  onSelectPair: (pair: CurrencyPair) => void;
+  onSelect: (pair: CurrencyPair) => void;
   selectedPair: CurrencyPair;
-  currencyPairs: CurrencyPair[];
 }
 
 const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
-  isVisible,
   onClose,
-  onSelectPair,
+  onSelect,
   selectedPair,
-  currencyPairs,
 }) => {
-  const { colors } = useTheme();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredPairs, setFilteredPairs] = useState<CurrencyPair[]>(currencyPairs);
-  const [activeGroup, setActiveGroup] = useState<string>('Major');
-  
-  // Get all currency pair groups
-  const groups = getCurrencyPairGroups();
+  const { colors, theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredPairs, setFilteredPairs] =
+    useState<CurrencyPair[]>(currencyPairs);
 
   // Update filtered pairs when search term changes
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredPairs(activeGroup === 'All' ? currencyPairs : getCurrencyPairsByGroup(activeGroup));
+    if (searchTerm.trim() === "") {
+      setFilteredPairs(currencyPairs);
     } else {
       setFilteredPairs(filterCurrencyPairs(searchTerm));
     }
-  }, [searchTerm, activeGroup, currencyPairs]);
+  }, [searchTerm]);
 
   // Handle pair selection
   const handleSelect = (pair: CurrencyPair) => {
-    onSelectPair(pair);
+    onSelect(pair);
     onClose();
   };
 
-  // Handle group selection
-  const handleGroupSelect = (group: string) => {
-    setActiveGroup(group);
-    setSearchTerm('');
-  };
+  // Get gradient colors based on theme
+  const gradientColors = isDarkMode
+    ? [colors.card, colors.background]
+    : ["#2962FF", "#2979FF"];
 
   // Render each currency pair item
   const renderPairItem = ({ item }: { item: CurrencyPair }) => {
@@ -72,8 +64,14 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
       <TouchableOpacity
         style={[
           styles.pairItem,
-          { backgroundColor: colors.card },
-          isSelected && { backgroundColor: colors.highlight },
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          },
+          isSelected && {
+            backgroundColor: colors.primary + "20",
+            borderColor: colors.primary,
+          },
         ]}
         onPress={() => handleSelect(item)}
         activeOpacity={0.7}
@@ -82,212 +80,167 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
           <Text style={[styles.pairName, { color: colors.text }]}>
             {item.name}
           </Text>
-          <Text style={[styles.pairDetail, { color: colors.subtext }]}>
+          <Text style={[styles.pairDescription, { color: colors.subtext }]}>
             {item.base}/{item.quote}
           </Text>
         </View>
-        <View style={styles.pipContainer}>
-          <Text style={[styles.pipLabel, { color: colors.subtext }]}>
-            1 pip =
-          </Text>
-          <Text style={[styles.pipValue, { color: colors.primary }]}>
-            {item.pipDecimalPlaces === 2 ? '0.01' : '0.0001'}
+        <View style={styles.pairDetails}>
+          <Text style={[styles.pipInfo, { color: colors.info }]}>
+            1 pip = {item.pipDecimalPlaces === 2 ? "0.01" : "0.0001"}
           </Text>
         </View>
         {isSelected && (
-          <MaterialIcons name="check" size={24} color={colors.primary} style={styles.checkIcon} />
+          <MaterialIcons
+            name="check"
+            size={24}
+            color={colors.primary}
+            style={styles.checkIcon}
+          />
         )}
       </TouchableOpacity>
     );
   };
 
   return (
-    <Modal
-      isVisible={isVisible}
-      onBackdropPress={onClose}
-      onBackButtonPress={onClose}
-      backdropOpacity={0.5}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.modal}
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.background }]}
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[styles.header]}
       >
-        <View style={[styles.header, { backgroundColor: colors.card }]}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <MaterialIcons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.text }]}>Select Currency Pair</Text>
-          <View style={styles.placeholder} />
-        </View>
-
-        <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-          <MaterialIcons name="search" size={24} color={colors.placeholder} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search currency pairs..."
-            placeholderTextColor={colors.placeholder}
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-            autoCapitalize="none"
-            autoCorrect={false}
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <MaterialIcons
+            name="close"
+            size={24}
+            color={isDarkMode ? colors.text : "#fff"}
           />
-          {searchTerm.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchTerm('')}>
-              <MaterialIcons name="cancel" size={24} color={colors.placeholder} />
-            </TouchableOpacity>
-          )}
-        </View>
+        </TouchableOpacity>
+        <Text
+          style={[styles.title, { color: isDarkMode ? colors.text : "#fff" }]}
+        >
+          Select Currency Pair
+        </Text>
+        <View style={styles.placeholder} />
+      </LinearGradient>
 
-        {searchTerm.trim() === '' && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.groupsContainer}
-          >
-            <TouchableOpacity
-              style={[
-                styles.groupTab,
-                activeGroup === 'All' && { backgroundColor: colors.primary },
-              ]}
-              onPress={() => handleGroupSelect('All')}
-            >
-              <Text
-                style={[
-                  styles.groupText,
-                  { color: activeGroup === 'All' ? '#fff' : colors.text },
-                ]}
-              >
-                All
-              </Text>
-            </TouchableOpacity>
-            {groups.map((group) => (
-              <TouchableOpacity
-                key={group}
-                style={[
-                  styles.groupTab,
-                  activeGroup === group && { backgroundColor: colors.primary },
-                ]}
-                onPress={() => handleGroupSelect(group)}
-              >
-                <Text
-                  style={[
-                    styles.groupText,
-                    { color: activeGroup === group ? '#fff' : colors.text },
-                  ]}
-                >
-                  {group}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
-
-        <FlatList
-          data={filteredPairs}
-          renderItem={renderPairItem}
-          keyExtractor={(item) => item.name}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          initialNumToRender={10}
-          maxToRenderPerBatch={20}
-          windowSize={10}
+      <View
+        style={[
+          styles.searchContainer,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <MaterialIcons name="search" size={24} color={colors.placeholder} />
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          placeholder="Search currency pairs..."
+          placeholderTextColor={colors.placeholder}
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          autoCapitalize="none"
+          autoCorrect={false}
         />
-      </SafeAreaView>
-    </Modal>
+        {searchTerm.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchTerm("")}>
+            <MaterialIcons name="cancel" size={24} color={colors.placeholder} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <FlatList
+        data={filteredPairs}
+        renderItem={renderPairItem}
+        keyExtractor={(item) => item.name}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={10}
+        maxToRenderPerBatch={20}
+        windowSize={10}
+      />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  modal: {
-    margin: 0,
-    justifyContent: 'flex-end',
-  },
   container: {
+    flex: 1,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    maxHeight: '80%',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "transparent",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+    textAlign: "center",
   },
   closeButton: {
-    padding: 4,
+    padding: 8,
   },
   placeholder: {
     width: 24,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    margin: 16,
+    borderRadius: 12,
+    borderWidth: 1,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
     marginLeft: 8,
-    padding: 8,
-  },
-  groupsContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  groupTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    marginRight: 8,
-  },
-  groupText: {
-    fontWeight: '600',
+    padding: 4,
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 16,
+    paddingBottom: Platform.OS === "ios" ? 40 : 16,
   },
   pairItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
     marginVertical: 4,
     borderRadius: 8,
+    borderWidth: 1,
   },
   pairInfo: {
     flex: 1,
   },
   pairName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-  pairDetail: {
+  pairDescription: {
     fontSize: 14,
   },
-  pipContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 8,
+  pairDetails: {
+    alignItems: "flex-end",
   },
-  pipLabel: {
-    fontSize: 14,
-    marginRight: 4,
-  },
-  pipValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
+  pipInfo: {
+    fontSize: 12,
   },
   checkIcon: {
     marginLeft: 8,

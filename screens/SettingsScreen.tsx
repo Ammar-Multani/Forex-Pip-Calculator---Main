@@ -8,15 +8,18 @@ import {
   Switch,
   SafeAreaView,
   Modal,
+  Platform,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { StatusBar } from "expo-status-bar";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import ApiKeyManager from "../components/ApiKeyManager";
+import Header from "../components/Header";
+import { LinearGradient } from "expo-linear-gradient";
 
 const SettingsScreen: React.FC = () => {
-  const { colors, theme, toggleTheme, setTheme } = useTheme();
+  const { colors, theme, toggleTheme, setTheme, getGradient } = useTheme();
   const navigation = useNavigation();
   const [apiKeyModalVisible, setApiKeyModalVisible] = useState(false);
 
@@ -39,108 +42,184 @@ const SettingsScreen: React.FC = () => {
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <StatusBar style="auto" />
-      <View style={[styles.header, { backgroundColor: colors.card }]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <MaterialIcons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Settings
-        </Text>
-        <View style={styles.placeholder} />
-      </View>
+      <Header title="Settings" showBackButton onThemeToggle={toggleTheme} />
 
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Appearance Card */}
         <View
           style={[
             styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              ...Platform.select({
+                ios: {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 3,
+                },
+                android: {
+                  elevation: 3,
+                },
+              }),
+            },
           ]}
         >
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Appearance
-          </Text>
-
-          <View style={styles.settingRow}>
-            <View style={styles.settingLabelContainer}>
-              <MaterialIcons
-                name="brightness-6"
-                size={24}
-                color={colors.text}
-              />
-              <Text style={[styles.settingLabel, { color: colors.text }]}>
-                Dark Mode
+          <LinearGradient
+            colors={getGradient("card").colors}
+            start={getGradient("card").start}
+            end={getGradient("card").end}
+            style={styles.cardGradient}
+          >
+            <View style={styles.cardHeader}>
+              <MaterialIcons name="palette" size={22} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                Appearance
               </Text>
             </View>
-            <Switch
-              value={isDarkMode}
-              onValueChange={handleThemeToggle}
-              trackColor={{ false: "#767577", true: colors.primary }}
-              thumbColor="#f4f3f4"
-            />
-          </View>
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingLabelContainer}>
+                <MaterialIcons
+                  name="brightness-6"
+                  size={24}
+                  color={colors.text}
+                />
+                <Text style={[styles.settingLabel, { color: colors.text }]}>
+                  Dark Mode
+                </Text>
+              </View>
+              <Switch
+                value={isDarkMode}
+                onValueChange={handleThemeToggle}
+                trackColor={{ false: "#767577", true: colors.primary }}
+                thumbColor="#f4f3f4"
+              />
+            </View>
+          </LinearGradient>
         </View>
 
+        {/* API Data Sources Card */}
         <View
           style={[
             styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              ...Platform.select({
+                ios: {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 3,
+                },
+                android: {
+                  elevation: 3,
+                },
+              }),
+            },
           ]}
         >
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            API Data Sources
-          </Text>
-
-          <TouchableOpacity
-            style={styles.settingButton}
-            onPress={handleApiKeysPress}
+          <LinearGradient
+            colors={getGradient("card").colors}
+            start={getGradient("card").start}
+            end={getGradient("card").end}
+            style={styles.cardGradient}
           >
-            <View style={styles.settingLabelContainer}>
-              <MaterialIcons name="vpn-key" size={24} color={colors.text} />
-              <Text style={[styles.settingLabel, { color: colors.text }]}>
+            <View style={styles.cardHeader}>
+              <MaterialIcons
+                name="cloud-done"
+                size={22}
+                color={colors.primary}
+              />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                API Data Sources
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { backgroundColor: colors.primary + "20" },
+              ]}
+              onPress={handleApiKeysPress}
+            >
+              <MaterialIcons name="vpn-key" size={20} color={colors.primary} />
+              <Text
+                style={[styles.actionButtonText, { color: colors.primary }]}
+              >
                 Manage API Keys
               </Text>
-            </View>
-            <MaterialIcons
-              name="chevron-right"
-              size={24}
-              color={colors.subtext}
-            />
-          </TouchableOpacity>
+            </TouchableOpacity>
 
-          <View style={styles.infoContainer}>
-            <MaterialIcons name="info-outline" size={20} color={colors.info} />
-            <Text style={[styles.infoText, { color: colors.subtext }]}>
-              Set up API keys for different forex data providers to ensure you
-              have reliable real-time data.
-            </Text>
-          </View>
+            <View
+              style={[
+                styles.infoContainer,
+                { backgroundColor: colors.info + "15" },
+              ]}
+            >
+              <MaterialIcons
+                name="info-outline"
+                size={20}
+                color={colors.info}
+              />
+              <Text style={[styles.infoText, { color: colors.subtext }]}>
+                The app is currently using TraderMade API for reliable real-time
+                forex data.
+              </Text>
+            </View>
+          </LinearGradient>
         </View>
 
+        {/* About Card */}
         <View
           style={[
             styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              ...Platform.select({
+                ios: {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 3,
+                },
+                android: {
+                  elevation: 3,
+                },
+              }),
+            },
           ]}
         >
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            About
-          </Text>
+          <LinearGradient
+            colors={getGradient("card").colors}
+            start={getGradient("card").start}
+            end={getGradient("card").end}
+            style={styles.cardGradient}
+          >
+            <View style={styles.cardHeader}>
+              <MaterialIcons name="info" size={22} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                About
+              </Text>
+            </View>
 
-          <View style={styles.aboutContainer}>
-            <Text style={[styles.appName, { color: colors.text }]}>
-              Forex Pip Calculator
-            </Text>
-            <Text style={[styles.appVersion, { color: colors.subtext }]}>
-              Version 1.0.0
-            </Text>
-            <Text style={[styles.appDescription, { color: colors.subtext }]}>
-              A professional-grade calculator for forex traders, with real-time
-              exchange rates and accurate pip calculations.
-            </Text>
-          </View>
+            <View style={styles.aboutContainer}>
+              <Text style={[styles.appName, { color: colors.text }]}>
+                Forex Pip Calculator
+              </Text>
+              <Text style={[styles.appVersion, { color: colors.subtext }]}>
+                Version 1.2.0
+              </Text>
+              <View style={styles.divider} />
+              <Text style={[styles.appDescription, { color: colors.subtext }]}>
+                A professional-grade calculator for forex traders, with
+                real-time exchange rates and accurate pip calculations.
+              </Text>
+            </View>
+          </LinearGradient>
         </View>
       </ScrollView>
 
@@ -150,27 +229,7 @@ const SettingsScreen: React.FC = () => {
         animationType="slide"
         onRequestClose={handleCloseApiKeyModal}
       >
-        <SafeAreaView
-          style={[
-            styles.modalContainer,
-            { backgroundColor: colors.background },
-          ]}
-        >
-          <View style={[styles.modalHeader, { backgroundColor: colors.card }]}>
-            <TouchableOpacity
-              onPress={handleCloseApiKeyModal}
-              style={styles.backButton}
-            >
-              <MaterialIcons name="close" size={24} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>
-              API Keys
-            </Text>
-            <View style={styles.placeholder} />
-          </View>
-
-          <ApiKeyManager />
-        </SafeAreaView>
+        <ApiKeyManager onClose={handleCloseApiKeyModal} />
       </Modal>
     </SafeAreaView>
   );
@@ -180,46 +239,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  backButton: {
-    padding: 8,
-  },
-  placeholder: {
-    width: 40,
-  },
   content: {
     padding: 16,
   },
   card: {
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
     marginBottom: 16,
     borderWidth: 1,
+    overflow: "hidden",
+  },
+  cardGradient: {
+    padding: 16,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 16,
+    marginLeft: 8,
   },
   settingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  settingButton: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -233,48 +275,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 12,
   },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  actionButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
   infoContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "rgba(33, 150, 243, 0.1)",
     padding: 12,
     borderRadius: 8,
-    marginTop: 8,
   },
   infoText: {
     fontSize: 14,
     marginLeft: 8,
     flex: 1,
+    lineHeight: 20,
   },
   aboutContainer: {
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 8,
   },
   appName: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   appVersion: {
     fontSize: 14,
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#E0E0E0",
+    width: "40%",
+    marginBottom: 12,
   },
   appDescription: {
     fontSize: 14,
     textAlign: "center",
     lineHeight: 20,
-  },
-  modalContainer: {
-    flex: 1,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
   },
 });
 

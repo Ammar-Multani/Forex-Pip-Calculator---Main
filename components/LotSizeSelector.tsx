@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import { LotSize, LotType, formatLotSize, calculateTotalUnits } from '../constants/lotSizes';
-import { MaterialIcons } from '@expo/vector-icons';
-import DropDownPicker from 'react-native-dropdown-picker';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
+import { useTheme } from "../contexts/ThemeContext";
+import {
+  LotSize,
+  LotType,
+  formatLotSize,
+  calculateTotalUnits,
+} from "../constants/lotSizes";
+import { MaterialIcons } from "@expo/vector-icons";
+import DropDownPicker from "react-native-dropdown-picker";
 
 interface LotSizeSelectorProps {
   label: string;
@@ -14,7 +25,7 @@ interface LotSizeSelectorProps {
   onLotTypeChange: (type: LotType) => void;
   onLotCountChange: (count: number) => void;
   onCustomUnitsChange: (units: number) => void;
-  onEditLotSizes: () => void;
+  onEditPress: () => void;
 }
 
 const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
@@ -26,7 +37,7 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
   onLotTypeChange,
   onLotCountChange,
   onCustomUnitsChange,
-  onEditLotSizes,
+  onEditPress,
 }) => {
   const { colors } = useTheme();
   const [open, setOpen] = useState(false);
@@ -38,7 +49,12 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
   );
 
   // Calculate total units
-  const totalUnits = calculateTotalUnits(lotType, lotCount, customUnits, lotSizes);
+  const totalUnits = calculateTotalUnits(
+    lotType,
+    lotCount,
+    customUnits,
+    lotSizes
+  );
 
   return (
     <View style={styles.container}>
@@ -46,7 +62,7 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
         <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
         <TouchableOpacity
           style={[styles.editButton, { backgroundColor: colors.primary }]}
-          onPress={onEditLotSizes}
+          onPress={onEditPress}
         >
           <MaterialIcons name="edit" size={16} color="#fff" />
           <Text style={styles.editButtonText}>Edit Values</Text>
@@ -65,7 +81,10 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
               onLotTypeChange(newValue as LotType);
             }}
             setItems={setItems}
-            style={[styles.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={[
+              styles.dropdown,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
             textStyle={{ color: colors.text }}
             dropDownContainerStyle={[
               styles.dropdownContainer,
@@ -78,15 +97,19 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
         </View>
 
         <View style={styles.countContainer}>
-          {lotType === 'Custom' ? (
+          {lotType === "Custom" ? (
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
               ]}
               value={customUnits.toString()}
               onChangeText={(text) => {
-                const value = parseInt(text.replace(/[^0-9]/g, '')) || 0;
+                const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
                 onCustomUnitsChange(value);
               }}
               keyboardType="numeric"
@@ -97,11 +120,15 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
               ]}
               value={lotCount.toString()}
               onChangeText={(text) => {
-                const value = parseInt(text.replace(/[^0-9]/g, '')) || 0;
+                const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
                 onLotCountChange(value);
               }}
               keyboardType="numeric"
@@ -113,7 +140,9 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
       </View>
 
       <View style={styles.totalContainer}>
-        <Text style={[styles.totalLabel, { color: colors.subtext }]}>Total Units:</Text>
+        <Text style={[styles.totalLabel, { color: colors.subtext }]}>
+          Total Units:
+        </Text>
         <Text style={[styles.totalValue, { color: colors.text }]}>
           {totalUnits.toLocaleString()}
         </Text>
@@ -127,32 +156,32 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
   editButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 4,
   },
   inputRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   dropdownContainer: {
     flex: 2,
@@ -171,12 +200,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   totalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
     marginTop: 8,
   },
   totalLabel: {
@@ -185,7 +214,7 @@ const styles = StyleSheet.create({
   },
   totalValue: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

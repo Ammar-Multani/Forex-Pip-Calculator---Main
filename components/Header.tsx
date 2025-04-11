@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  StatusBar,
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
@@ -7,41 +14,98 @@ import { useNavigation } from "@react-navigation/native";
 interface HeaderProps {
   title: string;
   onThemeToggle?: () => void;
+  showBackButton?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, onThemeToggle }) => {
+const Header: React.FC<HeaderProps> = ({
+  title,
+  onThemeToggle,
+  showBackButton = false,
+}) => {
   const { colors, theme } = useTheme();
   const navigation = useNavigation();
 
   const isDarkMode = theme === "dark";
 
   const handleSettingsPress = () => {
-    // @ts-ignore - Using expo-router navigation
-    navigation.navigate("settings");
+    navigation.navigate("Settings" as never);
   };
 
-  return (
-    <View style={[styles.header, { backgroundColor: colors.card }]}>
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-      <View style={styles.buttonsContainer}>
-        {onThemeToggle && (
-          <TouchableOpacity style={styles.iconButton} onPress={onThemeToggle}>
-            <MaterialIcons
-              name={isDarkMode ? "light-mode" : "dark-mode"}
-              size={24}
-              color={colors.text}
-            />
-          </TouchableOpacity>
-        )}
+  const handleBackPress = () => {
+    navigation.goBack();
+  };
 
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={handleSettingsPress}
-        >
-          <MaterialIcons name="settings" size={24} color={colors.text} />
-        </TouchableOpacity>
+  const handleInfoPress = () => {
+    navigation.navigate("Info" as never);
+  };
+
+  // Choose header colors based on theme for a more subtle look
+  const headerBackgroundColor = isDarkMode ? "#1a1a1a" : "#fff";
+  const headerTextColor = isDarkMode ? "#fff" : "#333";
+  const iconColor = "#5a6ed1";
+
+  return (
+    <>
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={headerBackgroundColor}
+      />
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: headerBackgroundColor,
+            borderBottomColor: isDarkMode ? colors.border : "transparent",
+          },
+        ]}
+      >
+        <View style={styles.leftContainer}>
+          {showBackButton ? (
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={handleBackPress}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons name="arrow-back" size={24} color={iconColor} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={handleInfoPress}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons name="info-outline" size={24} color={iconColor} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <Text style={[styles.title, { color: headerTextColor }]}>{title}</Text>
+
+        <View style={styles.rightContainer}>
+          {onThemeToggle && (
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={onThemeToggle}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons
+                name={isDarkMode ? "light-mode" : "dark-mode"}
+                size={24}
+                color={iconColor}
+              />
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={handleSettingsPress}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MaterialIcons name="settings" size={24} color={iconColor} />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </>
   );
 };
 
@@ -52,19 +116,38 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 16,
+    paddingTop: 30,
     borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  leftContainer: {
+    flex: 1,
+    alignItems: "flex-start",
+  },
+  rightContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
   title: {
     fontSize: 20,
     fontWeight: "bold",
-  },
-  buttonsContainer: {
-    flexDirection: "row",
+    textAlign: "center",
   },
   iconButton: {
     padding: 8,
-    marginLeft: 8,
+    marginHorizontal: 4,
+    borderRadius: 20,
   },
 });
 

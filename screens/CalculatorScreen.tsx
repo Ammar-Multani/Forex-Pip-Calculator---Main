@@ -39,7 +39,7 @@ import {
   calculatePipValueInAccountCurrency,
 } from "../utils/pipCalculator";
 import { fetchExchangeRate } from "../services/api";
-import * as Storage from "expo-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 
 // Storage keys
@@ -94,52 +94,48 @@ const CalculatorScreen: React.FC = () => {
     const loadPreferences = async () => {
       try {
         // Load account currency
-        const savedAccountCurrency = await Storage.getItem({
-          key: ACCOUNT_CURRENCY_KEY,
-        });
+        const savedAccountCurrency = await AsyncStorage.getItem(
+          ACCOUNT_CURRENCY_KEY
+        );
         if (savedAccountCurrency) {
           const parsedCurrency = JSON.parse(savedAccountCurrency);
           setAccountCurrency(parsedCurrency);
         }
 
         // Load currency pair
-        const savedCurrencyPair = await Storage.getItem({
-          key: CURRENCY_PAIR_KEY,
-        });
+        const savedCurrencyPair = await AsyncStorage.getItem(CURRENCY_PAIR_KEY);
         if (savedCurrencyPair) {
           const parsedPair = JSON.parse(savedCurrencyPair);
           setSelectedPair(parsedPair);
         }
 
         // Load lot sizes
-        const savedLotSizes = await Storage.getItem({ key: LOT_SIZES_KEY });
+        const savedLotSizes = await AsyncStorage.getItem(LOT_SIZES_KEY);
         if (savedLotSizes) {
           const parsedLotSizes = JSON.parse(savedLotSizes);
           setLotSizes(parsedLotSizes);
         }
 
         // Load lot type
-        const savedLotType = await Storage.getItem({ key: LOT_TYPE_KEY });
+        const savedLotType = await AsyncStorage.getItem(LOT_TYPE_KEY);
         if (savedLotType) {
           setLotType(savedLotType as LotType);
         }
 
         // Load lot count
-        const savedLotCount = await Storage.getItem({ key: LOT_COUNT_KEY });
+        const savedLotCount = await AsyncStorage.getItem(LOT_COUNT_KEY);
         if (savedLotCount) {
           setLotCount(parseInt(savedLotCount));
         }
 
         // Load custom units
-        const savedCustomUnits = await Storage.getItem({
-          key: CUSTOM_UNITS_KEY,
-        });
+        const savedCustomUnits = await AsyncStorage.getItem(CUSTOM_UNITS_KEY);
         if (savedCustomUnits) {
           setCustomUnits(parseInt(savedCustomUnits));
         }
 
         // Load pip count
-        const savedPipCount = await Storage.getItem({ key: PIP_COUNT_KEY });
+        const savedPipCount = await AsyncStorage.getItem(PIP_COUNT_KEY);
         if (savedPipCount) {
           setPipCount(savedPipCount);
         }
@@ -155,40 +151,25 @@ const CalculatorScreen: React.FC = () => {
   useEffect(() => {
     const savePreferences = async () => {
       try {
-        await Storage.setItem({
-          key: ACCOUNT_CURRENCY_KEY,
-          value: JSON.stringify(accountCurrency),
-        });
+        await AsyncStorage.setItem(
+          ACCOUNT_CURRENCY_KEY,
+          JSON.stringify(accountCurrency)
+        );
 
-        await Storage.setItem({
-          key: CURRENCY_PAIR_KEY,
-          value: JSON.stringify(selectedPair),
-        });
+        await AsyncStorage.setItem(
+          CURRENCY_PAIR_KEY,
+          JSON.stringify(selectedPair)
+        );
 
-        await Storage.setItem({
-          key: LOT_SIZES_KEY,
-          value: JSON.stringify(lotSizes),
-        });
+        await AsyncStorage.setItem(LOT_SIZES_KEY, JSON.stringify(lotSizes));
 
-        await Storage.setItem({
-          key: LOT_TYPE_KEY,
-          value: lotType,
-        });
+        await AsyncStorage.setItem(LOT_TYPE_KEY, lotType);
 
-        await Storage.setItem({
-          key: LOT_COUNT_KEY,
-          value: lotCount.toString(),
-        });
+        await AsyncStorage.setItem(LOT_COUNT_KEY, lotCount.toString());
 
-        await Storage.setItem({
-          key: CUSTOM_UNITS_KEY,
-          value: customUnits.toString(),
-        });
+        await AsyncStorage.setItem(CUSTOM_UNITS_KEY, customUnits.toString());
 
-        await Storage.setItem({
-          key: PIP_COUNT_KEY,
-          value: pipCount,
-        });
+        await AsyncStorage.setItem(PIP_COUNT_KEY, pipCount);
       } catch (error) {
         console.error("Error saving preferences:", error);
       }
@@ -236,54 +217,61 @@ const CalculatorScreen: React.FC = () => {
       setPipValueInQuoteCurrency(pipValueQuote);
 
       try {
-        // Get exchange rate from quote currency to account currency
-        let rate;
+        // Get exchange rate between quote currency and account currency
+        // Professional trading platforms use this direct approach
 
-        // Direct exchange rate (where quote currency is account currency)
+        // If quote currency is the same as account currency
         if (selectedPair.quote === accountCurrency.code) {
-          rate = 1;
-        }
-        // Account currency is the same as base currency (need inverse rate)
-        else if (selectedPair.base === accountCurrency.code) {
-          // For pairs like EUR/USD with EUR account, calculate differently
-          const directRate = await fetchExchangeRate(
-            selectedPair.base,
-            selectedPair.quote
+          const rate = 1;
+          setExchangeRate(rate);
+
+          const pipValueAccount = calculatePipValueInAccountCurrency(
+            pipValueQuote,
+            selectedPair.quote,
+            accountCurrency.code,
+            rate
           );
-          rate = 1 / directRate; // Inverse rate for proper calculation
+          setPipValueInAccountCurrency(pipValueAccount);
+          setTotalValueInQuoteCurrency(pipValueQuote * pipCountNum);
+          setTotalValueInAccountCurrency(pipValueAccount * pipCountNum);
         }
-        // Different currency altogether
+        // For all other cases, get direct rate from quote to account currency
         else {
-          rate = await fetchExchangeRate(
+          // Get direct exchange rate from quote currency to account currency
+          // This matches professional trading platforms' calculation logic
+          const rate = await fetchExchangeRate(
             selectedPair.quote,
             accountCurrency.code
           );
+          setExchangeRate(rate);
+
+          const pipValueAccount = calculatePipValueInAccountCurrency(
+            pipValueQuote,
+            selectedPair.quote,
+            accountCurrency.code,
+            rate
+          );
+          setPipValueInAccountCurrency(pipValueAccount);
+          setTotalValueInQuoteCurrency(pipValueQuote * pipCountNum);
+          setTotalValueInAccountCurrency(pipValueAccount * pipCountNum);
         }
-
-        setExchangeRate(rate);
-
-        // Calculate pip value in account currency
-        const pipValueAccount = calculatePipValueInAccountCurrency(
-          pipValueQuote,
-          selectedPair.quote,
-          accountCurrency.code,
-          rate
-        );
-        setPipValueInAccountCurrency(pipValueAccount);
-
-        // Calculate total values
-        setTotalValueInQuoteCurrency(pipValueQuote);
-        setTotalValueInAccountCurrency(pipValueAccount);
       } catch (error) {
         // Handle specific API errors
         if (error instanceof Error) {
           setErrorMessage(error.message);
 
           // If no internet, show alert
-          if (error.message === "No internet connection") {
+          if (error.message.includes("No internet connection")) {
             Alert.alert(
               "No Internet Connection",
-              "Please connect to the internet to get real-time exchange rates."
+              "Trading requires real-time exchange rates. Please connect to the internet."
+            );
+          } else if (
+            error.message.includes("All forex data sources unavailable")
+          ) {
+            Alert.alert(
+              "Exchange Rate Unavailable",
+              "Unable to fetch accurate exchange rates at this time. Please try again later."
             );
           }
         } else {
@@ -292,27 +280,17 @@ const CalculatorScreen: React.FC = () => {
           );
         }
 
-        // Use current exchange rate if available, or default to 1
-        const currentRate = exchangeRate || 1;
-
-        // Calculate with current rate
-        const pipValueAccount = calculatePipValueInAccountCurrency(
-          pipValueQuote,
-          selectedPair.quote,
-          accountCurrency.code,
-          currentRate
-        );
-        setPipValueInAccountCurrency(pipValueAccount);
-
-        // Calculate total values
-        setTotalValueInQuoteCurrency(pipValueQuote);
-        setTotalValueInAccountCurrency(pipValueAccount);
+        // Don't use cached rates for trading app - require fresh data
+        throw new Error("Real-time rates required for accurate calculations");
       }
     } catch (error) {
       console.error("Error calculating pip values:", error);
-      setErrorMessage(
-        "An unexpected error occurred while calculating pip values."
-      );
+
+      if (!errorMessage) {
+        setErrorMessage(
+          "Unable to perform calculation with real-time rates. Please try again."
+        );
+      }
     }
   };
 
@@ -390,6 +368,26 @@ const CalculatorScreen: React.FC = () => {
           }
         >
           <View style={styles.content}>
+            {/* TraderMade API Info Banner */}
+            <View
+              style={[
+                styles.infoBanner,
+                {
+                  backgroundColor: colors.success + "20",
+                  borderColor: colors.success,
+                },
+              ]}
+            >
+              <MaterialIcons
+                name="check-circle"
+                size={20}
+                color={colors.success}
+              />
+              <Text style={[styles.infoBannerText, { color: colors.text }]}>
+                Using TraderMade API for professional-grade forex data
+              </Text>
+            </View>
+
             <CurrencySelector
               label="Account Currency"
               selectedCurrency={accountCurrency}
@@ -552,6 +550,19 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 14,
     marginLeft: 8,
+    flex: 1,
+  },
+  infoBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+  },
+  infoBannerText: {
+    marginLeft: 8,
+    fontSize: 13,
     flex: 1,
   },
 });

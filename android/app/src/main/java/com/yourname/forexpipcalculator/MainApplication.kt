@@ -1,4 +1,4 @@
-package com.yourcompany.forexpipcalculator
+package com.yourname.forexpipcalculator
 
 import android.app.Application
 import android.content.res.Configuration

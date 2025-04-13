@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'ForexPipCalculator'
+rootProject.name = 'Forex Pip Calculator'
 
 dependencyResolutionManagement {
   versionCatalogs {

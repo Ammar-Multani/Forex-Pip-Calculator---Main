@@ -9,25 +9,35 @@
     "splash": {
       "image": "./assets/splash-icon-dark.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffff"
+      "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourname.forexpipcalculator",
+      "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffff"
-      }
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.yourname.forexpipcalculator",
+      "versionCode": 1,
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "11aba8bb-8399-4c4b-b8dd-1c547005748f"
+      }
+    }
   }
 }

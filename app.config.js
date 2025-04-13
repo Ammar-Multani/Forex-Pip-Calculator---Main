@@ -7,7 +7,7 @@ export default {
   orientation: "portrait",
   icon: "./assets/icon.png",
   splash: {
-    image: "./assets/splash.png",
+    image: "./assets/splash-icon-dark.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },
@@ -17,13 +17,17 @@ export default {
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
+    bundleIdentifier: "com.yourname.forexpipcalculator",
+    buildNumber: "1.0.0",
   },
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#FFFFFF",
     },
-    package: "com.yourcompany.forexpipcalculator",
+    package: "com.yourname.forexpipcalculator",
+    versionCode: 1,
+    permissions: [],
   },
   web: {
     favicon: "./assets/favicon.png",
@@ -40,5 +44,10 @@ export default {
 
     // Environment
     NODE_ENV: process.env.NODE_ENV,
+    
+    // EAS
+    eas: {
+      projectId: "11aba8bb-8399-4c4b-b8dd-1c547005748f"
+    }
   },
 };

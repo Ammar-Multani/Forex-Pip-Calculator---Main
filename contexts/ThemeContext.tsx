@@ -11,11 +11,13 @@ export type GradientType =
   | "secondary"
   | "success"
   | "info"
-  | "card";
+  | "card"
+  | "header"
+  | "modal";
 
 // Define gradient options for both light and dark themes
 export interface GradientOptions {
-  colors: [string, string];
+  colors: string[];
   start?: { x: number; y: number };
   end?: { x: number; y: number };
 }
@@ -28,93 +30,126 @@ export interface ColorTheme {
   subtext: string;
   border: string;
   primary: string;
+  secondary: string;
+  accent: string;
   placeholder: string;
   error: string;
   info: string;
   success: string;
+  warning: string;
   highlight: string;
+  input: string;
   gradients: Record<GradientType, GradientOptions>;
 }
 
-// Themes
+// Modern 2025 Light Theme
 export const lightTheme: ColorTheme = {
-  background: "#f8f9fb",
+  background: "#f8fafd",
   card: "#ffffff",
-  text: "#1a1a1a",
-  subtext: "#6e7687",
-  border: "#e0e5e9",
-  primary: "#6c8cf2",
-  placeholder: "#bfc5cf",
-  error: "#f44336",
-  info: "#6c8cf2",
-  success: "#4caf50",
-  highlight: "#f0f7ff",
+  text: "#1a1c25",
+  subtext: "#5a6072",
+  border: "#e4e8f0",
+  primary: "#4361ee",
+  secondary: "#3a86ff",
+  accent: "#4cc9f0",
+  placeholder: "#a0a8c0",
+  error: "#ef476f",
+  info: "#4361ee",
+  success: "#06d6a0",
+  warning: "#ffd166",
+  highlight: "#eef2ff",
+  input: "#f5f7fa",
   gradients: {
     primary: {
-      colors: ["#6c8cf2", "#5476e5"],
+      colors: ["#4361ee", "#3a0ca3"],
       start: { x: 0, y: 0 },
-      end: { x: 1, y: 0 },
+      end: { x: 1, y: 1 },
     },
     secondary: {
-      colors: ["#7d9af4", "#6c8cf2"],
+      colors: ["#3a86ff", "#4361ee"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     success: {
-      colors: ["#4cdd93", "#32b47e"],
+      colors: ["#06d6a0", "#2dc653"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     info: {
-      colors: ["#7d9af4", "#5476e5"],
+      colors: ["#4cc9f0", "#4361ee"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     card: {
-      colors: ["#ffffff", "#f8f9fb"],
+      colors: ["#ffffff", "#f8fafd"],
       start: { x: 0, y: 0 },
-      end: { x: 1, y: 1 },
+      end: { x: 0, y: 1 },
+    },
+    header: {
+      colors: ["#4361ee", "#3a0ca3"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
+    },
+    modal: {
+      colors: ["#ffffff", "#f8fafd"],
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 1 },
     },
   },
 };
 
+// Modern 2025 Dark Theme
 export const darkTheme: ColorTheme = {
-  background: "#121212",
-  card: "#1e1e1e",
-  text: "#f5f5f5",
-  subtext: "#a0a0a0",
-  border: "#2c2c2c",
-  primary: "#6c8cf2",
-  placeholder: "#5e5e5e",
-  error: "#f55246",
-  info: "#6c8cf2",
-  success: "#66bb6a",
-  highlight: "#303030",
+  background: "#0f1117",
+  card: "#1a1d29",
+  text: "#f0f2f8",
+  subtext: "#a0a8c0",
+  border: "#2a2e3a",
+  primary: "#4361ee",
+  secondary: "#3a86ff",
+  accent: "#4cc9f0",
+  placeholder: "#5a6072",
+  error: "#ef476f",
+  info: "#4361ee",
+  success: "#06d6a0",
+  warning: "#ffd166",
+  highlight: "#212433",
+  input: "#242836",
   gradients: {
     primary: {
-      colors: ["#5476e5", "#3f61d3"],
+      colors: ["#4361ee", "#3a0ca3"],
       start: { x: 0, y: 0 },
-      end: { x: 1, y: 0 },
+      end: { x: 1, y: 1 },
     },
     secondary: {
-      colors: ["#6c8cf2", "#5476e5"],
+      colors: ["#3a86ff", "#4361ee"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     success: {
-      colors: ["#50c690", "#3fa876"],
+      colors: ["#06d6a0", "#2dc653"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     info: {
-      colors: ["#6c8cf2", "#5476e5"],
+      colors: ["#4cc9f0", "#4361ee"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     card: {
-      colors: ["#1e1e1e", "#171717"],
+      colors: ["#1a1d29", "#151823"],
       start: { x: 0, y: 0 },
-      end: { x: 1, y: 1 },
+      end: { x: 0, y: 1 },
+    },
+    header: {
+      colors: ["#1f2233", "#151823"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
+    },
+    modal: {
+      colors: ["#1a1d29", "#151823"],
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 1 },
     },
   },
 };

@@ -484,7 +484,7 @@ const CalculatorScreen: React.FC = () => {
                   onLotTypeChange={handleLotTypeChange}
                   onLotCountChange={handleLotCountChange}
                   onCustomUnitsChange={handleCustomUnitsChange}
-                  onEditPress={() => setLotSizeEditorVisible(true)}
+                  onEditLotSizes={() => setLotSizeEditorVisible(true)}
                 />
               </LinearGradient>
             </View>
@@ -533,7 +533,12 @@ const CalculatorScreen: React.FC = () => {
                     Pip Value
                   </Text>
                 </View>
-                <PipInput value={pipCount} onChange={handlePipCountChange} />
+                <PipInput 
+                  label="Number of Pips" 
+                  value={pipCount} 
+                  onChangeText={handlePipCountChange}
+                  currencyPair={selectedPair}
+                />
               </LinearGradient>
             </View>
 
@@ -559,6 +564,23 @@ const CalculatorScreen: React.FC = () => {
                 </Text>
               </View>
             )}
+
+            {/* Calculate Button */}
+            <TouchableOpacity
+              style={styles.calculateButtonContainer}
+              onPress={calculatePipValues}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={getGradient("primary").colors}
+                start={getGradient("primary").start}
+                end={getGradient("primary").end}
+                style={styles.calculateButton}
+              >
+                <MaterialIcons name="calculate" size={24} color="white" />
+                <Text style={styles.calculateButtonText}>Calculate</Text>
+              </LinearGradient>
+            </TouchableOpacity>
 
             {/* Results */}
             <ResultCard
@@ -632,19 +654,60 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
+  card: {
+    borderRadius: 20,
+    marginBottom: 24,
+    borderWidth: 0,
+    overflow: "hidden",
+  },
+  cardContent: {
+    padding: 20,
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginLeft: 4,
+  },
+  calculateButtonContainer: {
+    borderRadius: 16,
+    overflow: "hidden",
+    marginVertical: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
   calculateButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
-    borderRadius: 12,
-    marginVertical: 16,
   },
   calculateButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
-    marginLeft: 8,
+    marginLeft: 12,
   },
   infoContainer: {
     flexDirection: "row",
@@ -686,33 +749,6 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 14,
     flex: 1,
-  },
-  card: {
-    borderRadius: 20,
-    marginBottom: 24,
-    borderWidth: 0,
-    overflow: "hidden",
-  },
-  cardContent: {
-    padding: 20,
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginLeft: 4,
   },
 });
 

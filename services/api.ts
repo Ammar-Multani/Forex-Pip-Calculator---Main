@@ -6,9 +6,6 @@ import env from "../config/env";
 const rateCache: Record<string, { rate: number; timestamp: number }> = {};
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-// API key - hardcoded for reliability, should match env
-const TRADER_MADE_API_KEY = "ixh2QN-O4kmYz52jg3kd";
-
 // Check if a cached rate is still valid
 const isCacheValid = (key: string): boolean => {
   if (!rateCache[key]) return false;
@@ -43,7 +40,7 @@ export const fetchExchangeRate = async (
     console.log(`Calling TraderMade API for ${fromCurrency}/${toCurrency}`);
 
     const response = await fetch(
-      `https://marketdata.tradermade.com/api/v1/live?api_key=${TRADER_MADE_API_KEY}&currency=${fromCurrency}${toCurrency}`
+      `https://marketdata.tradermade.com/api/v1/live?api_key=${env.traderMadeApiKey}&currency=${fromCurrency}${toCurrency}`
     );
 
     if (!response.ok) {
@@ -120,7 +117,7 @@ export const fetchAllExchangeRates = async (
       .join(",");
 
     const response = await fetch(
-      `https://marketdata.tradermade.com/api/v1/live?api_key=${TRADER_MADE_API_KEY}&currency=${pairs}`
+      `https://marketdata.tradermade.com/api/v1/live?api_key=${env.traderMadeApiKey}&currency=${pairs}`
     );
 
     if (!response.ok) {

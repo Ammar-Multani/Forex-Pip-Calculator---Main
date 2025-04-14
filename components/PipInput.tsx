@@ -1,44 +1,46 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import { CurrencyPair } from '../constants/currencies';
+import React from "react";
+import { View, Text, StyleSheet, TextInput } from "react-native";
+import { useTheme } from "../contexts/ThemeContext";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface PipInputProps {
-  label: string;
   value: string;
-  onChangeText: (text: string) => void;
-  currencyPair: CurrencyPair;
+  onChange: (text: string) => void;
 }
 
-const PipInput: React.FC<PipInputProps> = ({
-  label,
-  value,
-  onChangeText,
-  currencyPair,
-}) => {
-  const { colors } = useTheme();
-
-  // Determine the placeholder based on the currency pair's pip decimal places
-  const placeholder = currencyPair.pipDecimalPlaces === 2 ? '0.01' : '0.0001';
+const PipInput: React.FC<PipInputProps> = ({ value, onChange }) => {
+  const { colors, theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+      <View style={styles.headerRow}>
+        <MaterialIcons name="trending-up" size={20} color={colors.primary} />
+        <Text style={[styles.label, { color: colors.text }]}>
+          Number of Pips
+        </Text>
+      </View>
+
       <View style={styles.inputContainer}>
         <TextInput
           style={[
             styles.input,
-            { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text,
+            },
           ]}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={onChange}
           keyboardType="numeric"
-          placeholder={`Number of pips (e.g., 10)`}
+          placeholder="Enter pip count (e.g., 10)"
           placeholderTextColor={colors.placeholder}
         />
       </View>
+
       <Text style={[styles.pipInfo, { color: colors.subtext }]}>
-        1 pip = {placeholder} for {currencyPair.name}
+        Enter the number of pips for your calculation
       </Text>
     </View>
   );
@@ -46,16 +48,22 @@ const PipInput: React.FC<PipInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 16,
     marginBottom: 16,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
+    fontWeight: "600",
+    marginLeft: 8,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   input: {
     flex: 1,

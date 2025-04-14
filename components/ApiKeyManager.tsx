@@ -42,16 +42,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
   const { colors } = useTheme();
 
   // API key states
-  const [alphaVantageKey, setAlphaVantageKey] = useState(
-    env.alphaVantageApiKey
-  );
-  const [fixerKey, setFixerKey] = useState(env.fixerApiKey);
-  const [currencyLayerKey, setCurrencyLayerKey] = useState(
-    env.currencyLayerApiKey
-  );
-  const [exchangeRateKey, setExchangeRateKey] = useState(
-    env.exchangeRateApiKey
-  );
+
   const [traderMadeKey, setTraderMadeKey] = useState(env.traderMadeApiKey);
 
   const [loading, setLoading] = useState(false);
@@ -60,26 +51,11 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
   useEffect(() => {
     const loadApiKeys = async () => {
       try {
-        const storedAlphaVantageKey = await AsyncStorage.getItem(
-          `${API_KEY_STORAGE_PREFIX}alpha-vantage`
-        );
-        const storedFixerKey = await AsyncStorage.getItem(
-          `${API_KEY_STORAGE_PREFIX}fixer`
-        );
-        const storedCurrencyLayerKey = await AsyncStorage.getItem(
-          `${API_KEY_STORAGE_PREFIX}currency-layer`
-        );
-        const storedExchangeRateKey = await AsyncStorage.getItem(
-          `${API_KEY_STORAGE_PREFIX}exchange-rate`
-        );
+
         const storedTraderMadeKey = await AsyncStorage.getItem(
           `${API_KEY_STORAGE_PREFIX}trader-made`
         );
 
-        if (storedAlphaVantageKey) setAlphaVantageKey(storedAlphaVantageKey);
-        if (storedFixerKey) setFixerKey(storedFixerKey);
-        if (storedCurrencyLayerKey) setCurrencyLayerKey(storedCurrencyLayerKey);
-        if (storedExchangeRateKey) setExchangeRateKey(storedExchangeRateKey);
         if (storedTraderMadeKey) setTraderMadeKey(storedTraderMadeKey);
       } catch (error) {
         console.error("Error loading API keys", error);
@@ -93,20 +69,6 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
   const saveApiKeys = async () => {
     setLoading(true);
     try {
-      // Save API keys to storage
-      await AsyncStorage.setItem(
-        `${API_KEY_STORAGE_PREFIX}alpha-vantage`,
-        alphaVantageKey
-      );
-      await AsyncStorage.setItem(`${API_KEY_STORAGE_PREFIX}fixer`, fixerKey);
-      await AsyncStorage.setItem(
-        `${API_KEY_STORAGE_PREFIX}currency-layer`,
-        currencyLayerKey
-      );
-      await AsyncStorage.setItem(
-        `${API_KEY_STORAGE_PREFIX}exchange-rate`,
-        exchangeRateKey
-      );
       await AsyncStorage.setItem(
         `${API_KEY_STORAGE_PREFIX}trader-made`,
         traderMadeKey
@@ -144,35 +106,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
       storageKey: "trader-made",
       inputPlaceholder: "Enter your TraderMade API key",
       signupUrl: "https://tradermade.com/signup",
-    },
-    {
-      name: "Exchange Rate API",
-      key: exchangeRateKey,
-      storageKey: "exchange-rate",
-      inputPlaceholder: "Enter your Exchange Rate API key (optional)",
-      signupUrl: "https://www.exchangerate-api.com/",
-    },
-    {
-      name: "Alpha Vantage",
-      key: alphaVantageKey,
-      storageKey: "alpha-vantage",
-      inputPlaceholder: "Enter your Alpha Vantage API key",
-      signupUrl: "https://www.alphavantage.co/support/#api-key",
-    },
-    {
-      name: "Fixer",
-      key: fixerKey,
-      storageKey: "fixer",
-      inputPlaceholder: "Enter your Fixer API key",
-      signupUrl: "https://fixer.io/",
-    },
-    {
-      name: "Currency Layer",
-      key: currencyLayerKey,
-      storageKey: "currency-layer",
-      inputPlaceholder: "Enter your Currency Layer API key",
-      signupUrl: "https://currencylayer.com/",
-    },
+    }
   ];
 
   // Handle input change for any API key
@@ -198,7 +132,8 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background },
+    ]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={[styles.header, { backgroundColor: colors.card }]}>
@@ -241,6 +176,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
             For the most accurate and reliable forex data, it's recommended to
             use your own API key from TraderMade. The free tiers of these
             services provide sufficient data for personal use.
+            Backup api key: wsWt3A-afcjtbpTzs5hw
           </Text>
           <Text style={[styles.recommText, { color: colors.success }]}>
             TraderMade is now the recommended primary data source.

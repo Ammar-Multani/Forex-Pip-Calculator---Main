@@ -10,9 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Modal,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
-import { StatusBar } from "expo-status-bar";
 import Header from "../components/Header";
 import CurrencySelector from "../components/CurrencySelector";
 import CurrencyModal from "../components/CurrencyModal";
@@ -41,6 +41,7 @@ import {
 import { fetchExchangeRate } from "../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 // Storage keys
 const ACCOUNT_CURRENCY_KEY = "forex-pip-calculator-account-currency";
@@ -52,7 +53,8 @@ const CUSTOM_UNITS_KEY = "forex-pip-calculator-custom-units";
 const PIP_COUNT_KEY = "forex-pip-calculator-pip-count";
 
 const CalculatorScreen: React.FC = () => {
-  const { colors, toggleTheme } = useTheme();
+  const { colors, theme, toggleTheme, getGradient } = useTheme();
+  const isDarkMode = theme === "dark";
 
   // State for currency selection
   const [accountCurrency, setAccountCurrency] = useState<Currency>(
@@ -349,7 +351,6 @@ const CalculatorScreen: React.FC = () => {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <StatusBar style="auto" />
       <Header title="Forex Pip Calculator" onThemeToggle={toggleTheme} />
 
       <KeyboardAvoidingView
@@ -368,68 +369,130 @@ const CalculatorScreen: React.FC = () => {
           }
         >
           <View style={styles.content}>
-            {/* TraderMade API Info Banner */}
+            {/* Currency Selection Card */}
             <View
               style={[
-                styles.infoBanner,
+                styles.card,
                 {
-                  backgroundColor: colors.success + "20",
-                  borderColor: colors.success,
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  ...Platform.select({
+                    ios: {
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 3,
+                    },
+                    android: {
+                      elevation: 3,
+                    },
+                  }),
                 },
               ]}
             >
-              <MaterialIcons
-                name="check-circle"
-                size={20}
-                color={colors.success}
-              />
-              <Text style={[styles.infoBannerText, { color: colors.text }]}>
-                Using TraderMade API for professional-grade forex data
-              </Text>
+              <LinearGradient
+                colors={getGradient("card").colors}
+                start={getGradient("card").start}
+                end={getGradient("card").end}
+                style={styles.cardContent}
+              >
+                <View style={styles.cardHeaderRow}>
+                  <MaterialIcons
+                    name="monetization-on"
+                    size={20}
+                    color={colors.primary}
+                  />
+                  <Text style={[styles.cardTitle, { color: colors.text }]}>
+                    Currency Setup
+                  </Text>
+                </View>
+                <CurrencySelector
+                  label="Account Currency"
+                  selectedCurrency={accountCurrency}
+                  onPress={() => setCurrencyModalVisible(true)}
+                />
+
+                <CurrencyPairSelector
+                  label="Currency Pair"
+                  selectedPair={selectedPair}
+                  onPress={() => setPairModalVisible(true)}
+                />
+              </LinearGradient>
             </View>
 
-            <CurrencySelector
-              label="Account Currency"
-              selectedCurrency={accountCurrency}
-              onPress={() => setCurrencyModalVisible(true)}
-            />
-
-            <CurrencyPairSelector
-              label="Currency Pair"
-              selectedPair={selectedPair}
-              onPress={() => setPairModalVisible(true)}
-            />
-
-            <LotSizeSelector
-              label="Position Size"
-              lotType={lotType}
-              lotCount={lotCount}
-              customUnits={customUnits}
-              lotSizes={lotSizes}
-              onLotTypeChange={handleLotTypeChange}
-              onLotCountChange={handleLotCountChange}
-              onCustomUnitsChange={handleCustomUnitsChange}
-              onEditLotSizes={() => setLotSizeEditorVisible(true)}
-            />
-
-            <PipInput
-              label="Number of Pips"
-              value={pipCount}
-              onChangeText={handlePipCountChange}
-              currencyPair={selectedPair}
-            />
-
-            <TouchableOpacity
+            {/* Position Size Card */}
+            <View
               style={[
-                styles.calculateButton,
-                { backgroundColor: colors.primary },
+                styles.card,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  ...Platform.select({
+                    ios: {
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 3,
+                    },
+                    android: {
+                      elevation: 3,
+                    },
+                  }),
+                },
               ]}
-              onPress={calculatePipValues}
             >
-              <MaterialIcons name="calculate" size={20} color="#fff" />
-              <Text style={styles.calculateButtonText}>Calculate</Text>
-            </TouchableOpacity>
+              <LinearGradient
+                colors={getGradient("card").colors}
+                start={getGradient("card").start}
+                end={getGradient("card").end}
+                style={styles.cardContent}
+              >
+                <View style={styles.cardHeaderRow}>
+                  <MaterialIcons
+                    name="account-balance"
+                    size={20}
+                    color={colors.primary}
+                  />
+                  <Text style={[styles.cardTitle, { color: colors.text }]}>
+                    Position Size
+                  </Text>
+                </View>
+                <LotSizeSelector
+                  label="Position Size"
+                  lotType={lotType}
+                  lotCount={lotCount}
+                  customUnits={customUnits}
+                  lotSizes={lotSizes}
+                  onLotTypeChange={handleLotTypeChange}
+                  onLotCountChange={handleLotCountChange}
+                  onCustomUnitsChange={handleCustomUnitsChange}
+                  onEditPress={() => setLotSizeEditorVisible(true)}
+                />
 
+                <PipInput value={pipCount} onChange={handlePipCountChange} />
+              </LinearGradient>
+            </View>
+
+            {/* Error Message */}
+            {errorMessage && (
+              <View
+                style={[
+                  styles.errorContainer,
+                  { backgroundColor: colors.error + "20" },
+                ]}
+              >
+                <MaterialIcons
+                  name="error-outline"
+                  size={24}
+                  color={colors.error}
+                />
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {errorMessage}
+                </Text>
+              </View>
+            )}
+
+            {/* Results */}
             <ResultCard
               accountCurrency={accountCurrency}
               currencyPair={selectedPair}
@@ -440,59 +503,49 @@ const CalculatorScreen: React.FC = () => {
               exchangeRate={exchangeRate}
               pipCount={parseFloat(pipCount) || 0}
             />
-
-            {errorMessage && (
-              <View style={styles.errorContainer}>
-                <MaterialIcons
-                  name="error-outline"
-                  size={20}
-                  color={colors.error}
-                />
-                <Text style={[styles.errorText, { color: colors.error }]}>
-                  {errorMessage}
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.infoContainer}>
-              <MaterialIcons
-                name="info-outline"
-                size={20}
-                color={colors.info}
-              />
-              <Text style={[styles.infoText, { color: colors.subtext }]}>
-                Pull down to refresh exchange rates. Values are calculated based
-                on the current position size and pip count. Real-time rates
-                require internet connection.
-              </Text>
-            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
       {/* Modals */}
-      <CurrencyModal
-        isVisible={currencyModalVisible}
-        onClose={() => setCurrencyModalVisible(false)}
-        onSelectCurrency={handleAccountCurrencySelect}
-        selectedCurrency={accountCurrency}
-        currencies={currencies}
-      />
+      <Modal
+        visible={currencyModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setCurrencyModalVisible(false)}
+      >
+        <CurrencyModal
+          onClose={() => setCurrencyModalVisible(false)}
+          onSelect={handleAccountCurrencySelect}
+          selectedCurrency={accountCurrency}
+        />
+      </Modal>
 
-      <CurrencyPairModal
-        isVisible={pairModalVisible}
-        onClose={() => setPairModalVisible(false)}
-        onSelectPair={handleCurrencyPairSelect}
-        selectedPair={selectedPair}
-        currencyPairs={currencyPairs}
-      />
+      <Modal
+        visible={pairModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setPairModalVisible(false)}
+      >
+        <CurrencyPairModal
+          onClose={() => setPairModalVisible(false)}
+          onSelect={handleCurrencyPairSelect}
+          selectedPair={selectedPair}
+        />
+      </Modal>
 
-      <LotSizeEditorModal
-        isVisible={lotSizeEditorVisible}
-        onClose={() => setLotSizeEditorVisible(false)}
-        lotSizes={lotSizes}
-        onSave={handleLotSizesSave}
-      />
+      <Modal
+        visible={lotSizeEditorVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setLotSizeEditorVisible(false)}
+      >
+        <LotSizeEditorModal
+          lotSizes={lotSizes}
+          onSave={handleLotSizesSave}
+          onClose={() => setLotSizeEditorVisible(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -540,30 +593,45 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "rgba(244, 67, 54, 0.1)",
+    alignItems: "center",
     padding: 12,
     borderRadius: 8,
-    marginTop: 8,
-    marginBottom: 8,
+    marginBottom: 16,
   },
   errorText: {
-    fontSize: 14,
     marginLeft: 8,
-    flex: 1,
+    fontSize: 14,
   },
   infoBanner: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
     marginBottom: 16,
-    borderWidth: 1,
+    borderLeftWidth: 3,
   },
   infoBannerText: {
     marginLeft: 8,
-    fontSize: 13,
-    flex: 1,
+    fontSize: 14,
+  },
+  card: {
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  cardContent: {
+    padding: 16,
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
   },
 });
 

@@ -42,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({
   // Choose header colors based on theme for a more subtle look
   const headerBackgroundColor = isDarkMode ? "#1a1a1a" : "#fff";
   const headerTextColor = isDarkMode ? "#fff" : "#333";
-  const iconColor = "#5a6ed1";
+  const iconColor = "#6c8cf2";
 
   return (
     <>

@@ -132,7 +132,8 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background },
+    ]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={[styles.header, { backgroundColor: colors.card }]}>

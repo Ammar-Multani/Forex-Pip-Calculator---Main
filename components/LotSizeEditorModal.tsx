@@ -73,7 +73,7 @@ const LotSizeEditorModal: React.FC<LotSizeEditorModalProps> = ({
   // Get gradient colors based on theme (fix the tuple type issue)
   const gradientColors = isDarkMode
     ? ([colors.card, colors.background] as const)
-    : (["#5a6ed1", "#5a6ed1"] as const);
+    : (["#6c8cf2", "#6c8cf2"] as const);
 
   // Render a lot size item for FlatList
   const renderLotSizeItem = ({ item }: { item: string }) => {

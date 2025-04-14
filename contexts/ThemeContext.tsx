@@ -51,22 +51,22 @@ export const lightTheme: ColorTheme = {
   highlight: "#f0f7ff",
   gradients: {
     primary: {
-      colors: ["#6c8cf2", "#6c8cf2"],
+      colors: ["#6c8cf2", "#5476e5"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     secondary: {
-      colors: ["#6c8cf2", "#6c8cf2"],
+      colors: ["#7d9af4", "#6c8cf2"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     success: {
-      colors: ["#43cc90", "#32b47e"],
+      colors: ["#4cdd93", "#32b47e"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     info: {
-      colors: ["#6c8cf2", "#6c8cf2"],
+      colors: ["#7d9af4", "#5476e5"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
@@ -87,17 +87,17 @@ export const darkTheme: ColorTheme = {
   primary: "#6c8cf2",
   placeholder: "#5e5e5e",
   error: "#f55246",
-  info: "##6c8cf2",
+  info: "#6c8cf2",
   success: "#66bb6a",
   highlight: "#303030",
   gradients: {
     primary: {
-      colors: ["#6c8cf2", "#6c8cf2"],
+      colors: ["#5476e5", "#3f61d3"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     secondary: {
-      colors: ["#6c8cf2", "#6c8cf2"],
+      colors: ["#6c8cf2", "#5476e5"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
@@ -107,12 +107,12 @@ export const darkTheme: ColorTheme = {
       end: { x: 1, y: 0 },
     },
     info: {
-      colors: ["#6c8cf2", "#6c8cf2"],
+      colors: ["#6c8cf2", "#5476e5"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     card: {
-      colors: ["#1e1e1e", "#161616"],
+      colors: ["#1e1e1e", "#171717"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 1 },
     },

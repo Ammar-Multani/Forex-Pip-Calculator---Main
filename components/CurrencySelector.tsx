@@ -1,8 +1,14 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import { Currency } from '../constants/currencies';
-import { MaterialIcons } from '@expo/vector-icons';
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from "react-native";
+import { useTheme } from "../contexts/ThemeContext";
+import { Currency } from "../constants/currencies";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface CurrencySelectorProps {
   label: string;
@@ -21,7 +27,24 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
     <View style={styles.container}>
       <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
       <TouchableOpacity
-        style={[styles.selector, { backgroundColor: colors.card, borderColor: colors.border }]}
+        style={[
+          styles.selector,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          },
+          Platform.select({
+            ios: {
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+            },
+            android: {
+              elevation: 1,
+            },
+          }),
+        ]}
         onPress={onPress}
         activeOpacity={0.7}
       >
@@ -34,10 +57,21 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
           </Text>
         </View>
         <View style={styles.iconContainer}>
-          <Text style={[styles.currencySymbol, { color: colors.primary }]}>
-            {selectedCurrency.symbol}
-          </Text>
-          <MaterialIcons name="keyboard-arrow-down" size={24} color={colors.primary} />
+          <View
+            style={[
+              styles.symbolContainer,
+              { backgroundColor: colors.primary + "15" },
+            ]}
+          >
+            <Text style={[styles.currencySymbol, { color: colors.primary }]}>
+              {selectedCurrency.symbol}
+            </Text>
+          </View>
+          <MaterialIcons
+            name="keyboard-arrow-down"
+            size={24}
+            color={colors.primary}
+          />
         </View>
       </TouchableOpacity>
     </View>
@@ -46,39 +80,47 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
+    fontWeight: "600",
+    marginBottom: 10,
   },
   selector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
-    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    borderRadius: 10,
     borderWidth: 1,
   },
   currencyInfo: {
-    flexDirection: 'column',
+    flexDirection: "column",
   },
   currencyCode: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+    marginBottom: 2,
   },
   currencyName: {
     fontSize: 14,
   },
   iconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  symbolContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
   },
   currencySymbol: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginRight: 8,
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 

@@ -41,10 +41,12 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
   const itemStyle = {
     flexDirection: "row" as const,
     alignItems: "center" as const,
+    justifyContent: "space-between" as const,
     paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingHorizontal: 16,
+    marginVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
   };
 
   // Update filtered currencies when search term changes
@@ -81,12 +83,15 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
         onPress={() => handleSelect(item)}
         activeOpacity={0.7}
       >
-        <Image
-          source={{
-            uri: `https://flagcdn.com/w40/${item.countryCode.toLowerCase()}.png`,
-          }}
-          style={styles.flag}
-        />
+        <View style={styles.flagContainer}>
+          <Image
+            source={{
+              uri: `https://flagcdn.com/w160/${item.countryCode.toLowerCase()}.png`,
+            }}
+            style={styles.flag}
+            resizeMode="cover"
+          />
+        </View>
         <View style={styles.currencyInfo}>
           <Text style={[styles.currencyCode, { color: colors.text }]}>
             {item.code}
@@ -181,6 +186,7 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
         initialNumToRender={10}
         maxToRenderPerBatch={20}
         windowSize={10}
+        ItemSeparatorComponent={() => <View style={{ height: 2 }} />}
       />
     </SafeAreaView>
   );
@@ -215,8 +221,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     margin: 16,
+    marginBottom: 0,
     borderRadius: 10,
     borderWidth: 1,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
   },
   searchInput: {
     flex: 1,
@@ -229,6 +241,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: Platform.OS === "ios" ? 40 : 16,
   },
   currencyItem: {
@@ -242,6 +255,7 @@ const styles = StyleSheet.create({
   },
   currencyInfo: {
     flex: 1,
+    marginLeft: 4,
   },
   currencyCode: {
     fontSize: 16,
@@ -250,10 +264,12 @@ const styles = StyleSheet.create({
   },
   currencyName: {
     fontSize: 14,
+    opacity: 0.8,
   },
   currencyRight: {
     flexDirection: "row",
     alignItems: "center",
+    marginLeft: 8,
   },
   symbolContainer: {
     width: 36,
@@ -262,19 +278,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.15)",  
   },
   currencySymbol: {
     fontSize: 16,
     fontWeight: "600",
   },
   checkIcon: {
-    marginLeft: 4,
+    marginLeft: 8,
+  },
+  flagContainer: {
+    marginRight: 15,
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    elevation: 2,
   },
   flag: {
-    width: 30,
-    height: 20,
-    marginRight: 15,
-    borderRadius: 2,
+    width: 35,
+    height: 22,
+    borderRadius: 3,
+    borderWidth: 0.5,
+    borderColor: "rgba(0,0,0,0.15)",
   },
 });
 

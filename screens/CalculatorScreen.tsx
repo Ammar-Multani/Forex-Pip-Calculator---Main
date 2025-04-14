@@ -378,14 +378,20 @@ const CalculatorScreen: React.FC = () => {
               style={[
                 styles.card,
                 {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
+                  backgroundColor: isDarkMode
+                    ? "rgba(45, 52, 65, 0.8)"
+                    : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDarkMode
+                    ? colors.border + "30"
+                    : "rgba(230, 235, 240, 0.9)",
                   ...Platform.select({
                     ios: {
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
+                      shadowColor: isDarkMode
+                        ? colors.primary + "40"
+                        : "#000000",
+                      shadowOffset: { width: 0, height: 6 },
+                      shadowOpacity: isDarkMode ? 0.3 : 0.1,
+                      shadowRadius: 10,
                     },
                     android: {
                       elevation: 4,
@@ -404,12 +410,12 @@ const CalculatorScreen: React.FC = () => {
                   <View
                     style={[
                       styles.iconContainer,
-                      { backgroundColor: colors.primary + "15" },
+                      { backgroundColor: colors.primary + "20" },
                     ]}
                   >
                     <MaterialIcons
                       name="monetization-on"
-                      size={20}
+                      size={24}
                       color={colors.primary}
                     />
                   </View>
@@ -436,14 +442,20 @@ const CalculatorScreen: React.FC = () => {
               style={[
                 styles.card,
                 {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
+                  backgroundColor: isDarkMode
+                    ? "rgba(45, 52, 65, 0.8)"
+                    : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDarkMode
+                    ? colors.border + "30"
+                    : "rgba(230, 235, 240, 0.9)",
                   ...Platform.select({
                     ios: {
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
+                      shadowColor: isDarkMode
+                        ? colors.primary + "40"
+                        : "#000000",
+                      shadowOffset: { width: 0, height: 6 },
+                      shadowOpacity: isDarkMode ? 0.3 : 0.1,
+                      shadowRadius: 10,
                     },
                     android: {
                       elevation: 4,
@@ -462,12 +474,12 @@ const CalculatorScreen: React.FC = () => {
                   <View
                     style={[
                       styles.iconContainer,
-                      { backgroundColor: colors.primary + "15" },
+                      { backgroundColor: colors.primary + "20" },
                     ]}
                   >
                     <MaterialIcons
                       name="account-balance"
-                      size={20}
+                      size={24}
                       color={colors.primary}
                     />
                   </View>
@@ -494,14 +506,20 @@ const CalculatorScreen: React.FC = () => {
               style={[
                 styles.card,
                 {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
+                  backgroundColor: isDarkMode
+                    ? "rgba(45, 52, 65, 0.8)"
+                    : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDarkMode
+                    ? colors.border + "30"
+                    : "rgba(230, 235, 240, 0.9)",
                   ...Platform.select({
                     ios: {
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
+                      shadowColor: isDarkMode
+                        ? colors.primary + "40"
+                        : "#000000",
+                      shadowOffset: { width: 0, height: 6 },
+                      shadowOpacity: isDarkMode ? 0.3 : 0.1,
+                      shadowRadius: 10,
                     },
                     android: {
                       elevation: 4,
@@ -520,12 +538,12 @@ const CalculatorScreen: React.FC = () => {
                   <View
                     style={[
                       styles.iconContainer,
-                      { backgroundColor: colors.primary + "15" },
+                      { backgroundColor: colors.primary + "20" },
                     ]}
                   >
                     <MaterialIcons
                       name="trending-up"
-                      size={20}
+                      size={24}
                       color={colors.primary}
                     />
                   </View>
@@ -543,17 +561,33 @@ const CalculatorScreen: React.FC = () => {
                 style={[
                   styles.errorContainer,
                   {
-                    backgroundColor: colors.error + "15",
-                    borderLeftColor: colors.error,
-                    borderLeftWidth: 4,
+                    backgroundColor: isDarkMode
+                      ? "rgba(220, 53, 69, 0.12)"
+                      : "rgba(255, 235, 238, 0.9)",
+                    borderColor: colors.error + "40",
+                    borderWidth: 1,
+                    borderRadius: 16,
+                    ...Platform.select({
+                      ios: {
+                        shadowColor: colors.error + "30",
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 8,
+                      },
+                      android: {
+                        elevation: 2,
+                      },
+                    }),
                   },
                 ]}
               >
-                <MaterialIcons
-                  name="error-outline"
-                  size={24}
-                  color={colors.error}
-                />
+                <View style={styles.errorIconContainer}>
+                  <MaterialIcons
+                    name="error-outline"
+                    size={20}
+                    color={colors.error}
+                  />
+                </View>
                 <Text style={[styles.errorText, { color: colors.error }]}>
                   {errorMessage}
                 </Text>
@@ -561,16 +595,20 @@ const CalculatorScreen: React.FC = () => {
             )}
 
             {/* Results */}
-            <ResultCard
-              accountCurrency={accountCurrency}
-              currencyPair={selectedPair}
-              pipValueInQuoteCurrency={pipValueInQuoteCurrency}
-              pipValueInAccountCurrency={pipValueInAccountCurrency}
-              totalValueInQuoteCurrency={totalValueInQuoteCurrency}
-              totalValueInAccountCurrency={totalValueInAccountCurrency}
-              exchangeRate={exchangeRate}
-              pipCount={parseFloat(pipCount) || 0}
-            />
+            <View style={[styles.resultContainer]}>
+              <ResultCard
+                accountCurrency={accountCurrency}
+                currencyPair={selectedPair}
+                pipValueInQuoteCurrency={pipValueInQuoteCurrency}
+                pipValueInAccountCurrency={pipValueInAccountCurrency}
+                totalValueInQuoteCurrency={totalValueInQuoteCurrency}
+                totalValueInAccountCurrency={totalValueInAccountCurrency}
+                exchangeRate={exchangeRate}
+                pipCount={parseFloat(pipCount) || 0}
+                onRefresh={onRefresh}
+                isRefreshing={refreshing}
+              />
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -627,10 +665,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 30,
+    paddingBottom: 25,
   },
   content: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 10,
   },
   calculateButton: {
     flexDirection: "row",
@@ -664,15 +703,25 @@ const styles = StyleSheet.create({
   errorContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 16,
+    marginHorizontal: 16,
     marginBottom: 20,
   },
+  errorIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(220, 53, 69, 0.12)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
   errorText: {
-    marginLeft: 12,
     fontSize: 14,
     flex: 1,
     lineHeight: 20,
+    fontWeight: "500",
   },
   infoBanner: {
     flexDirection: "row",
@@ -688,13 +737,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    borderRadius: 20,
-    marginBottom: 24,
-    borderWidth: 0,
+    borderRadius: 22,
+    marginBottom: 16,
+    borderWidth: 1,
     overflow: "hidden",
   },
   cardContent: {
-    padding: 20,
+    padding: 17,
   },
   cardHeaderRow: {
     flexDirection: "row",
@@ -702,17 +751,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 8,
+    marginRight: 12,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: "700",
     marginLeft: 4,
+  },
+  resultContainer: {
+    marginBottom: 24,
+    marginTop: 10,
   },
 });
 

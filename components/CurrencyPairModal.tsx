@@ -59,11 +59,6 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     marginVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    shadowColor: "#000" as const,
-    shadowOffset: { width: 0, height: 1 } as const,
-    shadowOpacity: 0.1 as const,
-    shadowRadius: 2 as const,
-    elevation: 2 as const,
   };
 
   // Update filtered pairs when search term changes
@@ -129,17 +124,19 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
           {baseCurrency && (
             <Image
               source={{
-                uri: `https://flagcdn.com/w40/${baseCurrency.countryCode.toLowerCase()}.png`,
+                uri: `https://flagcdn.com/w160/${baseCurrency.countryCode.toLowerCase()}.png`,
               }}
               style={[styles.flag, styles.flagFirst]}
+              resizeMode="cover"
             />
           )}
           {quoteCurrency && (
             <Image
               source={{
-                uri: `https://flagcdn.com/w40/${quoteCurrency.countryCode.toLowerCase()}.png`,
+                uri: `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`,
               }}
               style={[styles.flag, styles.flagSecond]}
+              resizeMode="cover"
             />
           )}
         </View>
@@ -417,11 +414,12 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   flag: {
-    width: 40,
-    height: 28,
-    borderRadius: 2,
+    width: 35,
+    height: 22,
+    borderRadius: 3,
     borderWidth: 0.5,
     borderColor: "rgba(0,0,0,0.15)",
+    marginTop: 5,
   },
   flagsContainer: {
     flexDirection: "row",

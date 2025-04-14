@@ -25,6 +25,7 @@ const PipInput: React.FC<PipInputProps> = ({
   return (
     <View style={styles.container}>
       <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+      
       <View
         style={[
           styles.inputContainer,
@@ -32,6 +33,17 @@ const PipInput: React.FC<PipInputProps> = ({
             backgroundColor: colors.input,
             borderColor: colors.border,
           },
+          Platform.select({
+            ios: {
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3,
+            },
+            android: {
+              elevation: 2,
+            },
+          }),
         ]}
       >
         <TextInput
@@ -53,6 +65,7 @@ const PipInput: React.FC<PipInputProps> = ({
           </Text>
         </View>
       </View>
+      
       <View
         style={[
           styles.infoContainer,
@@ -84,17 +97,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
   },
   input: {
     flex: 1,

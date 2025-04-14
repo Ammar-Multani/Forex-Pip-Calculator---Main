@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  SafeAreaView,
   Platform,
   StatusBar,
   Image,
@@ -38,13 +37,14 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
   currencies,
 }) => {
   const { colors, theme, getGradient } = useTheme();
-  const insets = useSafeAreaInsets();
   const isDarkMode = theme === "dark";
+  const insets = useSafeAreaInsets();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredCurrencies, setFilteredCurrencies] =
     useState<Currency[]>(currencies);
   const screenHeight = Dimensions.get("window").height;
 
+  // Update filtered currencies when search term changes
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setFilteredCurrencies(currencies);
@@ -53,11 +53,13 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
     }
   }, [searchTerm, currencies]);
 
+  // Handle currency selection
   const handleSelect = (currency: Currency) => {
     onSelectCurrency(currency);
     onClose();
   };
 
+  // Render each currency item
   const renderCurrencyItem = ({ item }: { item: Currency }) => {
     const isSelected = selectedCurrency.code === item.code;
 
@@ -215,7 +217,6 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
   placeholder: {
     width: 40,
@@ -301,7 +302,6 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.primary,
   },
   checkIcon: {
     marginLeft: 4,

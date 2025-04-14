@@ -11,17 +11,11 @@ export type GradientType =
   | "secondary"
   | "success"
   | "info"
-  | "card"
-  | "header"
-<<<<<<< Updated upstream
-  | "modal";
-=======
-  | "accent";
->>>>>>> Stashed changes
+  | "card";
 
 // Define gradient options for both light and dark themes
 export interface GradientOptions {
-  colors: string[];
+  colors: [string, string];
   start?: { x: number; y: number };
   end?: { x: number; y: number };
 }
@@ -34,206 +28,93 @@ export interface ColorTheme {
   subtext: string;
   border: string;
   primary: string;
-  secondary: string;
-  accent: string;
   placeholder: string;
   error: string;
   info: string;
   success: string;
-  warning: string;
   highlight: string;
-  input: string;
   gradients: Record<GradientType, GradientOptions>;
 }
 
-// Modern 2025 Light Theme
+// Themes
 export const lightTheme: ColorTheme = {
-  background: "#f8fafd",
+  background: "#f8f9fb",
   card: "#ffffff",
-<<<<<<< Updated upstream
-  text: "#1a1c25",
-  subtext: "#5a6072",
-  border: "#e4e8f0",
-  primary: "#4361ee",
-  secondary: "#3a86ff",
-  accent: "#4cc9f0",
-  placeholder: "#a0a8c0",
-  error: "#ef476f",
-  info: "#4361ee",
-  success: "#06d6a0",
-  warning: "#ffd166",
-  highlight: "#eef2ff",
-  input: "#f5f7fa",
-=======
-  text: "#1a1a2e",
-  subtext: "#5d6b98",
-  border: "#e4e9f2",
-  primary: "#4361ee",
-  secondary: "#3f37c9",
-  accent: "#4895ef",
-  placeholder: "#a0aec0",
-  error: "#e53e3e",
-  info: "#4299e1",
-  success: "#38b2ac",
-  highlight: "#ebf4ff",
-  input: "#f7fafc",
->>>>>>> Stashed changes
+  text: "#1a1a1a",
+  subtext: "#6e7687",
+  border: "#e0e5e9",
+  primary: "#6c8cf2",
+  placeholder: "#bfc5cf",
+  error: "#f44336",
+  info: "#6c8cf2",
+  success: "#4caf50",
+  highlight: "#f0f7ff",
   gradients: {
     primary: {
-      colors: ["#4361ee", "#3a0ca3"],
+      colors: ["#6c8cf2", "#5476e5"],
       start: { x: 0, y: 0 },
-      end: { x: 1, y: 1 },
+      end: { x: 1, y: 0 },
     },
     secondary: {
-<<<<<<< Updated upstream
-      colors: ["#3a86ff", "#4361ee"],
-=======
-      colors: ["#3f37c9", "#4361ee"],
->>>>>>> Stashed changes
+      colors: ["#7d9af4", "#6c8cf2"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     success: {
-<<<<<<< Updated upstream
-      colors: ["#06d6a0", "#2dc653"],
-=======
-      colors: ["#38b2ac", "#2f855a"],
->>>>>>> Stashed changes
+      colors: ["#4cdd93", "#32b47e"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     info: {
-<<<<<<< Updated upstream
-      colors: ["#4cc9f0", "#4361ee"],
-=======
-      colors: ["#4299e1", "#3182ce"],
->>>>>>> Stashed changes
+      colors: ["#7d9af4", "#5476e5"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     card: {
-      colors: ["#ffffff", "#f8fafd"],
+      colors: ["#ffffff", "#f8f9fb"],
       start: { x: 0, y: 0 },
-      end: { x: 0, y: 1 },
-    },
-    header: {
-      colors: ["#4361ee", "#3a0ca3"],
-      start: { x: 0, y: 0 },
-      end: { x: 1, y: 0 },
-    },
-    modal: {
-      colors: ["#ffffff", "#f8fafd"],
-      start: { x: 0, y: 0 },
-      end: { x: 0, y: 1 },
-    },
-    header: {
-      colors: ["#4361ee", "#3a0ca3"],
-      start: { x: 0, y: 0 },
-      end: { x: 1, y: 0 },
-    },
-    accent: {
-      colors: ["#4895ef", "#4361ee"],
-      start: { x: 0, y: 0 },
-      end: { x: 1, y: 0 },
+      end: { x: 1, y: 1 },
     },
   },
 };
 
-// Modern 2025 Dark Theme
 export const darkTheme: ColorTheme = {
-<<<<<<< Updated upstream
-  background: "#0f1117",
-  card: "#1a1d29",
-  text: "#f0f2f8",
-  subtext: "#a0a8c0",
-  border: "#2a2e3a",
-  primary: "#4361ee",
-  secondary: "#3a86ff",
-  accent: "#4cc9f0",
-  placeholder: "#5a6072",
-  error: "#ef476f",
-  info: "#4361ee",
-  success: "#06d6a0",
-  warning: "#ffd166",
-  highlight: "#212433",
-  input: "#242836",
-=======
-  background: "#0f172a",
-  card: "#1e293b",
-  text: "#f1f5f9",
-  subtext: "#94a3b8",
-  border: "#334155",
-  primary: "#4361ee",
-  secondary: "#3f37c9",
-  accent: "#4895ef",
-  placeholder: "#64748b",
-  error: "#ef4444",
-  info: "#38bdf8",
-  success: "#10b981",
-  highlight: "#1e3a8a",
-  input: "#1e293b",
->>>>>>> Stashed changes
+  background: "#121212",
+  card: "#1e1e1e",
+  text: "#f5f5f5",
+  subtext: "#a0a0a0",
+  border: "#2c2c2c",
+  primary: "#6c8cf2",
+  placeholder: "#5e5e5e",
+  error: "#f55246",
+  info: "#6c8cf2",
+  success: "#66bb6a",
+  highlight: "#303030",
   gradients: {
     primary: {
-      colors: ["#4361ee", "#3a0ca3"],
+      colors: ["#5476e5", "#3f61d3"],
       start: { x: 0, y: 0 },
-      end: { x: 1, y: 1 },
+      end: { x: 1, y: 0 },
     },
     secondary: {
-<<<<<<< Updated upstream
-      colors: ["#3a86ff", "#4361ee"],
-=======
-      colors: ["#3f37c9", "#4361ee"],
->>>>>>> Stashed changes
+      colors: ["#6c8cf2", "#5476e5"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     success: {
-<<<<<<< Updated upstream
-      colors: ["#06d6a0", "#2dc653"],
-=======
-      colors: ["#10b981", "#059669"],
->>>>>>> Stashed changes
+      colors: ["#50c690", "#3fa876"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     info: {
-<<<<<<< Updated upstream
-      colors: ["#4cc9f0", "#4361ee"],
-=======
-      colors: ["#38bdf8", "#0284c7"],
->>>>>>> Stashed changes
+      colors: ["#6c8cf2", "#5476e5"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     card: {
-<<<<<<< Updated upstream
-      colors: ["#1a1d29", "#151823"],
-=======
-      colors: ["#1e293b", "#0f172a"],
->>>>>>> Stashed changes
+      colors: ["#1e1e1e", "#171717"],
       start: { x: 0, y: 0 },
-      end: { x: 0, y: 1 },
-    },
-    header: {
-      colors: ["#1f2233", "#151823"],
-      start: { x: 0, y: 0 },
-      end: { x: 1, y: 0 },
-    },
-    modal: {
-      colors: ["#1a1d29", "#151823"],
-      start: { x: 0, y: 0 },
-      end: { x: 0, y: 1 },
-    },
-    header: {
-      colors: ["#1e293b", "#0f172a"],
-      start: { x: 0, y: 0 },
-      end: { x: 1, y: 0 },
-    },
-    accent: {
-      colors: ["#4895ef", "#4361ee"],
-      start: { x: 0, y: 0 },
-      end: { x: 1, y: 0 },
+      end: { x: 1, y: 1 },
     },
   },
 };

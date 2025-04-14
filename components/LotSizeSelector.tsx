@@ -20,7 +20,6 @@ import {
   calculateTotalUnits,
 } from "../constants/lotSizes";
 import { MaterialIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 
 interface LotSizeSelectorProps {
   label: string;
@@ -31,7 +30,7 @@ interface LotSizeSelectorProps {
   onLotTypeChange: (type: LotType) => void;
   onLotCountChange: (count: number) => void;
   onCustomUnitsChange: (units: number) => void;
-  onEditLotSizes: () => void;
+  onEditPress: () => void;
 }
 
 const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
@@ -43,9 +42,9 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
   onLotTypeChange,
   onLotCountChange,
   onCustomUnitsChange,
-  onEditLotSizes,
+  onEditPress,
 }) => {
-  const { colors, getGradient } = useTheme();
+  const { colors } = useTheme();
   const lotTypes = Object.keys(lotSizes);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const animatedValue = useRef(new Animated.Value(0)).current;
@@ -135,7 +134,7 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
       style={[
         styles.dropdownItem,
         item === lotType && {
-          backgroundColor: colors.primary + "20",
+          backgroundColor: colors.primary + "15",
         },
       ]}
       onPress={() => selectLotType(item as LotType)}
@@ -160,180 +159,157 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
-      
-      <View style={styles.selectorContainer}>
-        <View style={styles.selectorRow}>
-          <Text style={[styles.sectionLabel, { color: colors.subtext }]}>
-            Lot Type:
-          </Text>
-          <View style={styles.dropdownContainer}>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              style={[
-                styles.dropdownButton,
-                { backgroundColor: colors.input, borderColor: colors.border },
-              ]}
-              onPress={toggleDropdown}
-              ref={dropdownButtonRef}
-            >
-              <Text style={[styles.dropdownButtonText, { color: colors.text }]}>
-                {lotType}
-              </Text>
-              <MaterialIcons
-                name={
-                  isDropdownOpen ? "keyboard-arrow-up" : "keyboard-arrow-down"
-                }
-                color={colors.primary}
-                size={24}
-              />
-            </TouchableOpacity>
-
-            {isDropdownOpen && (
-              <Modal
-                visible={isDropdownOpen}
-                transparent={true}
-                animationType="none"
-                statusBarTranslucent={true}
-                onRequestClose={closeDropdown}
-              >
-                <TouchableOpacity
-                  style={styles.dropdownOverlay}
-                  activeOpacity={1}
-                  onPress={closeDropdown}
-                >
-                  <Animated.View
-                    style={[
-                      styles.dropdownListContainer,
-                      {
-                        backgroundColor: colors.card,
-                        borderColor: colors.border,
-                        top: dropdownPosition.top,
-                        left: dropdownPosition.left,
-                        width: dropdownPosition.width,
-                        opacity: dropdownOpacity,
-                        transform: [
-                          { scale: dropdownScale },
-                          { translateY: dropdownTranslateY },
-                        ],
-                      },
-                    ]}
-                  >
-                    <FlatList
-                      data={lotTypes}
-                      renderItem={renderDropdownItem}
-                      keyExtractor={(item) => item}
-                      showsVerticalScrollIndicator={false}
-                      contentContainerStyle={styles.dropdownList}
-                    />
-                  </Animated.View>
-                </TouchableOpacity>
-              </Modal>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.selectorRow}>
-          <Text style={[styles.sectionLabel, { color: colors.subtext }]}>
-            {lotType === "Custom" ? "Units:" : "Count:"}
-          </Text>
-          <View style={styles.countContainer}>
-            {lotType === "Custom" ? (
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: colors.input,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                value={customUnits.toString()}
-                onChangeText={(text) => {
-                  const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
-                  onCustomUnitsChange(value);
-                }}
-                keyboardType="numeric"
-                placeholder="Units"
-                placeholderTextColor={colors.placeholder}
-                textAlign="center"
-                returnKeyType="done"
-                maxLength={10}
-              />
-            ) : (
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: colors.input,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                value={lotCount.toString()}
-                onChangeText={(text) => {
-                  const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
-                  onLotCountChange(value);
-                }}
-                keyboardType="numeric"
-                placeholder="Count"
-                placeholderTextColor={colors.placeholder}
-                textAlign="center"
-                returnKeyType="done"
-                maxLength={10}
-              />
-            )}
-          </View>
-        </View>
-
-        <View style={styles.bottomRow}>
+      <View style={styles.selectorRow}>
+        <Text style={[styles.sectionLabel, { color: colors.subtext }]}>
+          Lot Type:
+        </Text>
+        <View style={styles.dropdownContainer}>
           <TouchableOpacity
-            style={styles.editButtonWrapper}
-            onPress={onEditLotSizes}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
+            style={[
+              styles.dropdownButton,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+            onPress={toggleDropdown}
+            ref={dropdownButtonRef}
           >
-            <LinearGradient
-              colors={getGradient("secondary").colors}
-              start={getGradient("secondary").start}
-              end={getGradient("secondary").end}
-              style={styles.editButton}
-            >
-              <MaterialIcons name="edit" size={16} color="#fff" />
-              <Text style={styles.editButtonText}>Edit Lot Values</Text>
-            </LinearGradient>
+            <Text style={[styles.dropdownButtonText, { color: colors.text }]}>
+              {lotType}
+            </Text>
+            <MaterialIcons
+              name={
+                isDropdownOpen ? "keyboard-arrow-up" : "keyboard-arrow-down"
+              }
+              color={colors.primary}
+              size={24}
+            />
           </TouchableOpacity>
 
-          <View
-            style={[
-              styles.totalContainer,
-              { backgroundColor: colors.primary + "15" },
-            ]}
-          >
-            <Text style={[styles.totalLabel, { color: colors.text }]}>
-              Total Units:
-            </Text>
-            <Text style={[styles.totalValue, { color: colors.primary }]}>
-              {totalUnits.toLocaleString()}
-            </Text>
-          </View>
+          {isDropdownOpen && (
+            <Modal
+              visible={isDropdownOpen}
+              transparent={true}
+              animationType="none"
+              statusBarTranslucent={true}
+              onRequestClose={closeDropdown}
+            >
+              <TouchableOpacity
+                style={styles.dropdownOverlay}
+                activeOpacity={1}
+                onPress={closeDropdown}
+              >
+                <Animated.View
+                  style={[
+                    styles.dropdownListContainer,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                      top: dropdownPosition.top,
+                      left: dropdownPosition.left,
+                      width: dropdownPosition.width,
+                      opacity: dropdownOpacity,
+                      transform: [
+                        { scale: dropdownScale },
+                        { translateY: dropdownTranslateY },
+                      ],
+                    },
+                  ]}
+                >
+                  <FlatList
+                    data={lotTypes}
+                    renderItem={renderDropdownItem}
+                    keyExtractor={(item) => item}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.dropdownList}
+                  />
+                </Animated.View>
+              </TouchableOpacity>
+            </Modal>
+          )}
+        </View>
+      </View>
+
+      <View style={styles.selectorRow}>
+        <Text style={[styles.sectionLabel, { color: colors.subtext }]}>
+          {lotType === "Custom" ? "Units:" : "Count:"}
+        </Text>
+        <View style={styles.countContainer}>
+          {lotType === "Custom" ? (
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
+              value={customUnits.toString()}
+              onChangeText={(text) => {
+                const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
+                onCustomUnitsChange(value);
+              }}
+              keyboardType="numeric"
+              placeholder="Units"
+              placeholderTextColor={colors.placeholder}
+              textAlign="center"
+              returnKeyType="done"
+              maxLength={10}
+            />
+          ) : (
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
+              value={lotCount.toString()}
+              onChangeText={(text) => {
+                const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
+                onLotCountChange(value);
+              }}
+              keyboardType="numeric"
+              placeholder="Count"
+              placeholderTextColor={colors.placeholder}
+              textAlign="center"
+              returnKeyType="done"
+              maxLength={10}
+            />
+          )}
+        </View>
+      </View>
+
+      <View style={styles.bottomRow}>
+        <TouchableOpacity
+          style={[styles.editButton, { backgroundColor: colors.primary }]}
+          onPress={onEditPress}
+        >
+          <MaterialIcons name="edit" size={16} color="#fff" />
+          <Text style={styles.editButtonText}>Edit Lot Values</Text>
+        </TouchableOpacity>
+
+        <View style={styles.totalContainer}>
+          <Text style={[styles.totalLabel, { color: colors.subtext }]}>
+            Total Units:
+          </Text>
+          <Text style={[styles.totalValue, { color: colors.text }]}>
+            {totalUnits.toLocaleString()}
+          </Text>
         </View>
       </View>
     </View>
   );
 };
 
+const { width: windowWidth } = Dimensions.get("window");
+
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 10,
-    marginLeft: 4,
-  },
-  selectorContainer: {
-    backgroundColor: "transparent",
+    marginBottom: 8,
+    paddingBottom: 4,
   },
   selectorRow: {
     flexDirection: "row",
@@ -354,19 +330,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    height: 56,
-    borderRadius: 12,
+    height: 50,
+    borderRadius: 10,
     borderWidth: 1,
     paddingHorizontal: 16,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
-        shadowRadius: 3,
+        shadowRadius: 2,
       },
       android: {
-        elevation: 2,
+        elevation: 1,
       },
     }),
   },
@@ -376,7 +352,7 @@ const styles = StyleSheet.create({
   },
   dropdownOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
   dropdownListContainer: {
     position: "absolute",
@@ -414,53 +390,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   input: {
-    height: 56,
+    height: 50,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 12,
     fontSize: 16,
     textAlign: "center",
     fontWeight: "500",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
   },
   bottomRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 8,
-  },
-  editButtonWrapper: {
-    borderRadius: 12,
-    overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
+    marginTop: 20,
+    marginBottom: 4,
   },
   editButton: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.5,
   },
   editButtonText: {
     color: "#fff",
@@ -471,13 +426,13 @@ const styles = StyleSheet.create({
   totalContainer: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.05)",
     padding: 10,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   totalLabel: {
     fontSize: 14,
     marginRight: 8,
-    fontWeight: "500",
   },
   totalValue: {
     fontSize: 16,

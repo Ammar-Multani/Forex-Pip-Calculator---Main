@@ -1,80 +1,51 @@
 import React from "react";
-import { View, Text, StyleSheet, TextInput, Platform } from "react-native";
+import { View, Text, StyleSheet, TextInput } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { MaterialIcons } from "@expo/vector-icons";
-import { CurrencyPair } from "../constants/currencies";
-import { LinearGradient } from "expo-linear-gradient";
 
 interface PipInputProps {
-  label: string;
   value: string;
-  onChangeText: (text: string) => void;
-  currencyPair: CurrencyPair;
+  onChange: (text: string) => void;
 }
 
-const PipInput: React.FC<PipInputProps> = ({ 
-  label, 
-  value, 
-  onChangeText,
-  currencyPair
-}) => {
-  const { colors, getGradient } = useTheme();
-  
-  const pipSize = currencyPair?.pipDecimalPlaces === 2 ? "0.01" : "0.0001";
+const PipInput: React.FC<PipInputProps> = ({ value, onChange }) => {
+  const { colors, theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
-      
-      <View
-        style={[
-          styles.inputContainer,
-          {
-            backgroundColor: colors.input,
-            borderColor: colors.border,
-          },
-          Platform.select({
-            ios: {
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 3,
-            },
-            android: {
-              elevation: 2,
-            },
-          }),
-        ]}
-      >
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType="numeric"
-          placeholder="Enter pip count"
-          placeholderTextColor={colors.placeholder}
-        />
-        <View
-          style={[
-            styles.pipInfoContainer,
-            { backgroundColor: colors.primary + "20" },
-          ]}
-        >
-          <Text style={[styles.pipInfoText, { color: colors.primary }]}>
-            {currencyPair.pipDecimalPlaces === 2 ? "0.01" : "0.0001"}
-          </Text>
+      <View style={styles.inputRow}>
+        <Text style={[styles.sectionLabel, { color: colors.subtext }]}>
+          Pips:
+        </Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                color: colors.text,
+              },
+            ]}
+            value={value}
+            onChangeText={onChange}
+            keyboardType="numeric"
+            placeholder="Enter pip count (e.g., 10)"
+            placeholderTextColor={colors.placeholder}
+          />
         </View>
       </View>
-      
+
       <View
         style={[
           styles.infoContainer,
-          { backgroundColor: colors.info + "10" },
+          { backgroundColor: colors.primary + "10" },
         ]}
       >
-        <MaterialIcons name="info-outline" size={16} color={colors.info} />
-        <Text style={[styles.infoText, { color: colors.subtext }]}>
-          For {currencyPair.name}, 1 pip = {currencyPair.pipDecimalPlaces === 2 ? "0.01" : "0.0001"}
+        <MaterialIcons name="info-outline" size={16} color={colors.primary} />
+        <Text style={[styles.pipInfo, { color: colors.subtext }]}>
+          Enter the number of pips for your calculation
         </Text>
       </View>
     </View>
@@ -83,58 +54,38 @@ const PipInput: React.FC<PipInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginTop: 0,
+    marginBottom: 0,
   },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 10,
-    marginLeft: 4,
-  },
-  inputContainer: {
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 12,
-    overflow: "hidden",
+    marginBottom: 16,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    width: 80,
+  },
+  inputContainer: {
+    flex: 1,
   },
   input: {
-    flex: 1,
-    height: 56,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  pipInfoContainer: {
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  pipInfoText: {
-    fontSize: 14,
-    fontWeight: "bold",
+    fontSize: 16,
   },
   infoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
-    marginTop: 8,
   },
-  infoText: {
-    fontSize: 13,
-    marginLeft: 8,
-  },
-  pipSizeContainer: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  pipSizeText: {
+  pipInfo: {
     fontSize: 12,
-    fontWeight: "bold",
-    color: "white",
+    marginLeft: 8,
+    flex: 1,
   },
 });
 

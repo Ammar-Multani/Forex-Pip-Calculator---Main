@@ -6,44 +6,45 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  SafeAreaView,
   Platform,
-  Modal,
   StatusBar,
   Image,
-  ScrollView,
+  Dimensions,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import {
   CurrencyPair,
-  currencyPairs,
   filterCurrencyPairs,
   getCurrencyByCode,
-  getCurrencyPairGroups,
 } from "../constants/currencies";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScrollView } from "react-native-gesture-handler";
 
 interface CurrencyPairModalProps {
+  isVisible: boolean;
   onClose: () => void;
-  onSelect: (pair: CurrencyPair) => void;
+  onSelectPair: (pair: CurrencyPair) => void;
   selectedPair: CurrencyPair;
+  currencyPairs: CurrencyPair[];
 }
 
 const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
+  isVisible,
   onClose,
-  onSelect,
+  onSelectPair,
   selectedPair,
+  currencyPairs,
 }) => {
   const { colors, theme, getGradient } = useTheme();
   const isDarkMode = theme === "dark";
+  const insets = useSafeAreaInsets();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredPairs, setFilteredPairs] =
     useState<CurrencyPair[]>(currencyPairs);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
-
-  // Sample favorites - in a real app, this would be stored in a context or persistence
   const [favorites, setFavorites] = useState<string[]>([
     "EUR/USD",
     "GBP/USD",
@@ -51,50 +52,29 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     "USD/CHF",
   ]);
 
-  const pairItemStyle = {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    justifyContent: "space-between" as const,
-    padding: 16,
-    marginVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    shadowColor: "#000" as const,
-    shadowOffset: { width: 0, height: 1 } as const,
-    shadowOpacity: 0.1 as const,
-    shadowRadius: 2 as const,
-    elevation: 2 as const,
-  };
-
-  // Update filtered pairs when search term changes
   useEffect(() => {
     let result = currencyPairs;
 
-    // Filter by search term
     if (searchTerm.trim() !== "") {
       result = filterCurrencyPairs(searchTerm);
     }
 
-    // Filter by category
     if (selectedCategory) {
       result = result.filter((pair) => pair.group === selectedCategory);
     }
 
-    // Filter by favorites
     if (showFavorites) {
       result = result.filter((pair) => favorites.includes(pair.name));
     }
 
     setFilteredPairs(result);
-  }, [searchTerm, selectedCategory, showFavorites, favorites]);
+  }, [searchTerm, selectedCategory, showFavorites, favorites, currencyPairs]);
 
-  // Handle pair selection
   const handleSelect = (pair: CurrencyPair) => {
-    onSelect(pair);
+    onSelectPair(pair);
     onClose();
   };
 
-  // Toggle favorite status
   const toggleFavorite = (pairName: string) => {
     if (favorites.includes(pairName)) {
       setFavorites(favorites.filter((name) => name !== pairName));
@@ -103,7 +83,6 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     }
   };
 
-  // Render each currency pair item
   const renderPairItem = ({ item }: { item: CurrencyPair }) => {
     const isSelected = selectedPair.name === item.name;
     const baseCurrency = getCurrencyByCode(item.base);
@@ -113,13 +92,10 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     return (
       <TouchableOpacity
         style={[
-          pairItemStyle,
+          styles.pairItem,
           {
-            backgroundColor: colors.card,
+            backgroundColor: isSelected ? colors.primary + "15" : colors.card,
             borderColor: isSelected ? colors.primary : colors.border,
-          },
-          isSelected && {
-            backgroundColor: colors.primary + "15",
           },
         ]}
         onPress={() => handleSelect(item)}
@@ -155,16 +131,17 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
           <TouchableOpacity
             onPress={() => toggleFavorite(item.name)}
             style={styles.favoriteButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <MaterialIcons
               name={isFavorite ? "star" : "star-outline"}
               size={24}
-              color={isFavorite ? colors.primary : colors.subtext}
+              color={isFavorite ? colors.warning : colors.subtext}
             />
           </TouchableOpacity>
           {isSelected && (
             <MaterialIcons
-              name="check"
+              name="check-circle"
               size={24}
               color={colors.primary}
               style={styles.checkIcon}
@@ -175,16 +152,19 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     );
   };
 
+  if (!isVisible) return null;
+
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+    <View style={styles.modalContainer}>
+      <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={getGradient("primary").colors}
-        start={getGradient("primary").start}
-        end={getGradient("primary").end}
-        style={[styles.header]}
+        colors={getGradient("header").colors}
+        start={getGradient("header").start}
+        end={getGradient("header").end}
+        style={[
+          styles.header,
+          { paddingTop: insets.top > 0 ? insets.top : 30 },
+        ]}
       >
         <TouchableOpacity
           onPress={onClose}
@@ -197,124 +177,101 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
         <View style={styles.placeholder} />
       </LinearGradient>
 
-      <View
-        style={[
-          styles.searchContainer,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <MaterialIcons name="search" size={24} color={colors.primary} />
-        <TextInput
-          style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search currency pairs..."
-          placeholderTextColor={colors.placeholder}
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="search"
-        />
-        {searchTerm.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setSearchTerm("")}
-            activeOpacity={0.7}
-            style={styles.clearButton}
-          >
-            <MaterialIcons name="cancel" size={20} color={colors.placeholder} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterContainer}
-        snapToAlignment="center"
-        decelerationRate="fast"
-        style={styles.filterScrollView}
-      >
-        <TouchableOpacity
+      <View style={[styles.content, { backgroundColor: colors.background }]}>
+        <View
           style={[
-            styles.filterPill,
+            styles.searchContainer,
             {
-              backgroundColor: showFavorites ? colors.primary : colors.card,
-              borderColor: showFavorites ? colors.primary : colors.border,
+              backgroundColor: colors.input,
+              borderColor: colors.border,
             },
           ]}
-          onPress={() => {
-            setShowFavorites(!showFavorites);
-            setSelectedCategory(null);
-          }}
-          activeOpacity={0.6}
         >
-          <MaterialIcons
-            name={showFavorites ? "star" : "star-outline"}
-            size={16}
-            color={showFavorites ? "white" : colors.primary}
-            style={styles.filterIcon}
+          <MaterialIcons name="search" size={24} color={colors.primary} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder="Search currency pairs..."
+            placeholderTextColor={colors.placeholder}
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
           />
-          <Text
-            style={[
-              styles.filterText,
-              { color: showFavorites ? "white" : colors.text },
-            ]}
-          >
-            Favorites
-          </Text>
-        </TouchableOpacity>
+          {searchTerm.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchTerm("")}
+              activeOpacity={0.7}
+              style={styles.clearButton}
+            >
+              <MaterialIcons
+                name="cancel"
+                size={20}
+                color={colors.placeholder}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
 
-        <TouchableOpacity
-          style={[
-            styles.filterPill,
-            {
-              backgroundColor:
-                selectedCategory === null && !showFavorites
-                  ? colors.primary
-                  : colors.card,
-              borderColor:
-                selectedCategory === null && !showFavorites
-                  ? colors.primary
-                  : colors.border,
-            },
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.filterContainer,
+            { borderBottomColor: colors.border },
           ]}
-          onPress={() => {
-            setSelectedCategory(null);
-            setShowFavorites(false);
-          }}
-          activeOpacity={0.6}
+          style={styles.filterScrollView}
         >
-          <Text
+          <TouchableOpacity
             style={[
-              styles.filterText,
+              styles.filterPill,
               {
-                color:
-                  selectedCategory === null && !showFavorites
-                    ? "white"
-                    : colors.text,
+                backgroundColor: showFavorites
+                  ? colors.warning
+                  : colors.card,
+                borderColor: showFavorites
+                  ? colors.warning
+                  : colors.border,
               },
             ]}
+            onPress={() => {
+              setShowFavorites(!showFavorites);
+              setSelectedCategory(null);
+            }}
+            activeOpacity={0.6}
           >
-            All
-          </Text>
-        </TouchableOpacity>
+            <MaterialIcons
+              name={showFavorites ? "star" : "star-outline"}
+              size={18}
+              color={showFavorites ? "white" : colors.warning}
+              style={styles.filterIcon}
+            />
+            <Text
+              style={[
+                styles.filterText,
+                { color: showFavorites ? "white" : colors.text },
+              ]}
+            >
+              Favorites
+            </Text>
+          </TouchableOpacity>
 
-        {["Major", "EUR", "GBP", "JPY", "Other"].map((group) => (
           <TouchableOpacity
-            key={group}
             style={[
               styles.filterPill,
               {
                 backgroundColor:
-                  selectedCategory === group ? colors.primary : colors.card,
+                  selectedCategory === null && !showFavorites
+                    ? colors.primary
+                    : colors.card,
                 borderColor:
-                  selectedCategory === group ? colors.primary : colors.border,
+                  selectedCategory === null && !showFavorites
+                    ? colors.primary
+                    : colors.border,
               },
             ]}
             onPress={() => {
-              setSelectedCategory(selectedCategory === group ? null : group);
+              setSelectedCategory(null);
               setShowFavorites(false);
             }}
             activeOpacity={0.6}
@@ -322,42 +279,84 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
             <Text
               style={[
                 styles.filterText,
-                { color: selectedCategory === group ? "white" : colors.text },
+                {
+                  color:
+                    selectedCategory === null && !showFavorites
+                      ? "white"
+                      : colors.text,
+                },
               ]}
             >
-              {group}
+              All Pairs
             </Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
 
-      <FlatList
-        data={filteredPairs}
-        renderItem={renderPairItem}
-        keyExtractor={(item) => item.name}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        initialNumToRender={10}
-        maxToRenderPerBatch={20}
-        windowSize={10}
-      />
-    </SafeAreaView>
+          {["Major", "EUR", "GBP", "JPY", "Other"].map((group) => (
+            <TouchableOpacity
+              key={group}
+              style={[
+                styles.filterPill,
+                {
+                  backgroundColor:
+                    selectedCategory === group ? colors.primary : colors.card,
+                  borderColor:
+                    selectedCategory === group ? colors.primary : colors.border,
+                },
+              ]}
+              onPress={() => {
+                setSelectedCategory(selectedCategory === group ? null : group);
+                setShowFavorites(false);
+              }}
+              activeOpacity={0.6}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  { color: selectedCategory === group ? "white" : colors.text },
+                ]}
+              >
+                {group}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <FlatList
+          data={filteredPairs}
+          renderItem={renderPairItem}
+          keyExtractor={(item) => item.name}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: insets.bottom + 20 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={10}
+          maxToRenderPerBatch={20}
+          windowSize={10}
+        />
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  modalContainer: {
     flex: 1,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-    paddingTop: 16,
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
     textAlign: "center",
     color: "white",
@@ -369,19 +368,28 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
+  content: {
+    flex: 1,
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
     margin: 16,
-    marginBottom: 0,
-    borderRadius: 10,
+    marginBottom: 8,
+    borderRadius: 12,
     borderWidth: 1,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   searchInput: {
     flex: 1,
@@ -394,7 +402,25 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: Platform.OS === "ios" ? 40 : 16,
+  },
+  pairItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    marginVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   pairInfo: {
     flex: 1,
@@ -414,70 +440,64 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   checkIcon: {
-    marginLeft: 4,
+    marginLeft: 8,
   },
   flag: {
-    width: 40,
-    height: 28,
+    width: 30,
+    height: 20,
     borderRadius: 2,
     borderWidth: 0.5,
-    borderColor: "rgba(0,0,0,0.15)",
+    borderColor: "rgba(0,0,0,0.1)",
   },
   flagsContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginRight: 12,
     position: "relative",
-    width: 62,
-    height: 36,
+    width: 45,
+    height: 30,
   },
   flagFirst: {
     zIndex: 2,
     position: "absolute",
     top: 0,
     left: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 2,
   },
   flagSecond: {
     position: "absolute",
-    top: 8,
-    left: 20,
+    top: 10,
+    left: 15,
     zIndex: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 1,
   },
   filterContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     alignItems: "center",
+    borderBottomWidth: 1,
   },
   filterScrollView: {
-    marginBottom: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.05)",
+    marginBottom: 8,
   },
   filterPill: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    height: 36,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderRadius: 18,
+    borderRadius: 20,
     marginRight: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
-    elevation: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   filterIcon: {
     marginRight: 6,
@@ -488,6 +508,7 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     padding: 4,
+    marginRight: 8,
   },
 });
 

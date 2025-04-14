@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Platform,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
@@ -12,7 +11,6 @@ import { formatCurrencyValue, formatPipValue } from "../utils/pipCalculator";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { calculatePipValueInQuoteCurrency } from "../utils/pipCalculator";
-import { LotSize } from "../constants/lotSizes";
 
 interface ResultCardProps {
   accountCurrency: Currency;
@@ -35,8 +33,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
   exchangeRate,
   pipCount,
 }) => {
-  const { colors, theme } = useTheme();
-  const isDarkMode = theme === "dark";
+  const { colors, getGradient } = useTheme();
 
   // Get quote currency details
   const quoteCurrencyCode = currencyPair.quote;
@@ -68,9 +65,6 @@ const ResultCard: React.FC<ResultCardProps> = ({
     }${exchangeRate.toFixed(6)} ${accountCurrency.code}`;
     conversionExplanation = `Converting ${quoteCurrencyCode} to ${accountCurrency.code} using real-time rates`;
   }
-
-  // Get gradient colors based on theme - more modern 2025 style for light mode
-  const gradientConfig = useTheme().getGradient("primary");
 
   // Calculate pip values for different lot sizes
   const calculatePipForLotSize = (units: number) => {
@@ -104,331 +98,400 @@ const ResultCard: React.FC<ResultCardProps> = ({
   const nanoPipValues = calculatePipForLotSize(nanoLotSize);
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-          ...Platform.select({
-            ios: {
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-            },
-            android: {
-              elevation: 4,
-            },
-          }),
-        },
-      ]}
-    >
+    <View style={styles.cardWrapper}>
       <LinearGradient
-        colors={gradientConfig.colors}
-        start={gradientConfig.start}
-        end={gradientConfig.end}
-        style={styles.headerGradient}
+        colors={getGradient("card").colors}
+        start={getGradient("card").start}
+        end={getGradient("card").end}
+        style={[
+          styles.container,
+          {
+            borderColor: colors.border,
+          },
+        ]}
       >
-        <Text style={[styles.title, { color: "#fff" }]}>
-          Calculation Results
-        </Text>
-      </LinearGradient>
+        <LinearGradient
+          colors={getGradient("primary").colors}
+          start={getGradient("primary").start}
+          end={getGradient("primary").end}
+          style={styles.headerGradient}
+        >
+          <Text style={styles.title}>Calculation Results</Text>
+        </LinearGradient>
 
-      <View style={styles.content}>
-        <View style={styles.resultRow}>
-          <Text style={[styles.label, { color: colors.subtext }]}>
-            Pip Value in {quoteCurrencyCode}:
-          </Text>
-          <Text style={[styles.value, { color: colors.text }]}>
-            {formatPipValue(
-              pipValueInQuoteCurrency,
-              quoteCurrencyCode,
-              quoteCurrencySymbol
-            )}
-          </Text>
-        </View>
+        <View style={styles.content}>
+          <View style={styles.mainResults}>
+            <View style={styles.resultCard}>
+              <Text style={[styles.resultLabel, { color: colors.subtext }]}>
+                Per Pip in {quoteCurrencyCode}
+              </Text>
+              <Text style={[styles.resultValue, { color: colors.text }]}>
+                {formatPipValue(
+                  pipValueInQuoteCurrency,
+                  quoteCurrencyCode,
+                  quoteCurrencySymbol
+                )}
+              </Text>
+            </View>
 
-        <View style={styles.resultRow}>
-          <Text style={[styles.label, { color: colors.subtext }]}>
-            Pip Value in {accountCurrency.code}:
-          </Text>
-          <Text style={[styles.value, { color: colors.text }]}>
-            {formatPipValue(
-              pipValueInAccountCurrency,
-              accountCurrency.code,
-              accountCurrency.symbol
-            )}
-          </Text>
-        </View>
+            <View style={styles.resultCard}>
+              <Text style={[styles.resultLabel, { color: colors.subtext }]}>
+                Per Pip in {accountCurrency.code}
+              </Text>
+              <Text style={[styles.resultValue, { color: colors.text }]}>
+                {formatPipValue(
+                  pipValueInAccountCurrency,
+                  accountCurrency.code,
+                  accountCurrency.symbol
+                )}
+              </Text>
+            </View>
+          </View>
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-        <View style={styles.totalRow}>
-          <Text style={[styles.totalLabel, { color: colors.subtext }]}>
-            Total for {pipCount} pip{pipCount !== 1 ? "s" : ""} in{" "}
-            {quoteCurrencyCode}:
-          </Text>
-          <Text style={[styles.totalValue, { color: colors.primary }]}>
-            {formatCurrencyValue(
-              totalValueInQuoteCurrency,
-              quoteCurrencyCode,
-              quoteCurrencySymbol
-            )}
-          </Text>
-        </View>
+          <View style={styles.totalResults}>
+            <View
+              style={[
+                styles.totalCard,
+                { backgroundColor: colors.primary + "10" },
+              ]}
+            >
+              <Text style={[styles.totalLabel, { color: colors.text }]}>
+                Total for {pipCount} pip{pipCount !== 1 ? "s" : ""}
+              </Text>
+              <View style={styles.totalValues}>
+                <View style={styles.totalValueContainer}>
+                  <Text
+                    style={[styles.totalCurrency, { color: colors.subtext }]}
+                  >
+                    {quoteCurrencyCode}
+                  </Text>
+                  <Text
+                    style={[styles.totalValue, { color: colors.primary }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {formatCurrencyValue(
+                      totalValueInQuoteCurrency,
+                      quoteCurrencyCode,
+                      quoteCurrencySymbol
+                    )}
+                  </Text>
+                </View>
 
-        <View style={styles.totalRow}>
-          <Text style={[styles.totalLabel, { color: colors.subtext }]}>
-            Total for {pipCount} pip{pipCount !== 1 ? "s" : ""} in{" "}
-            {accountCurrency.code}:
-          </Text>
-          <Text style={[styles.totalValue, { color: colors.primary }]}>
-            {formatCurrencyValue(
-              totalValueInAccountCurrency,
-              accountCurrency.code,
-              accountCurrency.symbol
-            )}
-          </Text>
-        </View>
+                <View style={styles.totalValueContainer}>
+                  <Text
+                    style={[styles.totalCurrency, { color: colors.subtext }]}
+                  >
+                    {accountCurrency.code}
+                  </Text>
+                  <Text
+                    style={[styles.totalValue, { color: colors.primary }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {formatCurrencyValue(
+                      totalValueInAccountCurrency,
+                      accountCurrency.code,
+                      accountCurrency.symbol
+                    )}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={styles.exchangeRateContainer}>
+            <Text style={[styles.exchangeRateLabel, { color: colors.text }]}>
+              Exchange Rate
+            </Text>
+            <Text style={[styles.exchangeRateValue, { color: colors.primary }]}>
+              {exchangeRateText}
+            </Text>
+            <Text
+              style={[styles.conversionExplanation, { color: colors.subtext }]}
+            >
+              {conversionExplanation}
+            </Text>
+          </View>
 
-        <View style={styles.exchangeRateContainer}>
-          <Text style={[styles.exchangeRateLabel, { color: colors.text }]}>
-            Exchange Rate: {exchangeRateText}
-          </Text>
-
-          <Text style={[styles.conversionExplanation, { color: colors.info }]}>
-            {conversionExplanation}
-          </Text>
-
-          <View style={styles.dataSourceContainer}>
-            <MaterialIcons name="public" size={14} color={colors.success} />
+          <View
+            style={[
+              styles.dataSourceContainer,
+              { backgroundColor: colors.success + "15" },
+            ]}
+          >
+            <MaterialIcons name="public" size={16} color={colors.success} />
             <Text style={[styles.dataSourceLabel, { color: colors.success }]}>
               USING TRADERMADE LIVE RATES
             </Text>
           </View>
-        </View>
 
-        {/* Lot size pip value calculations */}
-        <View
-          style={[styles.lotSizesContainer, { borderTopColor: colors.border }]}
-        >
-          <Text style={[styles.lotSizesTitle, { color: colors.text }]}>
-            Pip Values by Lot Size
-          </Text>
-          <View style={styles.lotSizeGrid}>
-            <View
-              style={[
-                styles.lotSizeItem,
-                {
-                  backgroundColor: colors.primary + "10",
-                  borderColor: colors.primary + "30",
-                  borderWidth: 1,
-                },
-              ]}
-            >
-              <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
-                Standard (100K)
-              </Text>
-              <Text style={[styles.lotSizeValue, { color: colors.text }]}>
-                {formatPipValue(
-                  standardPipValues.quoteValue,
-                  quoteCurrencyCode,
-                  quoteCurrencySymbol
-                )}
-              </Text>
-              <Text style={[styles.lotSizeSubValue, { color: colors.primary }]}>
-                {formatPipValue(
-                  standardPipValues.accountValue,
-                  accountCurrency.code,
-                  accountCurrency.symbol
-                )}
-              </Text>
-            </View>
+          <View
+            style={[styles.lotSizesContainer, { borderTopColor: colors.border }]}
+          >
+            <Text style={[styles.lotSizesTitle, { color: colors.text }]}>
+              Pip Values by Lot Size
+            </Text>
+            <View style={styles.lotSizeGrid}>
+              <View
+                style={[
+                  styles.lotSizeItem,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
+                  Standard (100K)
+                </Text>
+                <Text style={[styles.lotSizeValue, { color: colors.text }]}>
+                  {formatPipValue(
+                    standardPipValues.quoteValue,
+                    quoteCurrencyCode,
+                    quoteCurrencySymbol
+                  )}
+                </Text>
+                <Text
+                  style={[styles.lotSizeSubValue, { color: colors.primary }]}
+                >
+                  {formatPipValue(
+                    standardPipValues.accountValue,
+                    accountCurrency.code,
+                    accountCurrency.symbol
+                  )}
+                </Text>
+              </View>
 
-            <View
-              style={[
-                styles.lotSizeItem,
-                {
-                  backgroundColor: colors.primary + "10",
-                  borderColor: colors.primary + "30",
-                  borderWidth: 1,
-                },
-              ]}
-            >
-              <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
-                Mini (10K)
-              </Text>
-              <Text style={[styles.lotSizeValue, { color: colors.text }]}>
-                {formatPipValue(
-                  miniPipValues.quoteValue,
-                  quoteCurrencyCode,
-                  quoteCurrencySymbol
-                )}
-              </Text>
-              <Text style={[styles.lotSizeSubValue, { color: colors.primary }]}>
-                {formatPipValue(
-                  miniPipValues.accountValue,
-                  accountCurrency.code,
-                  accountCurrency.symbol
-                )}
-              </Text>
-            </View>
+              <View
+                style={[
+                  styles.lotSizeItem,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
+                  Mini (10K)
+                </Text>
+                <Text style={[styles.lotSizeValue, { color: colors.text }]}>
+                  {formatPipValue(
+                    miniPipValues.quoteValue,
+                    quoteCurrencyCode,
+                    quoteCurrencySymbol
+                  )}
+                </Text>
+                <Text
+                  style={[styles.lotSizeSubValue, { color: colors.primary }]}
+                >
+                  {formatPipValue(
+                    miniPipValues.accountValue,
+                    accountCurrency.code,
+                    accountCurrency.symbol
+                  )}
+                </Text>
+              </View>
 
-            <View
-              style={[
-                styles.lotSizeItem,
-                {
-                  backgroundColor: colors.primary + "10",
-                  borderColor: colors.primary + "30",
-                  borderWidth: 1,
-                },
-              ]}
-            >
-              <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
-                Micro (1K)
-              </Text>
-              <Text style={[styles.lotSizeValue, { color: colors.text }]}>
-                {formatPipValue(
-                  microPipValues.quoteValue,
-                  quoteCurrencyCode,
-                  quoteCurrencySymbol
-                )}
-              </Text>
-              <Text style={[styles.lotSizeSubValue, { color: colors.primary }]}>
-                {formatPipValue(
-                  microPipValues.accountValue,
-                  accountCurrency.code,
-                  accountCurrency.symbol
-                )}
-              </Text>
-            </View>
+              <View
+                style={[
+                  styles.lotSizeItem,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
+                  Micro (1K)
+                </Text>
+                <Text style={[styles.lotSizeValue, { color: colors.text }]}>
+                  {formatPipValue(
+                    microPipValues.quoteValue,
+                    quoteCurrencyCode,
+                    quoteCurrencySymbol
+                  )}
+                </Text>
+                <Text
+                  style={[styles.lotSizeSubValue, { color: colors.primary }]}
+                >
+                  {formatPipValue(
+                    microPipValues.accountValue,
+                    accountCurrency.code,
+                    accountCurrency.symbol
+                  )}
+                </Text>
+              </View>
 
-            <View
-              style={[
-                styles.lotSizeItem,
-                {
-                  backgroundColor: colors.primary + "10",
-                  borderColor: colors.primary + "30",
-                  borderWidth: 1,
-                },
-              ]}
-            >
-              <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
-                Nano (100)
-              </Text>
-              <Text style={[styles.lotSizeValue, { color: colors.text }]}>
-                {formatPipValue(
-                  nanoPipValues.quoteValue,
-                  quoteCurrencyCode,
-                  quoteCurrencySymbol
-                )}
-              </Text>
-              <Text style={[styles.lotSizeSubValue, { color: colors.primary }]}>
-                {formatPipValue(
-                  nanoPipValues.accountValue,
-                  accountCurrency.code,
-                  accountCurrency.symbol
-                )}
-              </Text>
+              <View
+                style={[
+                  styles.lotSizeItem,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Text style={[styles.lotSizeLabel, { color: colors.subtext }]}>
+                  Nano (100)
+                </Text>
+                <Text style={[styles.lotSizeValue, { color: colors.text }]}>
+                  {formatPipValue(
+                    nanoPipValues.quoteValue,
+                    quoteCurrencyCode,
+                    quoteCurrencySymbol
+                  )}
+                </Text>
+                <Text
+                  style={[styles.lotSizeSubValue, { color: colors.primary }]}
+                >
+                  {formatPipValue(
+                    nanoPipValues.accountValue,
+                    accountCurrency.code,
+                    accountCurrency.symbol
+                  )}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
+      </LinearGradient>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  cardWrapper: {
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 24,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
   container: {
-    borderRadius: 12,
-    marginVertical: 16,
+    borderRadius: 20,
     borderWidth: 1,
     overflow: "hidden",
   },
   headerGradient: {
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 16,
   },
   content: {
-    padding: 16,
+    padding: 20,
   },
   title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "white",
+  },
+  mainResults: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  resultCard: {
+    flex: 1,
+    alignItems: "center",
+    padding: 12,
+    marginHorizontal: 4,
+  },
+  resultLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  resultValue: {
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",
   },
-  resultRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 6,
-  },
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 8,
-  },
-  label: {
-    fontSize: 14,
-    flex: 1,
-  },
-  totalLabel: {
-    fontSize: 14,
-    flex: 1,
-    fontWeight: "500",
-  },
-  value: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  totalValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
   divider: {
     height: 1,
-    marginVertical: 12,
+    marginVertical: 16,
+  },
+  totalResults: {
+    marginBottom: 16,
+  },
+  totalCard: {
+    borderRadius: 16,
+    padding: 16,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  totalValues: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  totalValueContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+  totalCurrency: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  totalValue: {
+    fontSize: 20,
+    fontWeight: "bold",
   },
   exchangeRateContainer: {
-    marginVertical: 8,
+    marginVertical: 16,
     alignItems: "center",
   },
   exchangeRateLabel: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  exchangeRateValue: {
+    fontSize: 16,
+    fontWeight: "bold",
     marginBottom: 4,
   },
   conversionExplanation: {
     fontSize: 12,
-    marginBottom: 4,
   },
   dataSourceContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 4,
-    backgroundColor: "#4CAF5020",
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    alignSelf: "center",
+    marginBottom: 16,
   },
   dataSourceLabel: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "bold",
-    marginLeft: 4,
+    marginLeft: 6,
   },
   lotSizesContainer: {
-    marginTop: 16,
+    marginTop: 8,
     borderTopWidth: 1,
-    paddingTop: 12,
+    paddingTop: 16,
   },
   lotSizesTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
-    marginBottom: 8,
+    marginBottom: 12,
     textAlign: "center",
   },
   lotSizeGrid: {
@@ -438,22 +501,23 @@ const styles = StyleSheet.create({
   },
   lotSizeItem: {
     width: "48%",
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 8,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
     alignItems: "center",
+    borderWidth: 1,
   },
   lotSizeLabel: {
     fontSize: 12,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   lotSizeValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
   },
   lotSizeSubValue: {
     fontSize: 12,
-    marginTop: 2,
+    marginTop: 4,
   },
 });
 

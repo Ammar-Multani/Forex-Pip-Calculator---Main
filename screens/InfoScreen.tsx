@@ -5,23 +5,30 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  Linking,
+  TouchableOpacity,
+  Platform,
 } from "react-native";
+import { useTheme } from "../contexts/ThemeContext";
 import { StatusBar } from "expo-status-bar";
 import { MaterialIcons } from "@expo/vector-icons";
-import Header from "../components/Header";
-import { useTheme } from "../contexts/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import Header from "../components/Header";
 
 const InfoScreen: React.FC = () => {
   const { colors, toggleTheme, getGradient } = useTheme();
+  const navigation = useNavigation();
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <StatusBar style="auto" />
-      <Header title="About" onThemeToggle={toggleTheme} showBackButton={true} />
+      <Header 
+        title="About Pip Calculation" 
+        onThemeToggle={toggleTheme}
+        showBackButton={true}
+      />
 
       <ScrollView style={styles.scrollView}>
         <View
@@ -31,21 +38,21 @@ const InfoScreen: React.FC = () => {
           ]}
         >
           <LinearGradient
-            colors={getGradient("primary").colors}
-            start={getGradient("primary").start}
-            end={getGradient("primary").end}
-            style={styles.cardHeader}
+            colors={getGradient("card").colors}
+            start={getGradient("card").start}
+            end={getGradient("card").end}
+            style={styles.cardContent}
           >
-            <Text style={styles.cardHeaderTitle}>About Forex Pip Calculator</Text>
-          </LinearGradient>
-          <View style={styles.cardContent}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              About Forex Pip Calculator
+            </Text>
             <Text style={[styles.paragraph, { color: colors.subtext }]}>
               This app helps forex traders calculate pip values across different
               currency pairs and account currencies. It uses professional-grade
               calculation methods and real-time exchange rates from TraderMade for
               accurate results.
             </Text>
-          </View>
+          </LinearGradient>
         </View>
 
         <View
@@ -55,14 +62,14 @@ const InfoScreen: React.FC = () => {
           ]}
         >
           <LinearGradient
-            colors={getGradient("primary").colors}
-            start={getGradient("primary").start}
-            end={getGradient("primary").end}
-            style={styles.cardHeader}
+            colors={getGradient("card").colors}
+            start={getGradient("card").start}
+            end={getGradient("card").end}
+            style={styles.cardContent}
           >
-            <Text style={styles.cardHeaderTitle}>What is a Pip?</Text>
-          </LinearGradient>
-          <View style={styles.cardContent}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              What is a Pip?
+            </Text>
             <Text style={[styles.paragraph, { color: colors.subtext }]}>
               A pip (Percentage in Point) is the smallest price movement in a
               forex exchange rate. For most currency pairs, a pip is 0.0001 (or
@@ -74,7 +81,7 @@ const InfoScreen: React.FC = () => {
               pip movement. For USD/JPY, a move from 108.50 to 108.51 is a one pip
               movement.
             </Text>
-          </View>
+          </LinearGradient>
         </View>
 
         <View
@@ -84,14 +91,14 @@ const InfoScreen: React.FC = () => {
           ]}
         >
           <LinearGradient
-            colors={getGradient("primary").colors}
-            start={getGradient("primary").start}
-            end={getGradient("primary").end}
-            style={styles.cardHeader}
+            colors={getGradient("card").colors}
+            start={getGradient("card").start}
+            end={getGradient("card").end}
+            style={styles.cardContent}
           >
-            <Text style={styles.cardHeaderTitle}>How Pip Value is Calculated</Text>
-          </LinearGradient>
-          <View style={styles.cardContent}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              How Pip Value is Calculated
+            </Text>
             <Text style={[styles.paragraph, { color: colors.subtext }]}>
               For most currency pairs:
             </Text>
@@ -109,7 +116,7 @@ const InfoScreen: React.FC = () => {
               your account currency, the app uses the current exchange rate
               between the quote currency and your account currency.
             </Text>
-          </View>
+          </LinearGradient>
         </View>
 
         <View
@@ -119,59 +126,30 @@ const InfoScreen: React.FC = () => {
           ]}
         >
           <LinearGradient
-            colors={getGradient("primary").colors}
-            start={getGradient("primary").start}
-            end={getGradient("primary").end}
-            style={styles.cardHeader}
+            colors={getGradient("card").colors}
+            start={getGradient("card").start}
+            end={getGradient("card").end}
+            style={styles.cardContent}
           >
-            <Text style={styles.cardHeaderTitle}>Position Size Types</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Position Size Types
+            </Text>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
+              • Standard Lot = 100,000 units of base currency
+            </Text>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
+              • Mini Lot = 10,000 units of base currency
+            </Text>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
+              • Micro Lot = 1,000 units of base currency
+            </Text>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
+              • Nano Lot = 100 units of base currency
+            </Text>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
+              • Custom Units = Any specific number of units
+            </Text>
           </LinearGradient>
-          <View style={styles.cardContent}>
-            <View style={styles.lotTypeRow}>
-              <View style={[styles.lotTypeBadge, { backgroundColor: colors.primary + "15" }]}>
-                <Text style={[styles.lotTypeBadgeText, { color: colors.primary }]}>Standard</Text>
-              </View>
-              <Text style={[styles.lotTypeDescription, { color: colors.subtext }]}>
-                100,000 units of base currency
-              </Text>
-            </View>
-            
-            <View style={styles.lotTypeRow}>
-              <View style={[styles.lotTypeBadge, { backgroundColor: colors.primary + "15" }]}>
-                <Text style={[styles.lotTypeBadgeText, { color: colors.primary }]}>Mini</Text>
-              </View>
-              <Text style={[styles.lotTypeDescription, { color: colors.subtext }]}>
-                10,000 units of base currency
-              </Text>
-            </View>
-            
-            <View style={styles.lotTypeRow}>
-              <View style={[styles.lotTypeBadge, { backgroundColor: colors.primary + "15" }]}>
-                <Text style={[styles.lotTypeBadgeText, { color: colors.primary }]}>Micro</Text>
-              </View>
-              <Text style={[styles.lotTypeDescription, { color: colors.subtext }]}>
-                1,000 units of base currency
-              </Text>
-            </View>
-            
-            <View style={styles.lotTypeRow}>
-              <View style={[styles.lotTypeBadge, { backgroundColor: colors.primary + "15" }]}>
-                <Text style={[styles.lotTypeBadgeText, { color: colors.primary }]}>Nano</Text>
-              </View>
-              <Text style={[styles.lotTypeDescription, { color: colors.subtext }]}>
-                100 units of base currency
-              </Text>
-            </View>
-            
-            <View style={styles.lotTypeRow}>
-              <View style={[styles.lotTypeBadge, { backgroundColor: colors.primary + "15" }]}>
-                <Text style={[styles.lotTypeBadgeText, { color: colors.primary }]}>Custom</Text>
-              </View>
-              <Text style={[styles.lotTypeDescription, { color: colors.subtext }]}>
-                Any specific number of units
-              </Text>
-            </View>
-          </View>
         </View>
 
         <View
@@ -181,14 +159,14 @@ const InfoScreen: React.FC = () => {
           ]}
         >
           <LinearGradient
-            colors={getGradient("primary").colors}
-            start={getGradient("primary").start}
-            end={getGradient("primary").end}
-            style={styles.cardHeader}
+            colors={getGradient("card").colors}
+            start={getGradient("card").start}
+            end={getGradient("card").end}
+            style={styles.cardContent}
           >
-            <Text style={styles.cardHeaderTitle}>Example Calculation</Text>
-          </LinearGradient>
-          <View style={styles.cardContent}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Example Calculation
+            </Text>
             <Text style={[styles.paragraph, { color: colors.subtext }]}>
               For a 1 standard lot position (100,000 units) on EUR/USD:
             </Text>
@@ -210,7 +188,7 @@ const InfoScreen: React.FC = () => {
             <Text style={[styles.paragraph, { color: colors.subtext }]}>
               • Pip value in INR = $10 × 83 = ₹830 per pip
             </Text>
-          </View>
+          </LinearGradient>
         </View>
 
         <View
@@ -220,51 +198,34 @@ const InfoScreen: React.FC = () => {
           ]}
         >
           <LinearGradient
-            colors={getGradient("primary").colors}
-            start={getGradient("primary").start}
-            end={getGradient("primary").end}
-            style={styles.cardHeader}
+            colors={getGradient("card").colors}
+            start={getGradient("card").start}
+            end={getGradient("card").end}
+            style={styles.cardContent}
           >
-            <Text style={styles.cardHeaderTitle}>Data Sources</Text>
-          </LinearGradient>
-          <View style={styles.cardContent}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Data Sources
+            </Text>
             <Text style={[styles.paragraph, { color: colors.subtext }]}>
               This app uses real-time exchange rates from the following providers:
             </Text>
-            
-            <View style={styles.dataSourceRow}>
-              <MaterialIcons name="check-circle" size={16} color={colors.success} />
-              <Text style={[styles.dataSourceText, { color: colors.subtext }]}>
-                TraderMade API (Primary)
-              </Text>
-            </View>
-            
-            <View style={styles.dataSourceRow}>
-              <MaterialIcons name="check-circle" size={16} color={colors.success} />
-              <Text style={[styles.dataSourceText, { color: colors.subtext }]}>
-                Open Exchange Rates API
-              </Text>
-            </View>
-            
-            <View style={styles.dataSourceRow}>
-              <MaterialIcons name="check-circle" size={16} color={colors.success} />
-              <Text style={[styles.dataSourceText, { color: colors.subtext }]}>
-                Alpha Vantage API
-              </Text>
-            </View>
-            
-            <View style={styles.dataSourceRow}>
-              <MaterialIcons name="check-circle" size={16} color={colors.success} />
-              <Text style={[styles.dataSourceText, { color: colors.subtext }]}>
-                Fixer API
-              </Text>
-            </View>
-            
-            <Text style={[styles.paragraph, { color: colors.subtext, marginTop: 8 }]}>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
+              • TraderMade API (Primary)
+            </Text>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
+              • Open Exchange Rates API
+            </Text>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
+              • Alpha Vantage API
+            </Text>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
+              • Fixer API
+            </Text>
+            <Text style={[styles.paragraph, { color: colors.subtext }]}>
               Exchange rates are refreshed in real-time when you calculate pip
               values.
             </Text>
-          </View>
+          </LinearGradient>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -282,29 +243,27 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
     marginBottom: 20,
+    borderWidth: 1,
     overflow: "hidden",
-    ...Platform.OS === "ios" 
-      ? {
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 8,
-        }
-      : {
-          elevation: 4,
-        },
-  },
-  cardHeader: {
-    padding: 16,
-    alignItems: "center",
-  },
-  cardHeaderTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   cardContent: {
-    padding: 16,
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 12,
   },
   paragraph: {
     fontSize: 15,
@@ -317,35 +276,16 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     textAlign: "center",
   },
-  lotTypeRow: {
+  bulletPoint: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 4,
   },
-  lotTypeBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 12,
-    minWidth: 80,
-  },
-  lotTypeBadgeText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  lotTypeDescription: {
-    fontSize: 15,
-    flex: 1,
-  },
-  dataSourceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  dataSourceText: {
-    fontSize: 15,
-    marginLeft: 8,
+  bullet: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginRight: 8,
   },
 });
 

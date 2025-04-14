@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useNavigation } from "react";
 import {
   View,
   StyleSheet,
@@ -11,6 +11,7 @@ import {
   Platform,
   Alert,
   Modal,
+  StatusBar,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import Header from "../components/Header";
@@ -43,20 +44,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
-// Storage keys
-const ACCOUNT_CURRENCY_KEY = "forex-pip-calculator-account-currency";
-const CURRENCY_PAIR_KEY = "forex-pip-calculator-currency-pair";
-const LOT_SIZES_KEY = "forex-pip-calculator-lot-sizes";
-const LOT_TYPE_KEY = "forex-pip-calculator-lot-type";
-const LOT_COUNT_KEY = "forex-pip-calculator-lot-count";
-const CUSTOM_UNITS_KEY = "forex-pip-calculator-custom-units";
-const PIP_COUNT_KEY = "forex-pip-calculator-pip-count";
-
 const CalculatorScreen: React.FC = () => {
-  const { colors, theme, toggleTheme, getGradient } = useTheme();
+  const { colors, toggleTheme, getGradient } = useTheme();
+  const navigation = useNavigation();
+
   const isDarkMode = theme === "dark";
 
-  // State for currency selection
   const [accountCurrency, setAccountCurrency] = useState<Currency>(
     currencies[0]
   );
@@ -64,22 +57,18 @@ const CalculatorScreen: React.FC = () => {
     currencyPairs[0]
   );
 
-  // State for modals
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [pairModalVisible, setPairModalVisible] = useState(false);
   const [lotSizeEditorVisible, setLotSizeEditorVisible] = useState(false);
 
-  // State for lot size
   const [lotSizes, setLotSizes] =
     useState<Record<string, LotSize>>(defaultLotSizes);
   const [lotType, setLotType] = useState<LotType>("Standard");
   const [lotCount, setLotCount] = useState(1);
   const [customUnits, setCustomUnits] = useState(1);
 
-  // State for pip input
   const [pipCount, setPipCount] = useState("10");
 
-  // State for calculation results and errors
   const [pipValueInQuoteCurrency, setPipValueInQuoteCurrency] = useState(0);
   const [pipValueInAccountCurrency, setPipValueInAccountCurrency] = useState(0);
   const [totalValueInQuoteCurrency, setTotalValueInQuoteCurrency] = useState(0);
@@ -88,14 +77,11 @@ const CalculatorScreen: React.FC = () => {
   const [exchangeRate, setExchangeRate] = useState(1);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // State for refresh control
   const [refreshing, setRefreshing] = useState(false);
 
-  // Load saved preferences
   useEffect(() => {
     const loadPreferences = async () => {
       try {
-        // Load account currency
         const savedAccountCurrency = await AsyncStorage.getItem(
           ACCOUNT_CURRENCY_KEY
         );
@@ -104,39 +90,33 @@ const CalculatorScreen: React.FC = () => {
           setAccountCurrency(parsedCurrency);
         }
 
-        // Load currency pair
         const savedCurrencyPair = await AsyncStorage.getItem(CURRENCY_PAIR_KEY);
         if (savedCurrencyPair) {
           const parsedPair = JSON.parse(savedCurrencyPair);
           setSelectedPair(parsedPair);
         }
 
-        // Load lot sizes
         const savedLotSizes = await AsyncStorage.getItem(LOT_SIZES_KEY);
         if (savedLotSizes) {
           const parsedLotSizes = JSON.parse(savedLotSizes);
           setLotSizes(parsedLotSizes);
         }
 
-        // Load lot type
         const savedLotType = await AsyncStorage.getItem(LOT_TYPE_KEY);
         if (savedLotType) {
           setLotType(savedLotType as LotType);
         }
 
-        // Load lot count
         const savedLotCount = await AsyncStorage.getItem(LOT_COUNT_KEY);
         if (savedLotCount) {
           setLotCount(parseInt(savedLotCount));
         }
 
-        // Load custom units
         const savedCustomUnits = await AsyncStorage.getItem(CUSTOM_UNITS_KEY);
         if (savedCustomUnits) {
           setCustomUnits(parseInt(savedCustomUnits));
         }
 
-        // Load pip count
         const savedPipCount = await AsyncStorage.getItem(PIP_COUNT_KEY);
         if (savedPipCount) {
           setPipCount(savedPipCount);
@@ -149,7 +129,6 @@ const CalculatorScreen: React.FC = () => {
     loadPreferences();
   }, []);
 
-  // Save preferences when they change
   useEffect(() => {
     const savePreferences = async () => {
       try {
@@ -188,18 +167,14 @@ const CalculatorScreen: React.FC = () => {
     pipCount,
   ]);
 
-  // Calculate pip values when inputs change
   useEffect(() => {
     calculatePipValues();
   }, [accountCurrency, selectedPair, lotType, lotCount, customUnits, pipCount]);
 
-  // Calculate pip values
   const calculatePipValues = async () => {
     try {
-      // Reset error message
       setErrorMessage(null);
 
-      // Get position size
       const positionSize = calculateTotalUnits(
         lotType,
         lotCount,
@@ -207,10 +182,8 @@ const CalculatorScreen: React.FC = () => {
         lotSizes
       );
 
-      // Get pip count as number
       const pipCountNum = parseFloat(pipCount) || 0;
 
-      // Calculate pip value in quote currency
       const pipValueQuote = calculatePipValueInQuoteCurrency(
         selectedPair,
         positionSize,
@@ -219,10 +192,6 @@ const CalculatorScreen: React.FC = () => {
       setPipValueInQuoteCurrency(pipValueQuote);
 
       try {
-        // Get exchange rate between quote currency and account currency
-        // Professional trading platforms use this direct approach
-
-        // If quote currency is the same as account currency
         if (selectedPair.quote === accountCurrency.code) {
           const rate = 1;
           setExchangeRate(rate);
@@ -236,11 +205,7 @@ const CalculatorScreen: React.FC = () => {
           setPipValueInAccountCurrency(pipValueAccount);
           setTotalValueInQuoteCurrency(pipValueQuote * pipCountNum);
           setTotalValueInAccountCurrency(pipValueAccount * pipCountNum);
-        }
-        // For all other cases, get direct rate from quote to account currency
-        else {
-          // Get direct exchange rate from quote currency to account currency
-          // This matches professional trading platforms' calculation logic
+        } else {
           const rate = await fetchExchangeRate(
             selectedPair.quote,
             accountCurrency.code
@@ -258,11 +223,9 @@ const CalculatorScreen: React.FC = () => {
           setTotalValueInAccountCurrency(pipValueAccount * pipCountNum);
         }
       } catch (error) {
-        // Handle specific API errors
         if (error instanceof Error) {
           setErrorMessage(error.message);
 
-          // If no internet, show alert
           if (error.message.includes("No internet connection")) {
             Alert.alert(
               "No Internet Connection",
@@ -282,7 +245,6 @@ const CalculatorScreen: React.FC = () => {
           );
         }
 
-        // Don't use cached rates for trading app - require fresh data
         throw new Error("Real-time rates required for accurate calculations");
       }
     } catch (error) {
@@ -296,49 +258,38 @@ const CalculatorScreen: React.FC = () => {
     }
   };
 
-  // Handle refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await calculatePipValues();
     setRefreshing(false);
   }, [accountCurrency, selectedPair, lotType, lotCount, customUnits, pipCount]);
 
-  // Handle account currency selection
   const handleAccountCurrencySelect = (currency: Currency) => {
     setAccountCurrency(currency);
   };
 
-  // Handle currency pair selection
   const handleCurrencyPairSelect = (pair: CurrencyPair) => {
     setSelectedPair(pair);
   };
 
-  // Handle lot type change
   const handleLotTypeChange = (type: LotType) => {
     setLotType(type);
   };
 
-  // Handle lot count change
   const handleLotCountChange = (count: number) => {
     setLotCount(count);
   };
 
-  // Handle custom units change
   const handleCustomUnitsChange = (units: number) => {
     setCustomUnits(units);
   };
 
-  // Handle lot sizes save
   const handleLotSizesSave = (newLotSizes: Record<string, LotSize>) => {
     setLotSizes(newLotSizes);
   };
 
-  // Handle pip count change
   const handlePipCountChange = (text: string) => {
-    // Allow only numbers and decimal point
     const filtered = text.replace(/[^0-9.]/g, "");
-
-    // Ensure only one decimal point
     const parts = filtered.split(".");
     if (parts.length > 2) {
       return;
@@ -351,6 +302,7 @@ const CalculatorScreen: React.FC = () => {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
+      <StatusBar style="auto" />
       <Header title="Forex Pip Calculator" onThemeToggle={toggleTheme} />
 
       <KeyboardAvoidingView
@@ -359,10 +311,6 @@ const CalculatorScreen: React.FC = () => {
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
-          scrollEnabled={true}
-          nestedScrollEnabled={true}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -373,24 +321,31 @@ const CalculatorScreen: React.FC = () => {
           }
         >
           <View style={styles.content}>
-            {/* Currency Setup Card */}
+            <View
+              style={[
+                styles.infoBanner,
+                {
+                  backgroundColor: colors.success + "20",
+                  borderColor: colors.success,
+                },
+              ]}
+            >
+              <MaterialIcons
+                name="check-circle"
+                size={20}
+                color={colors.success}
+              />
+              <Text style={[styles.infoBannerText, { color: colors.text }]}>
+                Using TraderMade API for professional-grade forex data
+              </Text>
+            </View>
+
             <View
               style={[
                 styles.card,
                 {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
-                  ...Platform.select({
-                    ios: {
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
-                    },
-                    android: {
-                      elevation: 4,
-                    },
-                  }),
                 },
               ]}
             >
@@ -404,7 +359,7 @@ const CalculatorScreen: React.FC = () => {
                   <View
                     style={[
                       styles.iconContainer,
-                      { backgroundColor: colors.primary + "15" },
+                      { backgroundColor: colors.primary + "20" },
                     ]}
                   >
                     <MaterialIcons
@@ -431,24 +386,12 @@ const CalculatorScreen: React.FC = () => {
               </LinearGradient>
             </View>
 
-            {/* Position Size Card */}
             <View
               style={[
                 styles.card,
                 {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
-                  ...Platform.select({
-                    ios: {
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
-                    },
-                    android: {
-                      elevation: 4,
-                    },
-                  }),
                 },
               ]}
             >
@@ -462,7 +405,7 @@ const CalculatorScreen: React.FC = () => {
                   <View
                     style={[
                       styles.iconContainer,
-                      { backgroundColor: colors.primary + "15" },
+                      { backgroundColor: colors.primary + "20" },
                     ]}
                   >
                     <MaterialIcons
@@ -489,24 +432,12 @@ const CalculatorScreen: React.FC = () => {
               </LinearGradient>
             </View>
 
-            {/* Pip Input Card */}
             <View
               style={[
                 styles.card,
                 {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
-                  ...Platform.select({
-                    ios: {
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
-                    },
-                    android: {
-                      elevation: 4,
-                    },
-                  }),
                 },
               ]}
             >
@@ -520,7 +451,7 @@ const CalculatorScreen: React.FC = () => {
                   <View
                     style={[
                       styles.iconContainer,
-                      { backgroundColor: colors.primary + "15" },
+                      { backgroundColor: colors.primary + "20" },
                     ]}
                   >
                     <MaterialIcons
@@ -533,16 +464,31 @@ const CalculatorScreen: React.FC = () => {
                     Pip Value
                   </Text>
                 </View>
-                <PipInput 
-                  label="Number of Pips" 
-                  value={pipCount} 
+                <PipInput
+                  label="Number of Pips"
+                  value={pipCount}
                   onChangeText={handlePipCountChange}
                   currencyPair={selectedPair}
                 />
               </LinearGradient>
             </View>
 
-            {/* Error Message */}
+            <TouchableOpacity
+              style={styles.calculateButtonWrapper}
+              onPress={calculatePipValues}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={getGradient("primary").colors}
+                start={getGradient("primary").start}
+                end={getGradient("primary").end}
+                style={styles.calculateButton}
+              >
+                <MaterialIcons name="calculate" size={20} color="#fff" />
+                <Text style={styles.calculateButtonText}>Calculate</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
             {errorMessage && (
               <View
                 style={[
@@ -565,24 +511,6 @@ const CalculatorScreen: React.FC = () => {
               </View>
             )}
 
-            {/* Calculate Button */}
-            <TouchableOpacity
-              style={styles.calculateButtonContainer}
-              onPress={calculatePipValues}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={getGradient("primary").colors}
-                start={getGradient("primary").start}
-                end={getGradient("primary").end}
-                style={styles.calculateButton}
-              >
-                <MaterialIcons name="calculate" size={24} color="white" />
-                <Text style={styles.calculateButtonText}>Calculate</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Results */}
             <ResultCard
               accountCurrency={accountCurrency}
               currencyPair={selectedPair}
@@ -593,49 +521,66 @@ const CalculatorScreen: React.FC = () => {
               exchangeRate={exchangeRate}
               pipCount={parseFloat(pipCount) || 0}
             />
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.infoButtonWrapper}
+                onPress={() => navigation.navigate("Info" as never)}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={getGradient("secondary").colors}
+                  start={getGradient("secondary").start}
+                  end={getGradient("secondary").end}
+                  style={styles.infoButton}
+                >
+                  <MaterialIcons name="help-outline" size={20} color="#fff" />
+                  <Text style={styles.infoButtonText}>Learn About Pips</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.settingsButtonWrapper}
+                onPress={() => navigation.navigate("Settings" as never)}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={getGradient("info").colors}
+                  start={getGradient("info").start}
+                  end={getGradient("info").end}
+                  style={styles.settingsButton}
+                >
+                  <MaterialIcons name="settings" size={20} color="#fff" />
+                  <Text style={styles.infoButtonText}>Settings</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Modals */}
-      <Modal
-        visible={currencyModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setCurrencyModalVisible(false)}
-      >
-        <CurrencyModal
-          onClose={() => setCurrencyModalVisible(false)}
-          onSelect={handleAccountCurrencySelect}
-          selectedCurrency={accountCurrency}
-        />
-      </Modal>
+      <CurrencyModal
+        isVisible={currencyModalVisible}
+        onClose={() => setCurrencyModalVisible(false)}
+        onSelectCurrency={handleAccountCurrencySelect}
+        selectedCurrency={accountCurrency}
+        currencies={currencies}
+      />
 
-      <Modal
-        visible={pairModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setPairModalVisible(false)}
-      >
-        <CurrencyPairModal
-          onClose={() => setPairModalVisible(false)}
-          onSelect={handleCurrencyPairSelect}
-          selectedPair={selectedPair}
-        />
-      </Modal>
+      <CurrencyPairModal
+        isVisible={pairModalVisible}
+        onClose={() => setPairModalVisible(false)}
+        onSelectPair={handleCurrencyPairSelect}
+        selectedPair={selectedPair}
+        currencyPairs={currencyPairs}
+      />
 
-      <Modal
-        visible={lotSizeEditorVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setLotSizeEditorVisible(false)}
-      >
-        <LotSizeEditorModal
-          lotSizes={lotSizes}
-          onSave={handleLotSizesSave}
-          onClose={() => setLotSizeEditorVisible(false)}
-        />
-      </Modal>
+      <LotSizeEditorModal
+        isVisible={lotSizeEditorVisible}
+        onClose={() => setLotSizeEditorVisible(false)}
+        lotSizes={lotSizes}
+        onSave={handleLotSizesSave}
+      />
     </SafeAreaView>
   );
 };
@@ -657,8 +602,19 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
     marginBottom: 24,
-    borderWidth: 0,
+    borderWidth: 1,
     overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   cardContent: {
     padding: 20,
@@ -681,19 +637,19 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginLeft: 4,
   },
-  calculateButtonContainer: {
+  calculateButtonWrapper: {
     borderRadius: 16,
     overflow: "hidden",
-    marginVertical: 8,
+    marginVertical: 16,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
       android: {
-        elevation: 8,
+        elevation: 6,
       },
     }),
   },
@@ -702,12 +658,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
+    borderRadius: 16,
   },
   calculateButtonText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    marginLeft: 12,
+    marginLeft: 8,
   },
   infoContainer: {
     flexDirection: "row",
@@ -749,6 +706,65 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 14,
     flex: 1,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 24,
+  },
+  infoButtonWrapper: {
+    flex: 1,
+    marginRight: 8,
+    borderRadius: 16,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  infoButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 14,
+    borderRadius: 16,
+  },
+  settingsButtonWrapper: {
+    flex: 1,
+    marginLeft: 8,
+    borderRadius: 16,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  settingsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 14,
+    borderRadius: 16,
+  },
+  infoButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
   },
 });
 

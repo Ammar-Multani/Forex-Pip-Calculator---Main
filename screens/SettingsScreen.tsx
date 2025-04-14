@@ -15,8 +15,8 @@ import { StatusBar } from "expo-status-bar";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import ApiKeyManager from "../components/ApiKeyManager";
-import Header from "../components/Header";
 import { LinearGradient } from "expo-linear-gradient";
+import Header from "../components/Header";
 
 const SettingsScreen: React.FC = () => {
   const { colors, theme, toggleTheme, setTheme, getGradient } = useTheme();
@@ -42,68 +42,50 @@ const SettingsScreen: React.FC = () => {
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <StatusBar style="auto" />
-      <Header title="Settings" showBackButton onThemeToggle={toggleTheme} />
+      <Header 
+        title="Settings" 
+        onThemeToggle={toggleTheme}
+        showBackButton={true}
+      />
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Appearance Card */}
         <View
           style={[
             styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              ...Platform.select({
-                ios: {
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 4,
-                },
-              }),
-            },
+            { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
           <LinearGradient
             colors={getGradient("card").colors}
             start={getGradient("card").start}
             end={getGradient("card").end}
-            style={styles.cardGradient}
+            style={styles.cardContent}
           >
-            <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderRow}>
               <View
                 style={[
                   styles.iconContainer,
-                  { backgroundColor: colors.primary + "15" },
+                  { backgroundColor: colors.primary + "20" },
                 ]}
               >
                 <MaterialIcons
-                  name="palette"
-                  size={22}
+                  name="brightness-6"
+                  size={20}
                   color={colors.primary}
                 />
               </View>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>
                 Appearance
               </Text>
             </View>
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelContainer}>
-                <View
-                  style={[
-                    styles.smallIconContainer,
-                    { backgroundColor: colors.primary + "10" },
-                  ]}
-                >
-                  <MaterialIcons
-                    name="brightness-6"
-                    size={20}
-                    color={colors.primary}
-                  />
-                </View>
+                <MaterialIcons
+                  name="dark-mode"
+                  size={22}
+                  color={colors.text}
+                />
                 <Text style={[styles.settingLabel, { color: colors.text }]}>
                   Dark Mode
                 </Text>
@@ -111,135 +93,105 @@ const SettingsScreen: React.FC = () => {
               <Switch
                 value={isDarkMode}
                 onValueChange={handleThemeToggle}
-                trackColor={{ false: "#767577", true: colors.primary + "90" }}
+                trackColor={{ false: colors.border, true: colors.primary + "80" }}
                 thumbColor={isDarkMode ? colors.primary : "#f4f3f4"}
-                ios_backgroundColor="#3e3e3e"
+                ios_backgroundColor={colors.border}
               />
             </View>
           </LinearGradient>
         </View>
 
-        {/* API Data Sources Card */}
         <View
           style={[
             styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              ...Platform.select({
-                ios: {
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 4,
-                },
-              }),
-            },
+            { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
           <LinearGradient
             colors={getGradient("card").colors}
             start={getGradient("card").start}
             end={getGradient("card").end}
-            style={styles.cardGradient}
+            style={styles.cardContent}
           >
-            <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderRow}>
               <View
                 style={[
                   styles.iconContainer,
-                  { backgroundColor: colors.primary + "15" },
+                  { backgroundColor: colors.primary + "20" },
                 ]}
               >
                 <MaterialIcons
-                  name="cloud-done"
-                  size={22}
+                  name="public"
+                  size={20}
                   color={colors.primary}
                 />
               </View>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>
                 API Data Sources
               </Text>
             </View>
 
             <TouchableOpacity
               style={[
-                styles.actionButton,
-                { backgroundColor: colors.primary + "15" },
+                styles.settingButton,
+                { backgroundColor: colors.primary + "10" },
               ]}
               onPress={handleApiKeysPress}
-              activeOpacity={0.7}
             >
-              <MaterialIcons name="vpn-key" size={20} color={colors.primary} />
-              <Text
-                style={[styles.actionButtonText, { color: colors.primary }]}
-              >
-                Manage API Keys
-              </Text>
+              <View style={styles.settingLabelContainer}>
+                <MaterialIcons name="vpn-key" size={22} color={colors.text} />
+                <Text style={[styles.settingLabel, { color: colors.text }]}>
+                  Manage API Keys
+                </Text>
+              </View>
+              <MaterialIcons
+                name="chevron-right"
+                size={24}
+                color={colors.primary}
+              />
             </TouchableOpacity>
 
             <View
               style={[
                 styles.infoContainer,
-                {
-                  backgroundColor: colors.info + "10",
-                  borderLeftColor: colors.info,
-                  borderLeftWidth: 4,
-                },
+                { backgroundColor: colors.info + "15" },
               ]}
             >
-              <MaterialIcons
-                name="info-outline"
-                size={20}
-                color={colors.info}
-              />
+              <MaterialIcons name="info-outline" size={20} color={colors.info} />
               <Text style={[styles.infoText, { color: colors.subtext }]}>
-                The app is currently using TraderMade API for reliable real-time
-                forex data.
+                Set up API keys for different forex data providers to ensure you
+                have reliable real-time data.
               </Text>
             </View>
           </LinearGradient>
         </View>
 
-        {/* About Card */}
         <View
           style={[
             styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              ...Platform.select({
-                ios: {
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 4,
-                },
-              }),
-            },
+            { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
           <LinearGradient
             colors={getGradient("card").colors}
             start={getGradient("card").start}
             end={getGradient("card").end}
-            style={styles.cardGradient}
+            style={styles.cardContent}
           >
-            <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderRow}>
               <View
                 style={[
                   styles.iconContainer,
-                  { backgroundColor: colors.primary + "15" },
+                  { backgroundColor: colors.primary + "20" },
                 ]}
               >
-                <MaterialIcons name="info" size={22} color={colors.primary} />
+                <MaterialIcons
+                  name="info"
+                  size={20}
+                  color={colors.primary}
+                />
               </View>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>
                 About
               </Text>
             </View>
@@ -249,14 +201,11 @@ const SettingsScreen: React.FC = () => {
                 Forex Pip Calculator
               </Text>
               <Text style={[styles.appVersion, { color: colors.subtext }]}>
-                Version 1.2.0
+                Version 1.0.0
               </Text>
-              <View
-                style={[styles.divider, { backgroundColor: colors.border }]}
-              />
               <Text style={[styles.appDescription, { color: colors.subtext }]}>
-                A professional-grade calculator for forex traders, with
-                real-time exchange rates and accurate pip calculations.
+                A professional-grade calculator for forex traders, with real-time
+                exchange rates and accurate pip calculations.
               </Text>
             </View>
           </LinearGradient>
@@ -286,13 +235,24 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
     marginBottom: 24,
-    borderWidth: 0,
+    borderWidth: 1,
     overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
-  cardGradient: {
+  cardContent: {
     padding: 20,
   },
-  cardHeader: {
+  cardHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
@@ -305,15 +265,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 8,
   },
-  smallIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  sectionTitle: {
+  cardTitle: {
     fontSize: 18,
     fontWeight: "700",
     marginLeft: 4,
@@ -324,36 +276,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
   },
+  settingButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
   settingLabelContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   settingLabel: {
     fontSize: 16,
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
     marginLeft: 12,
   },
   infoContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
-    padding: 16,
+    padding: 12,
     borderRadius: 12,
   },
   infoText: {
     fontSize: 14,
-    marginLeft: 12,
+    marginLeft: 8,
     flex: 1,
     lineHeight: 20,
   },
@@ -362,25 +310,18 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   appName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 8,
   },
   appVersion: {
-    fontSize: 15,
+    fontSize: 14,
     marginBottom: 16,
-  },
-  divider: {
-    height: 2,
-    width: "40%",
-    marginBottom: 16,
-    borderRadius: 1,
   },
   appDescription: {
-    fontSize: 15,
+    fontSize: 14,
     textAlign: "center",
-    lineHeight: 22,
-    paddingHorizontal: 16,
+    lineHeight: 20,
   },
 });
 

@@ -93,6 +93,11 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
             placeholder="Select lot type"
             zIndex={3000}
             zIndexInverse={1000}
+            listMode="SCROLLVIEW"
+            scrollViewProps={{
+              nestedScrollEnabled: true,
+            }}
+            disableScrollToSelectedItem={true}
           />
         </View>
 

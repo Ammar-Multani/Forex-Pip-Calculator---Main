@@ -46,7 +46,7 @@ export const lightTheme: ColorTheme = {
   primary: "#5a6ed1",
   placeholder: "#bfc5cf",
   error: "#f44336",
-  info: "#0288d1",
+  info: "#5a6ed1",
   success: "#4caf50",
   highlight: "#f0f7ff",
   gradients: {

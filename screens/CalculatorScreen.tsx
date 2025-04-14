@@ -13,7 +13,6 @@ import {
   Modal,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
-import { StatusBar } from "expo-status-bar";
 import Header from "../components/Header";
 import CurrencySelector from "../components/CurrencySelector";
 import CurrencyModal from "../components/CurrencyModal";
@@ -352,7 +351,6 @@ const CalculatorScreen: React.FC = () => {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <StatusBar style="auto" />
       <Header title="Forex Pip Calculator" onThemeToggle={toggleTheme} />
 
       <KeyboardAvoidingView

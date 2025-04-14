@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -7,6 +8,8 @@ import {
   DefaultTheme,
   DarkTheme,
 } from "@react-navigation/native";
+import * as NavigationBar from "expo-navigation-bar";
+import { StatusBar } from "expo-status-bar";
 import CalculatorScreen from "./screens/CalculatorScreen";
 import InfoScreen from "./screens/InfoScreen";
 import SettingsScreen from "./screens/SettingsScreen";
@@ -18,22 +21,38 @@ const Stack = createNativeStackNavigator();
 const AppContent = () => {
   const { theme } = useTheme();
   const navigationTheme = theme === "dark" ? DarkTheme : DefaultTheme;
+  const isDarkMode = theme === "dark";
+
+  // Set navigation bar and status bar color based on theme
+  useEffect(() => {
+    async function updateNavigationBar() {
+      await NavigationBar.setBackgroundColorAsync(
+        isDarkMode ? "#121212" : "#FFFFFF"
+      );
+      await NavigationBar.setButtonStyleAsync(isDarkMode ? "light" : "dark");
+    }
+
+    updateNavigationBar();
+  }, [isDarkMode]);
 
   return (
-    <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator
-        initialRouteName="Calculator"
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: "transparent" },
-          animation: "slide_from_right",
-        }}
-      >
-        <Stack.Screen name="Calculator" component={CalculatorScreen} />
-        <Stack.Screen name="Info" component={InfoScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <>
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
+      <NavigationContainer theme={navigationTheme}>
+        <Stack.Navigator
+          initialRouteName="Calculator"
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: "transparent" },
+            animation: "slide_from_right",
+          }}
+        >
+          <Stack.Screen name="Calculator" component={CalculatorScreen} />
+          <Stack.Screen name="Info" component={InfoScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </>
   );
 };
 

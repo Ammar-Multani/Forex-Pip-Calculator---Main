@@ -54,7 +54,7 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
   // Get gradient colors based on theme
   const gradientColors = isDarkMode
     ? [colors.card, colors.background]
-    : ["#2962FF", "#2979FF"];
+    : ["#5a6ed1", "#5a6ed1"];
 
   // Render each currency item
   const renderCurrencyItem = ({ item }: { item: Currency }) => {

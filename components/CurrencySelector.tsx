@@ -29,32 +29,10 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
     <View style={styles.container}>
       <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
       <TouchableOpacity
-<<<<<<< Updated upstream
         style={styles.selectorWrapper}
-=======
-        style={[
-          styles.selector,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-          },
-          Platform.select({
-            ios: {
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-            },
-            android: {
-              elevation: 3,
-            },
-          }),
-        ]}
->>>>>>> Stashed changes
         onPress={onPress}
         activeOpacity={0.8}
       >
-<<<<<<< Updated upstream
         <LinearGradient
           colors={getGradient("card").colors}
           start={getGradient("card").start}
@@ -66,9 +44,6 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
             },
           ]}
         >
-=======
-        <View style={styles.selectorContent}>
->>>>>>> Stashed changes
           <View style={styles.leftContent}>
             <Image
               source={{
@@ -84,7 +59,6 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
                 {selectedCurrency.name}
               </Text>
             </View>
-<<<<<<< Updated upstream
           </View>
           <View style={styles.rightContent}>
             <View
@@ -104,27 +78,6 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
             />
           </View>
         </LinearGradient>
-=======
-          </View>
-          <View style={styles.rightContent}>
-            <LinearGradient
-              colors={getGradient("primary").colors}
-              start={getGradient("primary").start}
-              end={getGradient("primary").end}
-              style={styles.symbolContainer}
-            >
-              <Text style={styles.currencySymbol}>
-                {selectedCurrency.symbol}
-              </Text>
-            </LinearGradient>
-            <MaterialIcons
-              name="keyboard-arrow-down"
-              size={24}
-              color={colors.primary}
-            />
-          </View>
-        </View>
->>>>>>> Stashed changes
       </TouchableOpacity>
     </View>
   );
@@ -139,7 +92,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 10,
     marginLeft: 4,
-<<<<<<< Updated upstream
   },
   selectorWrapper: {
     borderRadius: 16,
@@ -155,46 +107,24 @@ const styles = StyleSheet.create({
         elevation: 4,
       },
     }),
-=======
->>>>>>> Stashed changes
   },
   selector: {
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  selectorContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-<<<<<<< Updated upstream
     borderWidth: 1,
     borderRadius: 16,
-=======
->>>>>>> Stashed changes
   },
   leftContent: {
     flexDirection: "row",
     alignItems: "center",
   },
-<<<<<<< Updated upstream
   flag: {
     width: 30,
     height: 20,
     marginRight: 12,
     borderRadius: 2,
-=======
-  rightContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  flag: {
-    width: 30,
-    height: 20,
-    borderRadius: 4,
-    marginRight: 12,
->>>>>>> Stashed changes
     borderWidth: 0.5,
     borderColor: "rgba(0,0,0,0.1)",
   },
@@ -209,13 +139,10 @@ const styles = StyleSheet.create({
   currencyName: {
     fontSize: 14,
   },
-<<<<<<< Updated upstream
   rightContent: {
     flexDirection: "row",
     alignItems: "center",
   },
-=======
->>>>>>> Stashed changes
   symbolContainer: {
     width: 36,
     height: 36,
@@ -227,7 +154,6 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "white",
   },
 });
 

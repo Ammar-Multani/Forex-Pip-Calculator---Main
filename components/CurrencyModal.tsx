@@ -11,11 +11,6 @@ import {
   StatusBar,
   Image,
   Dimensions,
-<<<<<<< Updated upstream
-  BlurView,
-=======
-  useSafeAreaInsets,
->>>>>>> Stashed changes
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -45,15 +40,10 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
   const { colors, theme, getGradient } = useTheme();
   const insets = useSafeAreaInsets();
   const isDarkMode = theme === "dark";
-  const insets = useSafeAreaInsets();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredCurrencies, setFilteredCurrencies] =
     useState<Currency[]>(currencies);
-<<<<<<< Updated upstream
   const screenHeight = Dimensions.get("window").height;
-=======
-  const screenWidth = Dimensions.get("window").width;
->>>>>>> Stashed changes
 
   useEffect(() => {
     if (searchTerm.trim() === "") {
@@ -98,24 +88,16 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
           </Text>
         </View>
         <View style={styles.currencyRight}>
-<<<<<<< Updated upstream
           <View
             style={[
               styles.symbolContainer,
               { backgroundColor: colors.primary + "20" },
             ]}
-=======
-          <LinearGradient
-            colors={getGradient("primary").colors}
-            start={getGradient("primary").start}
-            end={getGradient("primary").end}
-            style={styles.symbolContainer}
->>>>>>> Stashed changes
           >
-            <Text style={styles.currencySymbol}>
+            <Text style={[styles.currencySymbol, { color: colors.primary }]}>
               {item.symbol}
             </Text>
-          </LinearGradient>
+          </View>
           {isSelected && (
             <MaterialIcons
               name="check-circle"
@@ -132,11 +114,7 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
   if (!isVisible) return null;
 
   return (
-<<<<<<< Updated upstream
     <View style={styles.modalContainer}>
-=======
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
->>>>>>> Stashed changes
       <StatusBar barStyle="light-content" />
       <LinearGradient
         colors={getGradient("header").colors}
@@ -158,7 +136,6 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
         <View style={styles.placeholder} />
       </LinearGradient>
 
-<<<<<<< Updated upstream
       <View style={[styles.content, { backgroundColor: colors.background }]}>
         <View
           style={[
@@ -209,49 +186,6 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
           windowSize={10}
         />
       </View>
-=======
-      <View
-        style={[
-          styles.searchContainer,
-          {
-            backgroundColor: colors.input,
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <MaterialIcons name="search" size={24} color={colors.primary} />
-        <TextInput
-          style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search currencies..."
-          placeholderTextColor={colors.placeholder}
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="search"
-        />
-        {searchTerm.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setSearchTerm("")}
-            activeOpacity={0.7}
-            style={styles.clearButton}
-          >
-            <MaterialIcons name="cancel" size={20} color={colors.placeholder} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <FlatList
-        data={filteredCurrencies}
-        renderItem={renderCurrencyItem}
-        keyExtractor={(item) => item.code}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        initialNumToRender={10}
-        maxToRenderPerBatch={20}
-        windowSize={10}
-      />
->>>>>>> Stashed changes
     </View>
   );
 };
@@ -271,11 +205,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-<<<<<<< Updated upstream
-=======
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
->>>>>>> Stashed changes
   },
   title: {
     fontSize: 20,
@@ -299,11 +228,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     margin: 16,
-<<<<<<< Updated upstream
     borderRadius: 12,
-=======
-    borderRadius: 16,
->>>>>>> Stashed changes
     borderWidth: 1,
     ...Platform.select({
       ios: {
@@ -313,11 +238,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
       },
       android: {
-<<<<<<< Updated upstream
         elevation: 2,
-=======
-        elevation: 3,
->>>>>>> Stashed changes
       },
     }),
   },
@@ -345,13 +266,8 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-<<<<<<< Updated upstream
         shadowOpacity: 0.05,
         shadowRadius: 3,
-=======
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
->>>>>>> Stashed changes
       },
       android: {
         elevation: 2,
@@ -385,21 +301,15 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 16,
     fontWeight: "600",
-    color: "white",
+    color: colors.primary,
   },
   checkIcon: {
     marginLeft: 4,
   },
   flag: {
-<<<<<<< Updated upstream
     width: 30,
     height: 20,
     borderRadius: 2,
-=======
-    width: 36,
-    height: 24,
-    borderRadius: 4,
->>>>>>> Stashed changes
     borderWidth: 0.5,
     borderColor: "rgba(0,0,0,0.1)",
   },

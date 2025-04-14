@@ -14,68 +14,78 @@ const PipInput: React.FC<PipInputProps> = ({ value, onChange }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <MaterialIcons name="trending-up" size={20} color={colors.primary} />
-        <Text style={[styles.label, { color: colors.text }]}>
-          Number of Pips
+      <View style={styles.inputRow}>
+        <Text style={[styles.sectionLabel, { color: colors.subtext }]}>
+          Pips:
+        </Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                color: colors.text,
+              },
+            ]}
+            value={value}
+            onChangeText={onChange}
+            keyboardType="numeric"
+            placeholder="Enter pip count (e.g., 10)"
+            placeholderTextColor={colors.placeholder}
+          />
+        </View>
+      </View>
+
+      <View
+        style={[
+          styles.infoContainer,
+          { backgroundColor: colors.primary + "10" },
+        ]}
+      >
+        <MaterialIcons name="info-outline" size={16} color={colors.primary} />
+        <Text style={[styles.pipInfo, { color: colors.subtext }]}>
+          Enter the number of pips for your calculation
         </Text>
       </View>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              color: colors.text,
-            },
-          ]}
-          value={value}
-          onChangeText={onChange}
-          keyboardType="numeric"
-          placeholder="Enter pip count (e.g., 10)"
-          placeholderTextColor={colors.placeholder}
-        />
-      </View>
-
-      <Text style={[styles.pipInfo, { color: colors.subtext }]}>
-        Enter the number of pips for your calculation
-      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 16,
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
   },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
+  sectionLabel: {
+    fontSize: 14,
+    width: 80,
   },
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flex: 1,
   },
   input: {
-    flex: 1,
     height: 50,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
     fontSize: 16,
   },
+  infoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 8,
+  },
   pipInfo: {
     fontSize: 12,
-    marginTop: 4,
+    marginLeft: 8,
+    flex: 1,
   },
 });
 

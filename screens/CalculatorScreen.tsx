@@ -359,6 +359,10 @@ const CalculatorScreen: React.FC = () => {
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
+          scrollEnabled={true}
+          nestedScrollEnabled={true}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -369,7 +373,7 @@ const CalculatorScreen: React.FC = () => {
           }
         >
           <View style={styles.content}>
-            {/* Currency Selection Card */}
+            {/* Currency Setup Card */}
             <View
               style={[
                 styles.card,
@@ -379,12 +383,12 @@ const CalculatorScreen: React.FC = () => {
                   ...Platform.select({
                     ios: {
                       shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 3,
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.15,
+                      shadowRadius: 8,
                     },
                     android: {
-                      elevation: 3,
+                      elevation: 4,
                     },
                   }),
                 },
@@ -397,11 +401,18 @@ const CalculatorScreen: React.FC = () => {
                 style={styles.cardContent}
               >
                 <View style={styles.cardHeaderRow}>
-                  <MaterialIcons
-                    name="monetization-on"
-                    size={20}
-                    color={colors.primary}
-                  />
+                  <View
+                    style={[
+                      styles.iconContainer,
+                      { backgroundColor: colors.primary + "15" },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="monetization-on"
+                      size={20}
+                      color={colors.primary}
+                    />
+                  </View>
                   <Text style={[styles.cardTitle, { color: colors.text }]}>
                     Currency Setup
                   </Text>
@@ -430,12 +441,12 @@ const CalculatorScreen: React.FC = () => {
                   ...Platform.select({
                     ios: {
                       shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 3,
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.15,
+                      shadowRadius: 8,
                     },
                     android: {
-                      elevation: 3,
+                      elevation: 4,
                     },
                   }),
                 },
@@ -448,11 +459,18 @@ const CalculatorScreen: React.FC = () => {
                 style={styles.cardContent}
               >
                 <View style={styles.cardHeaderRow}>
-                  <MaterialIcons
-                    name="account-balance"
-                    size={20}
-                    color={colors.primary}
-                  />
+                  <View
+                    style={[
+                      styles.iconContainer,
+                      { backgroundColor: colors.primary + "15" },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="account-balance"
+                      size={20}
+                      color={colors.primary}
+                    />
+                  </View>
                   <Text style={[styles.cardTitle, { color: colors.text }]}>
                     Position Size
                   </Text>
@@ -468,7 +486,53 @@ const CalculatorScreen: React.FC = () => {
                   onCustomUnitsChange={handleCustomUnitsChange}
                   onEditPress={() => setLotSizeEditorVisible(true)}
                 />
+              </LinearGradient>
+            </View>
 
+            {/* Pip Input Card */}
+            <View
+              style={[
+                styles.card,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  ...Platform.select({
+                    ios: {
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.15,
+                      shadowRadius: 8,
+                    },
+                    android: {
+                      elevation: 4,
+                    },
+                  }),
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={getGradient("card").colors}
+                start={getGradient("card").start}
+                end={getGradient("card").end}
+                style={styles.cardContent}
+              >
+                <View style={styles.cardHeaderRow}>
+                  <View
+                    style={[
+                      styles.iconContainer,
+                      { backgroundColor: colors.primary + "15" },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="trending-up"
+                      size={20}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <Text style={[styles.cardTitle, { color: colors.text }]}>
+                    Pip Value
+                  </Text>
+                </View>
                 <PipInput value={pipCount} onChange={handlePipCountChange} />
               </LinearGradient>
             </View>
@@ -478,7 +542,11 @@ const CalculatorScreen: React.FC = () => {
               <View
                 style={[
                   styles.errorContainer,
-                  { backgroundColor: colors.error + "20" },
+                  {
+                    backgroundColor: colors.error + "15",
+                    borderLeftColor: colors.error,
+                    borderLeftWidth: 4,
+                  },
                 ]}
               >
                 <MaterialIcons
@@ -559,6 +627,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 30,
   },
   content: {
     padding: 16,
@@ -568,7 +637,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     marginVertical: 16,
   },
   calculateButtonText: {
@@ -581,57 +650,69 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     backgroundColor: "rgba(33, 150, 243, 0.1)",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 12,
     marginBottom: 24,
   },
   infoText: {
     fontSize: 14,
-    marginLeft: 8,
+    marginLeft: 12,
     flex: 1,
+    lineHeight: 20,
   },
   errorContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
   },
   errorText: {
-    marginLeft: 8,
+    marginLeft: 12,
     fontSize: 14,
+    flex: 1,
+    lineHeight: 20,
   },
   infoBanner: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderLeftWidth: 3,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    borderLeftWidth: 4,
   },
   infoBannerText: {
-    marginLeft: 8,
+    marginLeft: 12,
     fontSize: 14,
+    flex: 1,
   },
   card: {
-    borderRadius: 16,
-    marginBottom: 16,
-    borderWidth: 1,
+    borderRadius: 20,
+    marginBottom: 24,
+    borderWidth: 0,
     overflow: "hidden",
   },
   cardContent: {
-    padding: 16,
+    padding: 20,
   },
   cardHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
+    fontSize: 18,
+    fontWeight: "700",
+    marginLeft: 4,
   },
 });
 

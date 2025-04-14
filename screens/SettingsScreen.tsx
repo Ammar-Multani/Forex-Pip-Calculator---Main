@@ -55,12 +55,12 @@ const SettingsScreen: React.FC = () => {
               ...Platform.select({
                 ios: {
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 3,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 8,
                 },
                 android: {
-                  elevation: 3,
+                  elevation: 4,
                 },
               }),
             },
@@ -73,7 +73,18 @@ const SettingsScreen: React.FC = () => {
             style={styles.cardGradient}
           >
             <View style={styles.cardHeader}>
-              <MaterialIcons name="palette" size={22} color={colors.primary} />
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: colors.primary + "15" },
+                ]}
+              >
+                <MaterialIcons
+                  name="palette"
+                  size={22}
+                  color={colors.primary}
+                />
+              </View>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Appearance
               </Text>
@@ -81,11 +92,18 @@ const SettingsScreen: React.FC = () => {
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelContainer}>
-                <MaterialIcons
-                  name="brightness-6"
-                  size={24}
-                  color={colors.text}
-                />
+                <View
+                  style={[
+                    styles.smallIconContainer,
+                    { backgroundColor: colors.primary + "10" },
+                  ]}
+                >
+                  <MaterialIcons
+                    name="brightness-6"
+                    size={20}
+                    color={colors.primary}
+                  />
+                </View>
                 <Text style={[styles.settingLabel, { color: colors.text }]}>
                   Dark Mode
                 </Text>
@@ -93,8 +111,9 @@ const SettingsScreen: React.FC = () => {
               <Switch
                 value={isDarkMode}
                 onValueChange={handleThemeToggle}
-                trackColor={{ false: "#767577", true: colors.primary }}
-                thumbColor="#f4f3f4"
+                trackColor={{ false: "#767577", true: colors.primary + "90" }}
+                thumbColor={isDarkMode ? colors.primary : "#f4f3f4"}
+                ios_backgroundColor="#3e3e3e"
               />
             </View>
           </LinearGradient>
@@ -110,12 +129,12 @@ const SettingsScreen: React.FC = () => {
               ...Platform.select({
                 ios: {
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 3,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 8,
                 },
                 android: {
-                  elevation: 3,
+                  elevation: 4,
                 },
               }),
             },
@@ -128,11 +147,18 @@ const SettingsScreen: React.FC = () => {
             style={styles.cardGradient}
           >
             <View style={styles.cardHeader}>
-              <MaterialIcons
-                name="cloud-done"
-                size={22}
-                color={colors.primary}
-              />
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: colors.primary + "15" },
+                ]}
+              >
+                <MaterialIcons
+                  name="cloud-done"
+                  size={22}
+                  color={colors.primary}
+                />
+              </View>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 API Data Sources
               </Text>
@@ -141,9 +167,10 @@ const SettingsScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.actionButton,
-                { backgroundColor: colors.primary + "20" },
+                { backgroundColor: colors.primary + "15" },
               ]}
               onPress={handleApiKeysPress}
+              activeOpacity={0.7}
             >
               <MaterialIcons name="vpn-key" size={20} color={colors.primary} />
               <Text
@@ -156,7 +183,11 @@ const SettingsScreen: React.FC = () => {
             <View
               style={[
                 styles.infoContainer,
-                { backgroundColor: colors.info + "15" },
+                {
+                  backgroundColor: colors.info + "10",
+                  borderLeftColor: colors.info,
+                  borderLeftWidth: 4,
+                },
               ]}
             >
               <MaterialIcons
@@ -182,12 +213,12 @@ const SettingsScreen: React.FC = () => {
               ...Platform.select({
                 ios: {
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 3,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 8,
                 },
                 android: {
-                  elevation: 3,
+                  elevation: 4,
                 },
               }),
             },
@@ -200,7 +231,14 @@ const SettingsScreen: React.FC = () => {
             style={styles.cardGradient}
           >
             <View style={styles.cardHeader}>
-              <MaterialIcons name="info" size={22} color={colors.primary} />
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: colors.primary + "15" },
+                ]}
+              >
+                <MaterialIcons name="info" size={22} color={colors.primary} />
+              </View>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 About
               </Text>
@@ -213,7 +251,9 @@ const SettingsScreen: React.FC = () => {
               <Text style={[styles.appVersion, { color: colors.subtext }]}>
                 Version 1.2.0
               </Text>
-              <View style={styles.divider} />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
               <Text style={[styles.appDescription, { color: colors.subtext }]}>
                 A professional-grade calculator for forex traders, with
                 real-time exchange rates and accurate pip calculations.
@@ -241,25 +281,42 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+    paddingBottom: 30,
   },
   card: {
-    borderRadius: 16,
-    marginBottom: 16,
-    borderWidth: 1,
+    borderRadius: 20,
+    marginBottom: 24,
+    borderWidth: 0,
     overflow: "hidden",
   },
   cardGradient: {
-    padding: 16,
+    padding: 20,
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
   },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  smallIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 8,
+    fontWeight: "700",
+    marginLeft: 4,
   },
   settingRow: {
     flexDirection: "row",
@@ -273,57 +330,56 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    marginLeft: 12,
   },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: 12,
+    marginBottom: 16,
   },
   actionButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    marginLeft: 8,
+    marginLeft: 12,
   },
   infoContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
-    padding: 12,
-    borderRadius: 8,
+    padding: 16,
+    borderRadius: 12,
   },
   infoText: {
     fontSize: 14,
-    marginLeft: 8,
+    marginLeft: 12,
     flex: 1,
     lineHeight: 20,
   },
   aboutContainer: {
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 16,
   },
   appName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 4,
+    marginBottom: 8,
   },
   appVersion: {
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 15,
+    marginBottom: 16,
   },
   divider: {
-    height: 1,
-    backgroundColor: "#E0E0E0",
+    height: 2,
     width: "40%",
-    marginBottom: 12,
+    marginBottom: 16,
+    borderRadius: 1,
   },
   appDescription: {
-    fontSize: 14,
+    fontSize: 15,
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: 22,
     paddingHorizontal: 16,
   },
 });

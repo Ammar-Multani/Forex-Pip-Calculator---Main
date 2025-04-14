@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   SafeAreaView,
   Platform,
   Modal,
+  StatusBar,
+  Image,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -30,11 +32,20 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
   onSelect,
   selectedCurrency,
 }) => {
-  const { colors, theme } = useTheme();
+  const { colors, theme, getGradient } = useTheme();
   const isDarkMode = theme === "dark";
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredCurrencies, setFilteredCurrencies] =
     useState<Currency[]>(currencies);
+
+  const itemStyle = {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  };
 
   // Update filtered currencies when search term changes
   useEffect(() => {
@@ -51,11 +62,6 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
     onClose();
   };
 
-  // Get gradient colors based on theme
-  const gradientColors = isDarkMode
-    ? [colors.card, colors.background]
-    : ["#6c8cf2", "#6c8cf2"];
-
   // Render each currency item
   const renderCurrencyItem = ({ item }: { item: Currency }) => {
     const isSelected = selectedCurrency.code === item.code;
@@ -63,19 +69,24 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
     return (
       <TouchableOpacity
         style={[
-          styles.currencyItem,
+          itemStyle,
           {
             backgroundColor: colors.card,
-            borderColor: colors.border,
+            borderColor: isSelected ? colors.primary : colors.border,
           },
           isSelected && {
-            backgroundColor: colors.primary + "20",
-            borderColor: colors.primary,
+            backgroundColor: colors.primary + "15",
           },
         ]}
         onPress={() => handleSelect(item)}
         activeOpacity={0.7}
       >
+        <Image
+          source={{
+            uri: `https://flagcdn.com/w40/${item.countryCode.toLowerCase()}.png`,
+          }}
+          style={styles.flag}
+        />
         <View style={styles.currencyInfo}>
           <Text style={[styles.currencyCode, { color: colors.text }]}>
             {item.code}
@@ -84,17 +95,26 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
             {item.name}
           </Text>
         </View>
-        <Text style={[styles.currencySymbol, { color: colors.primary }]}>
-          {item.symbol}
-        </Text>
-        {isSelected && (
-          <MaterialIcons
-            name="check"
-            size={24}
-            color={colors.primary}
-            style={styles.checkIcon}
-          />
-        )}
+        <View style={styles.currencyRight}>
+          <View
+            style={[
+              styles.symbolContainer,
+              { backgroundColor: colors.primary + "15" },
+            ]}
+          >
+            <Text style={[styles.currencySymbol, { color: colors.primary }]}>
+              {item.symbol}
+            </Text>
+          </View>
+          {isSelected && (
+            <MaterialIcons
+              name="check"
+              size={24}
+              color={colors.primary}
+              style={styles.checkIcon}
+            />
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -103,34 +123,34 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
       <LinearGradient
-        colors={gradientColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        colors={getGradient("primary").colors}
+        start={getGradient("primary").start}
+        end={getGradient("primary").end}
         style={[styles.header]}
       >
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <MaterialIcons
-            name="close"
-            size={24}
-            color={isDarkMode ? colors.text : "#fff"}
-          />
-        </TouchableOpacity>
-        <Text
-          style={[styles.title, { color: isDarkMode ? colors.text : "#fff" }]}
+        <TouchableOpacity
+          onPress={onClose}
+          style={styles.closeButton}
+          activeOpacity={0.7}
         >
-          Select Currency
-        </Text>
+          <MaterialIcons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Select Currency</Text>
         <View style={styles.placeholder} />
       </LinearGradient>
 
       <View
         style={[
           styles.searchContainer,
-          { backgroundColor: colors.card, borderColor: colors.border },
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          },
         ]}
       >
-        <MaterialIcons name="search" size={24} color={colors.placeholder} />
+        <MaterialIcons name="search" size={24} color={colors.primary} />
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
           placeholder="Search currencies..."
@@ -139,10 +159,15 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
           onChangeText={setSearchTerm}
           autoCapitalize="none"
           autoCorrect={false}
+          returnKeyType="search"
         />
         {searchTerm.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchTerm("")}>
-            <MaterialIcons name="cancel" size={24} color={colors.placeholder} />
+          <TouchableOpacity
+            onPress={() => setSearchTerm("")}
+            activeOpacity={0.7}
+            style={styles.clearButton}
+          >
+            <MaterialIcons name="cancel" size={20} color={colors.placeholder} />
           </TouchableOpacity>
         )}
       </View>
@@ -164,45 +189,33 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "transparent",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    paddingTop: 16,
   },
   title: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "700",
     textAlign: "center",
+    color: "white",
   },
   closeButton: {
     padding: 8,
+    borderRadius: 20,
   },
   placeholder: {
-    width: 24,
+    width: 40,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
     margin: 16,
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
   },
   searchInput: {
@@ -210,6 +223,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 8,
     padding: 4,
+  },
+  clearButton: {
+    padding: 6,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -220,8 +236,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-    marginVertical: 4,
-    borderRadius: 8,
+    marginVertical: 6,
+    borderRadius: 12,
     borderWidth: 1,
   },
   currencyInfo: {
@@ -230,17 +246,35 @@ const styles = StyleSheet.create({
   currencyCode: {
     fontSize: 16,
     fontWeight: "bold",
+    marginBottom: 4,
   },
   currencyName: {
     fontSize: 14,
   },
+  currencyRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  symbolContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
   currencySymbol: {
     fontSize: 16,
-    fontWeight: "bold",
-    marginLeft: 8,
+    fontWeight: "600",
   },
   checkIcon: {
-    marginLeft: 8,
+    marginLeft: 4,
+  },
+  flag: {
+    width: 30,
+    height: 20,
+    marginRight: 15,
+    borderRadius: 2,
   },
 });
 

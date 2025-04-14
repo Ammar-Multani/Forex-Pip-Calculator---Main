@@ -1,80 +1,57 @@
 # Forex Pip Calculator
 
-A comprehensive mobile application for forex traders to quickly calculate pip values and position sizes across various currency pairs.
-
-![Forex Pip Calculator App](./assets/icon.png)
+A professional-grade calculator for forex traders, with real-time exchange rates and accurate pip calculations.
 
 ## Features
 
-- 🔄 Calculate pip values for major, minor, and exotic currency pairs
-- 💰 Support for multiple account currencies
-- 📊 Various lot size options (Standard, Mini, Micro, Nano, Custom)
-- 💾 Persistent storage of user preferences
-- 🌓 Light and dark theme support
-- 📱 Responsive design for all device sizes
+- Account currency selection with a searchable modal
+- Currency pair selection with grouping and search functionality
+- Position size configuration with editable lot size values
+- Pip value input with automatic decimal place adjustment
+- Real-time calculations with exchange rate conversion
+- Pull-to-refresh functionality to update exchange rates
+- Dark and light theme support
+- Educational content about pip calculations
+- API key management for TraderMade API
+- Caching for exchange rates
+- Error handling for network connectivity issues
 
-## Installation
+## Technical Details
 
-### Prerequisites
+- Built with React Native and Expo
+- TypeScript for type safety
+- React Navigation for screen management
+- Context API for theme management
+- AsyncStorage for user preferences
+- TraderMade API for real-time exchange rates
 
-- Node.js (v14 or later)
-- Yarn or npm
-- Expo CLI
+## Future Work
 
-### Setup
+### API Integration Enhancements
+- Add support for more forex data providers
+- Implement automatic fallback between different API providers
+- Add rate limiting and quota management for API calls
 
-1. Clone the repository:
+### UI/UX Improvements
+- Add animations for smoother transitions
+- Implement a tutorial for first-time users
+- Add more customization options for the calculator
 
-   ```
-   git clone https://github.com/yourusername/forex-pip-calculator.git
-   cd forex-pip-calculator
-   ```
+### Advanced Features
+- Add historical exchange rate data visualization
+- Implement position risk calculator
+- Add support for saving and loading calculation presets
+- Implement push notifications for significant rate changes
 
-2. Install dependencies:
+### Performance Optimizations
+- Optimize API calls to reduce data usage
+- Improve caching strategy for offline use
+- Implement background refresh for exchange rates
 
-   ```
-   yarn install
-   ```
-
-   or
-
-   ```
-   npm install
-   ```
-
-3. Start the development server:
-
-   ```
-   yarn start
-   ```
-
-   or
-
-   ```
-   npm run start
-   ```
-
-4. Follow the Expo instructions to run on a physical device or emulator.
-
-## Building for Production
-
-### Android
-
-```
-yarn android
-```
-
-### iOS
-
-```
-yarn ios
-```
-
-### Web
-
-```
-yarn web
-```
+### Testing and Quality Assurance
+- Add unit tests for calculation logic
+- Add integration tests for API calls
+- Implement error tracking and reporting
 
 ## Project Structure
 

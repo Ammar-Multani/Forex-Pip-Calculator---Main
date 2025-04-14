@@ -41,17 +41,14 @@ interface ApiKeyConfig {
 const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
   const { colors } = useTheme();
 
-  // API key states
-
+  // API key states - initialize with values from env
   const [traderMadeKey, setTraderMadeKey] = useState(env.traderMadeApiKey);
-
   const [loading, setLoading] = useState(false);
 
   // Load stored API keys
   useEffect(() => {
     const loadApiKeys = async () => {
       try {
-
         const storedTraderMadeKey = await AsyncStorage.getItem(
           `${API_KEY_STORAGE_PREFIX}trader-made`
         );
@@ -69,6 +66,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
   const saveApiKeys = async () => {
     setLoading(true);
     try {
+      // Save API keys to storage
       await AsyncStorage.setItem(
         `${API_KEY_STORAGE_PREFIX}trader-made`,
         traderMadeKey
@@ -99,7 +97,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
   };
 
   // API Configuration
-  const apiConfigs: ApiKeyConfig[] = [
+  const apiConfigs = [
     {
       name: "TraderMade",
       key: traderMadeKey,
@@ -110,23 +108,9 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
   ];
 
   // Handle input change for any API key
-  const handleInputChange = (text: string, apiConfig: ApiKeyConfig) => {
-    switch (apiConfig.storageKey) {
-      case "alpha-vantage":
-        setAlphaVantageKey(text);
-        break;
-      case "fixer":
-        setFixerKey(text);
-        break;
-      case "currency-layer":
-        setCurrencyLayerKey(text);
-        break;
-      case "exchange-rate":
-        setExchangeRateKey(text);
-        break;
-      case "trader-made":
-        setTraderMadeKey(text);
-        break;
+  const handleInputChange = (text: string, apiConfig: any) => {
+    if (apiConfig.storageKey === "trader-made") {
+      setTraderMadeKey(text);
     }
   };
 

@@ -13,7 +13,11 @@ export type GradientType =
   | "info"
   | "card"
   | "header"
+<<<<<<< Updated upstream
   | "modal";
+=======
+  | "accent";
+>>>>>>> Stashed changes
 
 // Define gradient options for both light and dark themes
 export interface GradientOptions {
@@ -46,6 +50,7 @@ export interface ColorTheme {
 export const lightTheme: ColorTheme = {
   background: "#f8fafd",
   card: "#ffffff",
+<<<<<<< Updated upstream
   text: "#1a1c25",
   subtext: "#5a6072",
   border: "#e4e8f0",
@@ -59,6 +64,20 @@ export const lightTheme: ColorTheme = {
   warning: "#ffd166",
   highlight: "#eef2ff",
   input: "#f5f7fa",
+=======
+  text: "#1a1a2e",
+  subtext: "#5d6b98",
+  border: "#e4e9f2",
+  primary: "#4361ee",
+  secondary: "#3f37c9",
+  accent: "#4895ef",
+  placeholder: "#a0aec0",
+  error: "#e53e3e",
+  info: "#4299e1",
+  success: "#38b2ac",
+  highlight: "#ebf4ff",
+  input: "#f7fafc",
+>>>>>>> Stashed changes
   gradients: {
     primary: {
       colors: ["#4361ee", "#3a0ca3"],
@@ -66,17 +85,29 @@ export const lightTheme: ColorTheme = {
       end: { x: 1, y: 1 },
     },
     secondary: {
+<<<<<<< Updated upstream
       colors: ["#3a86ff", "#4361ee"],
+=======
+      colors: ["#3f37c9", "#4361ee"],
+>>>>>>> Stashed changes
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     success: {
+<<<<<<< Updated upstream
       colors: ["#06d6a0", "#2dc653"],
+=======
+      colors: ["#38b2ac", "#2f855a"],
+>>>>>>> Stashed changes
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     info: {
+<<<<<<< Updated upstream
       colors: ["#4cc9f0", "#4361ee"],
+=======
+      colors: ["#4299e1", "#3182ce"],
+>>>>>>> Stashed changes
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
@@ -95,11 +126,22 @@ export const lightTheme: ColorTheme = {
       start: { x: 0, y: 0 },
       end: { x: 0, y: 1 },
     },
+    header: {
+      colors: ["#4361ee", "#3a0ca3"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
+    },
+    accent: {
+      colors: ["#4895ef", "#4361ee"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
+    },
   },
 };
 
 // Modern 2025 Dark Theme
 export const darkTheme: ColorTheme = {
+<<<<<<< Updated upstream
   background: "#0f1117",
   card: "#1a1d29",
   text: "#f0f2f8",
@@ -115,6 +157,22 @@ export const darkTheme: ColorTheme = {
   warning: "#ffd166",
   highlight: "#212433",
   input: "#242836",
+=======
+  background: "#0f172a",
+  card: "#1e293b",
+  text: "#f1f5f9",
+  subtext: "#94a3b8",
+  border: "#334155",
+  primary: "#4361ee",
+  secondary: "#3f37c9",
+  accent: "#4895ef",
+  placeholder: "#64748b",
+  error: "#ef4444",
+  info: "#38bdf8",
+  success: "#10b981",
+  highlight: "#1e3a8a",
+  input: "#1e293b",
+>>>>>>> Stashed changes
   gradients: {
     primary: {
       colors: ["#4361ee", "#3a0ca3"],
@@ -122,22 +180,38 @@ export const darkTheme: ColorTheme = {
       end: { x: 1, y: 1 },
     },
     secondary: {
+<<<<<<< Updated upstream
       colors: ["#3a86ff", "#4361ee"],
+=======
+      colors: ["#3f37c9", "#4361ee"],
+>>>>>>> Stashed changes
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     success: {
+<<<<<<< Updated upstream
       colors: ["#06d6a0", "#2dc653"],
+=======
+      colors: ["#10b981", "#059669"],
+>>>>>>> Stashed changes
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     info: {
+<<<<<<< Updated upstream
       colors: ["#4cc9f0", "#4361ee"],
+=======
+      colors: ["#38bdf8", "#0284c7"],
+>>>>>>> Stashed changes
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     card: {
+<<<<<<< Updated upstream
       colors: ["#1a1d29", "#151823"],
+=======
+      colors: ["#1e293b", "#0f172a"],
+>>>>>>> Stashed changes
       start: { x: 0, y: 0 },
       end: { x: 0, y: 1 },
     },
@@ -150,6 +224,16 @@ export const darkTheme: ColorTheme = {
       colors: ["#1a1d29", "#151823"],
       start: { x: 0, y: 0 },
       end: { x: 0, y: 1 },
+    },
+    header: {
+      colors: ["#1e293b", "#0f172a"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
+    },
+    accent: {
+      colors: ["#4895ef", "#4361ee"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
     },
   },
 };

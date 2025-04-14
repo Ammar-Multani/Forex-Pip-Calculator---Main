@@ -32,10 +32,32 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
     <View style={styles.container}>
       <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
       <TouchableOpacity
+<<<<<<< Updated upstream
         style={styles.selectorWrapper}
+=======
+        style={[
+          styles.selector,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          },
+          Platform.select({
+            ios: {
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+            },
+            android: {
+              elevation: 3,
+            },
+          }),
+        ]}
+>>>>>>> Stashed changes
         onPress={onPress}
         activeOpacity={0.8}
       >
+<<<<<<< Updated upstream
         <LinearGradient
           colors={getGradient("card").colors}
           start={getGradient("card").start}
@@ -47,6 +69,9 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
             },
           ]}
         >
+=======
+        <View style={styles.selectorContent}>
+>>>>>>> Stashed changes
           <View style={styles.leftContent}>
             <View style={styles.flagsContainer}>
               {baseCurrency && (
@@ -74,6 +99,7 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
                 {selectedPair.base}/{selectedPair.quote}
               </Text>
             </View>
+<<<<<<< Updated upstream
           </View>
           <View style={styles.rightContent}>
             <View
@@ -93,6 +119,27 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
             />
           </View>
         </LinearGradient>
+=======
+          </View>
+          <View style={styles.rightContent}>
+            <LinearGradient
+              colors={getGradient("primary").colors}
+              start={getGradient("primary").start}
+              end={getGradient("primary").end}
+              style={styles.pipContainer}
+            >
+              <Text style={styles.pipInfo}>
+                {selectedPair.pipDecimalPlaces === 2 ? "0.01" : "0.0001"}
+              </Text>
+            </LinearGradient>
+            <MaterialIcons
+              name="keyboard-arrow-down"
+              size={24}
+              color={colors.primary}
+            />
+          </View>
+        </View>
+>>>>>>> Stashed changes
       </TouchableOpacity>
     </View>
   );
@@ -107,6 +154,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 10,
     marginLeft: 4,
+<<<<<<< Updated upstream
   },
   selectorWrapper: {
     borderRadius: 16,
@@ -122,31 +170,56 @@ const styles = StyleSheet.create({
         elevation: 4,
       },
     }),
+=======
+>>>>>>> Stashed changes
   },
   selector: {
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  selectorContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
+<<<<<<< Updated upstream
     borderWidth: 1,
     borderRadius: 16,
+=======
+>>>>>>> Stashed changes
   },
   leftContent: {
     flexDirection: "row",
     alignItems: "center",
   },
+<<<<<<< Updated upstream
+=======
+  rightContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+>>>>>>> Stashed changes
   flagsContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginRight: 12,
     position: "relative",
+<<<<<<< Updated upstream
     width: 45,
+=======
+    width: 50,
+>>>>>>> Stashed changes
     height: 30,
   },
   flag: {
     width: 30,
     height: 20,
+<<<<<<< Updated upstream
     borderRadius: 2,
+=======
+    borderRadius: 4,
+>>>>>>> Stashed changes
     borderWidth: 0.5,
     borderColor: "rgba(0,0,0,0.1)",
   },
@@ -159,7 +232,11 @@ const styles = StyleSheet.create({
   flagSecond: {
     position: "absolute",
     top: 10,
+<<<<<<< Updated upstream
     left: 15,
+=======
+    left: 20,
+>>>>>>> Stashed changes
     zIndex: 1,
   },
   pairInfo: {
@@ -173,10 +250,13 @@ const styles = StyleSheet.create({
   pairDetail: {
     fontSize: 14,
   },
+<<<<<<< Updated upstream
   rightContent: {
     flexDirection: "row",
     alignItems: "center",
   },
+=======
+>>>>>>> Stashed changes
   pipContainer: {
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -186,6 +266,7 @@ const styles = StyleSheet.create({
   pipInfo: {
     fontSize: 14,
     fontWeight: "bold",
+    color: "white",
   },
 });
 

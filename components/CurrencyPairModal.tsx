@@ -7,9 +7,21 @@ import {
   StyleSheet,
   TextInput,
   Platform,
+<<<<<<< Updated upstream
   StatusBar,
   Image,
   Dimensions,
+=======
+  StatusBar,
+  Image,
+  Dimensions,
+  SafeAreaView,
+  Modal,
+  StatusBar,
+  Image,
+  ScrollView,
+  useSafeAreaInsets,
+>>>>>>> Stashed changes
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -38,6 +50,7 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
   currencyPairs,
 }) => {
   const { colors, theme, getGradient } = useTheme();
+  const insets = useSafeAreaInsets();
   const isDarkMode = theme === "dark";
   const insets = useSafeAreaInsets();
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,6 +58,12 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     useState<CurrencyPair[]>(currencyPairs);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
+<<<<<<< Updated upstream
+=======
+  const screenWidth = Dimensions.get("window").width;
+
+  // Sample favorites - in a real app, this would be stored in a context or persistence
+>>>>>>> Stashed changes
   const [favorites, setFavorites] = useState<string[]>([
     "EUR/USD",
     "GBP/USD",
@@ -52,6 +71,10 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     "USD/CHF",
   ]);
 
+<<<<<<< Updated upstream
+=======
+  // Update filtered pairs when search term changes
+>>>>>>> Stashed changes
   useEffect(() => {
     let result = currencyPairs;
 
@@ -152,10 +175,64 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     );
   };
 
+<<<<<<< Updated upstream
   if (!isVisible) return null;
 
   return (
     <View style={styles.modalContainer}>
+=======
+  // Render category filter pill
+  const renderCategoryPill = (category: string | null, label: string) => {
+    const isSelected = 
+      (category === selectedCategory && !showFavorites) || 
+      (category === null && label === "All" && !showFavorites) ||
+      (label === "Favorites" && showFavorites);
+    
+    return (
+      <TouchableOpacity
+        style={[
+          styles.filterPill,
+          {
+            backgroundColor: isSelected ? colors.primary : colors.card,
+            borderColor: isSelected ? colors.primary : colors.border,
+          },
+        ]}
+        onPress={() => {
+          if (label === "Favorites") {
+            setShowFavorites(!showFavorites);
+            setSelectedCategory(null);
+          } else {
+            setSelectedCategory(category);
+            setShowFavorites(false);
+          }
+        }}
+        activeOpacity={0.6}
+      >
+        {label === "Favorites" && (
+          <MaterialIcons
+            name={showFavorites ? "star" : "star-outline"}
+            size={16}
+            color={showFavorites ? "white" : colors.primary}
+            style={styles.filterIcon}
+          />
+        )}
+        <Text
+          style={[
+            styles.filterText,
+            { color: isSelected ? "white" : colors.text },
+          ]}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+>>>>>>> Stashed changes
       <StatusBar barStyle="light-content" />
       <LinearGradient
         colors={getGradient("header").colors}
@@ -177,6 +254,7 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
         <View style={styles.placeholder} />
       </LinearGradient>
 
+<<<<<<< Updated upstream
       <View style={[styles.content, { backgroundColor: colors.background }]}>
         <View
           style={[
@@ -290,6 +368,51 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
               All Pairs
             </Text>
           </TouchableOpacity>
+=======
+      <View
+        style={[
+          styles.searchContainer,
+          {
+            backgroundColor: colors.input,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        <MaterialIcons name="search" size={24} color={colors.primary} />
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          placeholder="Search currency pairs..."
+          placeholderTextColor={colors.placeholder}
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+        />
+        {searchTerm.length > 0 && (
+          <TouchableOpacity
+            onPress={() => setSearchTerm("")}
+            activeOpacity={0.7}
+            style={styles.clearButton}
+          >
+            <MaterialIcons name="cancel" size={20} color={colors.placeholder} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={[styles.filterContainer, { borderBottomColor: colors.border }]}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={["Favorites", "All", "Major", "EUR", "GBP", "JPY", "Other"]}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => 
+            renderCategoryPill(item === "All" ? null : item === "Favorites" ? null : item, item)
+          }
+          contentContainerStyle={styles.filterList}
+        />
+      </View>
+>>>>>>> Stashed changes
 
           {["Major", "EUR", "GBP", "JPY", "Other"].map((group) => (
             <TouchableOpacity
@@ -354,6 +477,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
+<<<<<<< Updated upstream
+=======
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+>>>>>>> Stashed changes
   },
   title: {
     fontSize: 20,
@@ -364,6 +492,7 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 8,
     borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
   placeholder: {
     width: 40,
@@ -377,7 +506,11 @@ const styles = StyleSheet.create({
     padding: 12,
     margin: 16,
     marginBottom: 8,
+<<<<<<< Updated upstream
     borderRadius: 12,
+=======
+    borderRadius: 16,
+>>>>>>> Stashed changes
     borderWidth: 1,
     ...Platform.select({
       ios: {
@@ -387,7 +520,11 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
       },
       android: {
+<<<<<<< Updated upstream
         elevation: 2,
+=======
+        elevation: 3,
+>>>>>>> Stashed changes
       },
     }),
   },
@@ -422,6 +559,26 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  pairItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    marginVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
   pairInfo: {
     flex: 1,
   },
@@ -443,9 +600,15 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   flag: {
+<<<<<<< Updated upstream
     width: 30,
     height: 20,
     borderRadius: 2,
+=======
+    width: 36,
+    height: 24,
+    borderRadius: 4,
+>>>>>>> Stashed changes
     borderWidth: 0.5,
     borderColor: "rgba(0,0,0,0.1)",
   },
@@ -454,8 +617,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 12,
     position: "relative",
+<<<<<<< Updated upstream
     width: 45,
     height: 30,
+=======
+    width: 56,
+    height: 36,
+>>>>>>> Stashed changes
   },
   flagFirst: {
     zIndex: 2,
@@ -470,13 +638,20 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   filterContainer: {
+    borderBottomWidth: 1,
+    marginBottom: 8,
+  },
+  filterList: {
     paddingHorizontal: 16,
     paddingVertical: 12,
+<<<<<<< Updated upstream
     alignItems: "center",
     borderBottomWidth: 1,
   },
   filterScrollView: {
     marginBottom: 8,
+=======
+>>>>>>> Stashed changes
   },
   filterPill: {
     flexDirection: "row",

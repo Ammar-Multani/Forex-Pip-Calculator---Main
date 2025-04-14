@@ -7,12 +7,17 @@ import {
   Platform,
   StatusBar,
   Dimensions,
+<<<<<<< Updated upstream
   LinearGradient,
   useSafeAreaInsets,
+=======
+>>>>>>> Stashed changes
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface HeaderProps {
   title: string;
@@ -114,15 +119,26 @@ const Header: React.FC<HeaderProps> = ({
 const styles = StyleSheet.create({
   headerContainer: {
     width: "100%",
+<<<<<<< Updated upstream
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
+=======
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+>>>>>>> Stashed changes
     overflow: "hidden",
     ...Platform.select({
       ios: {
         shadowColor: "#000",
+<<<<<<< Updated upstream
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 5,
+=======
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+>>>>>>> Stashed changes
       },
       android: {
         elevation: 8,
@@ -155,6 +171,7 @@ const styles = StyleSheet.create({
     padding: 8,
     marginHorizontal: 4,
     borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
 });
 

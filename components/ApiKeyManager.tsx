@@ -16,13 +16,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import env from "../config/env";
 
-interface ApiKeyFormData {
-  alphaVantageApiKey: string;
-  fixerApiKey: string;
-  currencyLayerApiKey: string;
-  exchangeRateApiKey: string;
-}
-
 // Storage keys
 const API_KEY_STORAGE_PREFIX = "forex-pip-calculator-api-key-";
 
@@ -114,11 +107,9 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
     }
   };
 
-
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background },
-    ]}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={[styles.header, { backgroundColor: colors.card }]}>
@@ -202,7 +193,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
               style={[
                 styles.input,
                 {
-                  backgroundColor: colors.input,
+                  backgroundColor: colors.card,
                   color: colors.text,
                   borderColor: colors.border,
                 },

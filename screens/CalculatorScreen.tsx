@@ -607,6 +607,14 @@ const CalculatorScreen: React.FC = () => {
                 pipCount={parseFloat(pipCount) || 0}
                 onRefresh={onRefresh}
                 isRefreshing={refreshing}
+                lotType={lotType}
+                lotCount={lotCount}
+                positionSize={calculateTotalUnits(
+                  lotType,
+                  lotCount,
+                  customUnits,
+                  lotSizes
+                )}
               />
             </View>
           </View>

@@ -7,6 +7,7 @@ import {
   Platform,
   Animated,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { Currency, CurrencyPair } from "../constants/currencies";
@@ -15,6 +16,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { calculatePipValueInQuoteCurrency } from "../utils/pipCalculator";
 import { LotSize } from "../constants/lotSizes";
+import { generatePdf, sharePdf } from "../utils/pdfGenerator";
 
 interface ResultCardProps {
   accountCurrency: Currency;
@@ -27,6 +29,9 @@ interface ResultCardProps {
   pipCount: number;
   onRefresh?: () => Promise<void>;
   isRefreshing?: boolean;
+  lotType?: string;
+  lotCount?: number;
+  positionSize?: number;
 }
 
 const ResultCard: React.FC<ResultCardProps> = ({
@@ -40,6 +45,9 @@ const ResultCard: React.FC<ResultCardProps> = ({
   pipCount,
   onRefresh,
   isRefreshing = false,
+  lotType,
+  lotCount,
+  positionSize,
 }) => {
   const { colors, theme, getGradient } = useTheme();
   const isDarkMode = theme === "dark";
@@ -109,6 +117,48 @@ const ResultCard: React.FC<ResultCardProps> = ({
   const handleRefresh = () => {
     if (onRefresh && !isRefreshing) {
       onRefresh();
+    }
+  };
+
+  const handleSaveAsPdf = async () => {
+    try {
+      // Get position size from props or calculate it if not provided
+      const calculatedPositionSize =
+        positionSize ||
+        pipValueInQuoteCurrency /
+          (currencyPair.quote === "JPY" ? 0.01 : 0.0001) /
+          (pipCount || 1);
+
+      // Generate PDF
+      const filePath = await generatePdf({
+        accountCurrency,
+        currencyPair,
+        pipValueInQuoteCurrency,
+        pipValueInAccountCurrency,
+        totalValueInQuoteCurrency,
+        totalValueInAccountCurrency,
+        exchangeRate,
+        pipCount,
+        positionSize: calculatedPositionSize,
+        lotType: lotType || "Standard", // Use props or default
+        lotCount: lotCount || 1, // Use props or default
+      });
+
+      if (filePath) {
+        // Share PDF
+        await sharePdf(filePath);
+      } else {
+        Alert.alert("Error", "Failed to generate PDF. Please try again.", [
+          { text: "OK" },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error saving PDF:", error);
+      Alert.alert(
+        "Error",
+        "An error occurred while saving the PDF. Please try again.",
+        [{ text: "OK" }]
+      );
     }
   };
 
@@ -331,18 +381,12 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 {isRefreshing ? (
                   <ActivityIndicator size="small" color={colors.primary} />
                 ) : (
-                  <MaterialIcons
-                    name="sync"
-                    size={14}
-                    color={colors.primary}
-                  />
+                  <MaterialIcons name="sync" size={14} color={colors.primary} />
                 )}
               </TouchableOpacity>
               <Text style={[styles.exchangeRateTitle, { color: colors.text }]}>
                 Exchange Rate
               </Text>
-
-              
             </View>
             <Text style={[styles.exchangeRateValue, { color: colors.primary }]}>
               {exchangeRateText}
@@ -538,6 +582,24 @@ const ResultCard: React.FC<ResultCardProps> = ({
             </View>
           </View>
         </View>
+
+        {/* Save as PDF Button */}
+        <View style={styles.saveButtonContainer}>
+          <TouchableOpacity
+            style={styles.saveAsPdfButtonWrapper}
+            onPress={handleSaveAsPdf}
+          >
+            <LinearGradient
+              colors={getGradient("secondary").colors}
+              start={getGradient("secondary").start}
+              end={getGradient("secondary").end}
+              style={styles.saveAsPdfButton}
+            >
+              <MaterialIcons name="picture-as-pdf" size={18} color="#fff" />
+              <Text style={styles.saveAsPdfButtonText}>Save as PDF</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -557,7 +619,7 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.05)",  
+    borderBottomColor: "rgba(0,0,0,0.05)",
   },
   heroContent: {
     alignItems: "center",
@@ -769,6 +831,42 @@ const styles = StyleSheet.create({
   lotSizePerPip: {
     fontSize: 11,
     marginTop: 3,
+  },
+  // Save as PDF button styles
+  saveButtonContainer: {
+    marginTop: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    alignItems: "center",
+  },
+  saveAsPdfButtonWrapper: {
+    width: "100%",
+    borderRadius: 12,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  saveAsPdfButton: {
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  saveAsPdfButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginLeft: 8,
+    color: "#fff",
   },
 });
 

@@ -6,17 +6,36 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  SafeAreaView,
   Modal,
   Platform,
+  Linking,
+  Alert,
+  Share,
+  StatusBar as RNStatusBar,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { StatusBar } from "expo-status-bar";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import ApiKeyManager from "../components/ApiKeyManager";
-import Header from "../components/Header";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Define a type for MaterialIcons names we use in this file
+type IconName =
+  | "palette"
+  | "vpn-key"
+  | "info-outline"
+  | "description"
+  | "warning"
+  | "security"
+  | "help-outline"
+  | "share"
+  | "bug-report"
+  | "delete"
+  | "chevron-right"
+  | "arrow-back"
+  | "brightness-6";
 
 const SettingsScreen: React.FC = () => {
   const { colors, theme, toggleTheme, setTheme, getGradient } = useTheme();
@@ -24,10 +43,6 @@ const SettingsScreen: React.FC = () => {
   const [apiKeyModalVisible, setApiKeyModalVisible] = useState(false);
 
   const isDarkMode = theme === "dark";
-
-  const handleThemeToggle = () => {
-    toggleTheme();
-  };
 
   const handleApiKeysPress = () => {
     setApiKeyModalVisible(true);
@@ -37,77 +52,217 @@ const SettingsScreen: React.FC = () => {
     setApiKeyModalVisible(false);
   };
 
-  return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
-      <StatusBar style="auto" />
-      <Header title="Settings" showBackButton onThemeToggle={toggleTheme} />
+  const handleThemeToggle = () => {
+    toggleTheme();
+  };
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Appearance Card */}
+  const handleClearHistory = async () => {
+    Alert.alert(
+      "Erase All Content",
+      "Are you sure you want to erase all content and settings? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Erase",
+          onPress: async () => {
+            // Clear relevant storage keys
+            try {
+              const keys = await AsyncStorage.getAllKeys();
+              const calculationKeys = keys.filter(
+                (key) =>
+                  key.startsWith("forex-pip-calculator-") &&
+                  !key.includes("api-key")
+              );
+              await AsyncStorage.multiRemove(calculationKeys);
+              Alert.alert("Content Erased", "All content has been erased.");
+            } catch (error) {
+              console.error("Error clearing data:", error);
+              Alert.alert("Error", "Failed to clear data");
+            }
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
+
+  const handleShareApp = async () => {
+    try {
+      await Share.share({
+        message: "Check out this amazing Forex Pip Calculator app!",
+      });
+    } catch (error) {
+      Alert.alert("Error", "Failed to share the app.");
+    }
+  };
+
+  const handleOpenLink = (url: string) => {
+    Linking.openURL(url);
+  };
+
+  const handleSubmitBugReport = () => {
+    Linking.openURL("mailto:support@example.com?subject=Bug%20Report");
+  };
+
+  const renderSettingItem = (
+    icon: IconName,
+    title: string,
+    onPress: () => void,
+    showChevron = true,
+    rightContent?: React.ReactNode
+  ) => (
+    <TouchableOpacity
+      style={[
+        styles.settingItem,
+        {
+          borderBottomColor: isDarkMode
+            ? "rgba(80, 80, 80, 0.5)"
+            : "rgba(220, 220, 220, 0.8)",
+          borderBottomWidth: 1,
+        },
+      ]}
+      onPress={onPress}
+      activeOpacity={rightContent ? 1 : 0.6}
+    >
+      <View style={styles.settingItemLeft}>
         <View
           style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              ...Platform.select({
-                ios: {
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 4,
-                },
-              }),
-            },
+            styles.iconContainer,
+            { backgroundColor: colors.primary + "15" },
           ]}
         >
-          <LinearGradient
-            colors={getGradient("card").colors}
-            start={getGradient("card").start}
-            end={getGradient("card").end}
-            style={styles.cardGradient}
-          >
-            <View style={styles.cardHeader}>
-              <View
-                style={[
-                  styles.iconContainer,
-                  { backgroundColor: colors.primary + "15" },
-                ]}
-              >
-                <MaterialIcons
-                  name="palette"
-                  size={22}
-                  color={colors.primary}
-                />
-              </View>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Appearance
-              </Text>
-            </View>
+          <MaterialIcons name={icon} size={22} color={colors.primary} />
+        </View>
+        <Text
+          style={[
+            styles.settingItemText,
+            { color: isDarkMode ? "#FFFFFF" : "#212121" },
+          ]}
+        >
+          {title}
+        </Text>
+      </View>
+      {rightContent ||
+        (showChevron && (
+          <MaterialIcons
+            name="chevron-right"
+            size={24}
+            color={isDarkMode ? "#AAAAAA" : "#757575"}
+          />
+        ))}
+    </TouchableOpacity>
+  );
 
-            <View style={styles.settingRow}>
-              <View style={styles.settingLabelContainer}>
-                <View
-                  style={[
-                    styles.smallIconContainer,
-                    { backgroundColor: colors.primary + "10" },
-                  ]}
-                >
-                  <MaterialIcons
-                    name="brightness-6"
-                    size={20}
-                    color={colors.primary}
-                  />
-                </View>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>
-                  Dark Mode
-                </Text>
-              </View>
+  const renderSection = (title: string, children: React.ReactNode) => (
+    <>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: isDarkMode ? "#AAAAAA" : "#757575" },
+        ]}
+      >
+        {title}
+      </Text>
+      <View
+        style={[
+          styles.section,
+          {
+            backgroundColor: isDarkMode ? "#1E1E1E" : "white",
+            borderColor: isDarkMode
+              ? "rgba(80, 80, 80, 0.5)"
+              : "rgba(220, 220, 220, 0.8)",
+            borderWidth: 1,
+            borderRadius: 20,
+            marginBottom: 16,
+            overflow: "hidden",
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={
+            isDarkMode
+              ? ["rgba(40, 40, 40, 0.7)", "rgba(30, 30, 30, 0.5)"]
+              : ["rgba(255, 255, 255, 0.95)", "rgba(250, 250, 255, 0.85)"]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.sectionGradient}
+        >
+          {children}
+        </LinearGradient>
+      </View>
+    </>
+  );
+
+  return (
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? "#121212" : "#F8F9FA" },
+      ]}
+    >
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
+      <RNStatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        translucent
+      />
+
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+            borderBottomColor: isDarkMode
+              ? "rgba(75, 75, 75, 0.3)"
+              : "rgba(230, 230, 230, 0.8)",
+            borderBottomWidth: 1,
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={
+            isDarkMode
+              ? ["rgba(40, 40, 40, 0.8)", "rgba(30, 30, 30, 0.8)"]
+              : ["rgba(255, 255, 255, 1)", "rgba(250, 250, 250, 0.95)"]
+          }
+          style={styles.headerGradient}
+        >
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Text
+              style={[
+                styles.headerTitle,
+                { color: isDarkMode ? "#FFFFFF" : "#333333" },
+              ]}
+            >
+              SETTINGS
+            </Text>
+          </View>
+          <View style={{ width: 40 }} />
+        </LinearGradient>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {renderSection(
+          "APPEARANCE",
+          <>
+            {renderSettingItem(
+              "brightness-6",
+              "Dark Mode",
+              () => {},
+              false,
               <Switch
                 value={isDarkMode}
                 onValueChange={handleThemeToggle}
@@ -115,135 +270,71 @@ const SettingsScreen: React.FC = () => {
                 thumbColor={isDarkMode ? colors.primary : "#f4f3f4"}
                 ios_backgroundColor="#3e3e3e"
               />
-            </View>
-          </LinearGradient>
-        </View>
+            )}
+          </>
+        )}
 
-        {/* API Data Sources Card */}
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              ...Platform.select({
-                ios: {
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 4,
-                },
-              }),
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={getGradient("card").colors}
-            start={getGradient("card").start}
-            end={getGradient("card").end}
-            style={styles.cardGradient}
-          >
-            <View style={styles.cardHeader}>
-              <View
-                style={[
-                  styles.iconContainer,
-                  { backgroundColor: colors.primary + "15" },
-                ]}
-              >
-                <MaterialIcons
-                  name="cloud-done"
-                  size={22}
-                  color={colors.primary}
-                />
-              </View>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                API Data Sources
-              </Text>
-            </View>
+        {renderSection(
+          "API DATA SOURCES",
+          <>
+            {renderSettingItem(
+              "vpn-key",
+              "Manage API Keys",
+              handleApiKeysPress
+            )}
+          </>
+        )}
 
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                { backgroundColor: colors.primary + "15" },
-              ]}
-              onPress={handleApiKeysPress}
-              activeOpacity={0.7}
-            >
-              <MaterialIcons name="vpn-key" size={20} color={colors.primary} />
-              <Text
-                style={[styles.actionButtonText, { color: colors.primary }]}
-              >
-                Manage API Keys
-              </Text>
-            </TouchableOpacity>
+        {renderSection(
+          "LEGAL",
+          <>
+            {renderSettingItem("description", "Terms of service", () =>
+              handleOpenLink("https://example.com/terms")
+            )}
+            {renderSettingItem("warning", "Disclaimer", () =>
+              handleOpenLink("https://example.com/disclaimer")
+            )}
+          </>
+        )}
 
-            <View
-              style={[
-                styles.infoContainer,
-                {
-                  backgroundColor: colors.info + "10",
-                  borderLeftColor: colors.info,
-                  borderLeftWidth: 4,
-                },
-              ]}
-            >
-              <MaterialIcons
-                name="info-outline"
-                size={20}
-                color={colors.info}
-              />
-              <Text style={[styles.infoText, { color: colors.subtext }]}>
-                The app is currently using TraderMade API for reliable real-time
-                forex data.
-              </Text>
-            </View>
-          </LinearGradient>
-        </View>
+        {renderSection(
+          "PRIVACY",
+          <>
+            {renderSettingItem("security", "Privacy policy", () =>
+              handleOpenLink("https://example.com/privacy")
+            )}
+          </>
+        )}
 
-        {/* About Card */}
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              ...Platform.select({
-                ios: {
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 4,
-                },
-              }),
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={getGradient("card").colors}
-            start={getGradient("card").start}
-            end={getGradient("card").end}
-            style={styles.cardGradient}
-          >
-            <View style={styles.cardHeader}>
-              <View
-                style={[
-                  styles.iconContainer,
-                  { backgroundColor: colors.primary + "15" },
-                ]}
-              >
-                <MaterialIcons name="info" size={22} color={colors.primary} />
-              </View>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                About
-              </Text>
-            </View>
+        {renderSection(
+          "FOREX PIP CALCULATOR",
+          <>
+            {renderSettingItem("help-outline", "Help Guide", () =>
+              handleOpenLink("https://example.com/help")
+            )}
+            {renderSettingItem(
+              "share",
+              "Share this app",
+              handleShareApp,
+              false
+            )}
+          </>
+        )}
 
+        {renderSection(
+          "CUSTOMER SERVICE",
+          <>
+            {renderSettingItem(
+              "bug-report",
+              "Report a bug",
+              handleSubmitBugReport
+            )}
+          </>
+        )}
+
+        {renderSection(
+          "ABOUT",
+          <>
             <View style={styles.aboutContainer}>
               <Text style={[styles.appName, { color: colors.text }]}>
                 Forex Pip Calculator
@@ -259,6 +350,54 @@ const SettingsScreen: React.FC = () => {
                 real-time exchange rates and accurate pip calculations.
               </Text>
             </View>
+          </>
+        )}
+
+        <View style={styles.dangerSection}>
+          <LinearGradient
+            colors={
+              isDarkMode
+                ? ["rgba(40, 40, 40, 0.7)", "rgba(30, 30, 30, 0.5)"]
+                : ["rgba(255, 255, 255, 0.95)", "rgba(250, 250, 255, 0.85)"]
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[
+              styles.dangerSectionGradient,
+              {
+                borderColor: isDarkMode
+                  ? "rgba(75, 75, 75, 0.2)"
+                  : "rgba(230, 230, 230, 0.8)",
+                borderWidth: 1,
+                borderRadius: 20,
+              },
+            ]}
+          >
+            <TouchableOpacity
+              style={[
+                styles.dangerButton,
+                {
+                  borderColor: isDarkMode
+                    ? "rgba(75, 75, 75, 0.2)"
+                    : "rgba(230, 230, 230, 0.8)",
+                  borderWidth: 1,
+                  borderRadius: 20,
+                },
+              ]}
+              onPress={handleClearHistory}
+            >
+              <View style={styles.dangerButtonContent}>
+                <MaterialIcons name="delete" size={24} color="#F44336" />
+                <Text style={[styles.dangerButtonText, { color: "#F44336" }]}>
+                  Erase All Content
+                </Text>
+              </View>
+              <MaterialIcons
+                name="chevron-right"
+                size={24}
+                color={isDarkMode ? "#AAAAAA" : "#757575"}
+              />
+            </TouchableOpacity>
           </LinearGradient>
         </View>
       </ScrollView>
@@ -267,11 +406,13 @@ const SettingsScreen: React.FC = () => {
       <Modal
         visible={apiKeyModalVisible}
         animationType="slide"
+        transparent={false}
         onRequestClose={handleCloseApiKeyModal}
+        statusBarTranslucent={true}
       >
         <ApiKeyManager onClose={handleCloseApiKeyModal} />
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -279,70 +420,99 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    padding: 16,
-    paddingBottom: 30,
-  },
-  card: {
-    borderRadius: 20,
-    marginBottom: 24,
-    borderWidth: 0,
-    overflow: "hidden",
-  },
-  cardGradient: {
-    padding: 20,
-  },
-  cardHeader: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    justifyContent: "space-between",
+    paddingTop: 60,
+    paddingBottom: 16,
+    height: 90,
   },
-  iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
+  headerGradient: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: "row",
     alignItems: "center",
-    marginRight: 8,
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingTop: 18,
   },
-  smallIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
+  backButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  headerTitleContainer: {
+    flex: 1,
     alignItems: "center",
-    marginRight: 12,
   },
-  sectionTitle: {
+  headerTitle: {
     fontSize: 18,
     fontWeight: "700",
-    marginLeft: 4,
+    letterSpacing: 1,
   },
-  settingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
+  scrollView: {
+    flex: 1,
   },
-  settingLabelContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  settingLabel: {
-    fontSize: 16,
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
+  scrollContent: {
     paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingVertical: 16,
+    paddingBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    marginTop: 16,
+    marginBottom: 8,
+    marginLeft: 8,
+  },
+  section: {
     marginBottom: 16,
   },
-  actionButtonText: {
+  sectionGradient: {
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+  settingItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  settingItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  settingItemText: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+  dangerSection: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  dangerSectionGradient: {
+    overflow: "hidden",
+  },
+  dangerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+  },
+  dangerButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dangerButtonText: {
+    fontSize: 16,
+    fontWeight: "500",
     marginLeft: 12,
   },
   infoContainer: {
@@ -381,6 +551,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 22,
     paddingHorizontal: 16,
+  },
+  iconContainer: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
   },
 });
 

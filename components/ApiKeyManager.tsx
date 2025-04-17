@@ -10,11 +10,14 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
+  StatusBar,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import env from "../config/env";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface ApiKeyFormData {
   alphaVantageApiKey: string;
@@ -39,7 +42,8 @@ interface ApiKeyConfig {
 }
 
 const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
-  const { colors } = useTheme();
+  const { colors, theme, getGradient } = useTheme();
+  const isDarkMode = theme === "dark";
 
   // API key states - initialize with values from env
   const [traderMadeKey, setTraderMadeKey] = useState(env.traderMadeApiKey);
@@ -104,7 +108,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
       storageKey: "trader-made",
       inputPlaceholder: "Enter your TraderMade API key",
       signupUrl: "https://tradermade.com/signup",
-    }
+    },
   ];
 
   // Handle input change for any API key
@@ -114,111 +118,233 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
     }
   };
 
-
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background },
-    ]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <View style={[styles.header, { backgroundColor: colors.card }]}>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <MaterialIcons name="close" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>
-          Manage API Keys
-        </Text>
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={saveApiKeys}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            <MaterialIcons name="save" size={24} color={colors.primary} />
-          )}
-        </TouchableOpacity>
-      </View>
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        translucent={true}
+      />
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={[
-          styles.content,
-          { backgroundColor: colors.background },
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+            borderBottomColor: isDarkMode
+              ? "rgba(75, 75, 75, 0.3)"
+              : "rgba(230, 230, 230, 0.8)",
+          },
         ]}
       >
-        <View
-          style={[
-            styles.infoCard,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
+        <LinearGradient
+          colors={
+            isDarkMode
+              ? ["rgba(25, 25, 25, 0.95)", "rgba(18, 18, 18, 0.98)"]
+              : ["rgba(255, 255, 255, 1)", "rgba(250, 250, 250, 0.95)"]
+          }
+          style={styles.headerGradient}
         >
-          <Text style={[styles.infoTitle, { color: colors.text }]}>
-            API Keys for Currency Data
-          </Text>
-          <Text style={[styles.infoText, { color: colors.subtext }]}>
-            For the most accurate and reliable forex data, it's recommended to
-            use your own API key from TraderMade. The free tiers of these
-            services provide sufficient data for personal use.
-            Backup api key: wsWt3A-afcjtbpTzs5hw
-          </Text>
-          <Text style={[styles.recommText, { color: colors.success }]}>
-            TraderMade is now the recommended primary data source.
-          </Text>
-        </View>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity
+              style={styles.iconButtonbacl}
+              onPress={onClose}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons
+                name="arrow-back"
+                size={24}
+                color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
+              />
+            </TouchableOpacity>
 
-        {apiConfigs.map((apiConfig) => (
+            <View style={{ marginLeft: -10 }}>
+              <Text
+                style={[
+                  styles.headerTitle,
+                  { color: isDarkMode ? "#FFFFFF" : "#333333" },
+                ]}
+              >
+                API Keys
+              </Text>
+              <Text
+                style={[
+                  styles.headerSubtitle,
+                  { color: isDarkMode ? "#AAAAAA" : "#757575" },
+                ]}
+              >
+                Management
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={saveApiKeys}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <MaterialIcons
+                  name="save"
+                  size={24}
+                  color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </View>
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
           <View
-            key={apiConfig.storageKey}
             style={[
-              styles.apiKeyCard,
-              { backgroundColor: colors.card, borderColor: colors.border },
-              apiConfig.storageKey === "trader-made" && styles.recommendedCard,
+              styles.card,
+              {
+                backgroundColor: isDarkMode
+                  ? "rgba(45, 52, 65, 0.8)"
+                  : "rgba(255, 255, 255, 0.9)",
+                borderColor: isDarkMode
+                  ? colors.border + "30"
+                  : "rgba(230, 235, 240, 0.9)",
+              },
             ]}
           >
-            <View style={styles.apiKeyHeader}>
-              <Text style={[styles.apiKeyName, { color: colors.text }]}>
-                {apiConfig.name}
-              </Text>
-              {apiConfig.storageKey === "trader-made" && (
-                <View style={styles.recommendedBadge}>
-                  <Text style={styles.recommendedText}>RECOMMENDED</Text>
-                </View>
-              )}
-              <TouchableOpacity
-                onPress={() => openSignupUrl(apiConfig.signupUrl)}
-                style={styles.signupButton}
-              >
-                <Text
-                  style={[styles.signupButtonText, { color: colors.primary }]}
+            <LinearGradient
+              colors={getGradient("card").colors}
+              start={getGradient("card").start}
+              end={getGradient("card").end}
+              style={styles.cardContent}
+            >
+              <View style={styles.cardHeaderRow}>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    { backgroundColor: colors.primary + "20" },
+                  ]}
                 >
-                  Sign Up
+                  <MaterialIcons
+                    name="info-outline"
+                    size={24}
+                    color={colors.primary}
+                  />
+                </View>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>
+                  API Keys for Currency Data
                 </Text>
-              </TouchableOpacity>
-            </View>
+              </View>
 
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.input,
-                  color: colors.text,
-                  borderColor: colors.border,
-                },
-              ]}
-              placeholder={apiConfig.inputPlaceholder}
-              placeholderTextColor={colors.placeholder}
-              value={apiConfig.key}
-              onChangeText={(text) => handleInputChange(text, apiConfig)}
-              secureTextEntry={false}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+              <Text style={[styles.infoText, { color: colors.subtext }]}>
+                For the most accurate and reliable forex data, it's recommended
+                to use your own API key from TraderMade. The free tiers of these
+                services provide sufficient data for personal use.
+              </Text>
+              <Text style={[styles.recommText, { color: colors.success }]}>
+                TraderMade is now the recommended primary data source.
+              </Text>
+            </LinearGradient>
           </View>
-        ))}
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+          {apiConfigs.map((apiConfig) => (
+            <View
+              key={apiConfig.storageKey}
+              style={[
+                styles.card,
+                {
+                  backgroundColor: isDarkMode
+                    ? "rgba(45, 52, 65, 0.8)"
+                    : "rgba(255, 255, 255, 0.9)",
+                  borderColor: isDarkMode
+                    ? colors.border + "30"
+                    : "rgba(230, 235, 240, 0.9)",
+                },
+                apiConfig.storageKey === "trader-made" &&
+                  styles.recommendedCard,
+              ]}
+            >
+              <LinearGradient
+                colors={getGradient("card").colors}
+                start={getGradient("card").start}
+                end={getGradient("card").end}
+                style={styles.cardContent}
+              >
+                <View style={styles.cardHeaderRow}>
+                  <View
+                    style={[
+                      styles.iconContainer,
+                      { backgroundColor: colors.primary + "20" },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="vpn-key"
+                      size={24}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <Text style={[styles.cardTitle, { color: colors.text }]}>
+                    {apiConfig.name}
+                  </Text>
+
+                  {apiConfig.storageKey === "trader-made" && (
+                    <View style={styles.recommendedBadge}>
+                      <Text style={styles.recommendedText}>RECOMMENDED</Text>
+                    </View>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => openSignupUrl(apiConfig.signupUrl)}
+                  style={[
+                    styles.signupButton,
+                    { backgroundColor: colors.primary + "15" },
+                  ]}
+                >
+                  <MaterialIcons
+                    name="open-in-new"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <Text
+                    style={[styles.signupButtonText, { color: colors.primary }]}
+                  >
+                    Sign Up for API Key
+                  </Text>
+                </TouchableOpacity>
+
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: isDarkMode
+                        ? "rgba(30, 35, 45, 0.8)"
+                        : "rgba(245, 247, 250, 0.8)",
+                      color: colors.text,
+                      borderColor: colors.border + "40",
+                    },
+                  ]}
+                  placeholder={apiConfig.inputPlaceholder}
+                  placeholderTextColor={
+                    colors.placeholder || colors.subtext + "80"
+                  }
+                  value={apiConfig.key}
+                  onChangeText={(text) => handleInputChange(text, apiConfig)}
+                  secureTextEntry={false}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </LinearGradient>
+            </View>
+          ))}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -228,91 +354,134 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    justifyContent: "space-between",
+    paddingHorizontal: 25,
+    paddingTop: Platform.OS === "ios" ? 50 : 35,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    elevation: 3,
+    height: 100,
   },
-  title: {
-    fontSize: 18,
+  headerGradient: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 25,
+    paddingTop: 10,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
     fontWeight: "bold",
+    letterSpacing: 0.5,
   },
-  closeButton: {
-    padding: 4,
+  headerSubtitle: {
+    fontSize: 16,
+    opacity: 0.8,
+    letterSpacing: 0.3,
   },
-  saveButton: {
-    padding: 4,
+  headerActions: {
+    flexDirection: "row",
+    paddingTop: 16,
+  },
+  iconButton: {
+    marginLeft: 8,
+    padding: 8,
+  },
+  iconButtonbacl: {
+    marginLeft: 8,
+    padding: 8,
+    right: 17,
   },
   content: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 10,
+    paddingBottom: 30,
   },
-  infoCard: {
-    borderRadius: 8,
-    padding: 16,
+  card: {
+    borderRadius: 22,
     marginBottom: 16,
     borderWidth: 1,
+    overflow: "hidden",
   },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
+  cardContent: {
+    padding: 17,
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginLeft: 4,
+    flex: 1,
   },
   infoText: {
     fontSize: 14,
-    marginBottom: 8,
     lineHeight: 20,
+    marginBottom: 12,
   },
   recommText: {
     fontSize: 14,
-    fontWeight: "bold",
-    marginTop: 4,
-  },
-  apiKeyCard: {
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
+    fontWeight: "600",
+    marginTop: 8,
   },
   recommendedCard: {
-    borderWidth: 2,
-    borderColor: "#4CAF50",
-  },
-  apiKeyHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  apiKeyName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    flex: 1,
+    borderLeftWidth: 4,
+    borderLeftColor: "#4CAF50",
   },
   recommendedBadge: {
     backgroundColor: "#4CAF50",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginHorizontal: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
   },
   recommendedText: {
-    color: "white",
+    color: "#FFFFFF",
     fontSize: 10,
     fontWeight: "bold",
   },
   signupButton: {
-    padding: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 16,
   },
   signupButtonText: {
-    fontSize: 14,
-    fontWeight: "bold",
+    fontSize: 15,
+    fontWeight: "600",
+    marginLeft: 8,
   },
   input: {
+    height: 50,
     borderWidth: 1,
-    borderRadius: 4,
-    padding: 10,
-    fontSize: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    fontSize: 15,
   },
 });
 

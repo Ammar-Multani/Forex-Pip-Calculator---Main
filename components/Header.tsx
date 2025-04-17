@@ -10,15 +10,18 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface HeaderProps {
   title: string;
+  subtitle?: string;
   onThemeToggle?: () => void;
   showBackButton?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
   title,
+  subtitle,
   onThemeToggle,
   showBackButton = false,
 }) => {
@@ -39,71 +42,110 @@ const Header: React.FC<HeaderProps> = ({
     navigation.navigate("Info" as never);
   };
 
-  // Choose header colors based on theme for a more subtle look
-  const headerBackgroundColor = isDarkMode ? "#1a1a1a" : "#fff";
-  const headerTextColor = isDarkMode ? "#fff" : "#333";
-  const iconColor = "#6c8cf2";
-
   return (
     <>
       <StatusBar
         barStyle={isDarkMode ? "light-content" : "dark-content"}
-        backgroundColor={headerBackgroundColor}
+        backgroundColor="transparent"
+        translucent={true}
       />
       <View
         style={[
           styles.header,
           {
-            backgroundColor: headerBackgroundColor,
-            borderBottomColor: isDarkMode ? colors.border : "transparent",
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+            borderBottomColor: isDarkMode
+              ? "rgba(75, 75, 75, 0.3)"
+              : "rgba(230, 230, 230, 0.8)",
           },
         ]}
       >
-        <View style={styles.leftContainer}>
-          {showBackButton ? (
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleBackPress}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <MaterialIcons name="arrow-back" size={24} color={iconColor} />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleInfoPress}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <MaterialIcons name="info-outline" size={24} color={iconColor} />
-            </TouchableOpacity>
-          )}
-        </View>
+        <LinearGradient
+          colors={
+            isDarkMode
+              ? ["rgba(40, 40, 40, 0.8)", "rgba(30, 30, 30, 0.8)"]
+              : ["rgba(255, 255, 255, 1)", "rgba(250, 250, 250, 0.95)"]
+          }
+          style={styles.headerGradient}
+        >
+          <View style={styles.headerLeft}>
+            {showBackButton ? (
+              <TouchableOpacity
+                style={styles.iconButtonbacl}
+                onPress={handleBackPress}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 0 }}
+              >
+                <MaterialIcons
+                  name="arrow-back"
+                  size={24}
+                  color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
+                />
+              </TouchableOpacity>
+            ) : null}
+            <View style={showBackButton ? { marginLeft: -10 } : {}}>
+              <Text
+                style={[
+                  styles.headerTitle,
+                  { color: isDarkMode ? "#FFFFFF" : "#333333" },
+                ]}
+              >
+                {title}
+              </Text>
+              {subtitle && (
+                <Text
+                  style={[
+                    styles.headerSubtitle,
+                    { color: isDarkMode ? "#AAAAAA" : "#757575" },
+                  ]}
+                >
+                  {subtitle}
+                </Text>
+              )}
+            </View>
+          </View>
 
-        <Text style={[styles.title, { color: headerTextColor }]}>{title}</Text>
+          <View style={styles.headerActions}>
+            {!showBackButton && (
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={handleInfoPress}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialIcons
+                  name="info-outline"
+                  size={24}
+                  color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
+                />
+              </TouchableOpacity>
+            )}
 
-        <View style={styles.rightContainer}>
-          {onThemeToggle && (
+            {onThemeToggle && (
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={onThemeToggle}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialIcons
+                  name={isDarkMode ? "light-mode" : "dark-mode"}
+                  size={24}
+                  color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
+                />
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={onThemeToggle}
+              onPress={handleSettingsPress}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <MaterialIcons
-                name={isDarkMode ? "light-mode" : "dark-mode"}
+                name="settings"
                 size={24}
-                color={iconColor}
+                color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
               />
             </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={handleSettingsPress}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MaterialIcons name="settings" size={24} color={iconColor} />
-          </TouchableOpacity>
-        </View>
+          </View>
+        </LinearGradient>
       </View>
     </>
   );
@@ -114,40 +156,52 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingTop: 30,
+    paddingHorizontal: 25,
+    paddingTop: Platform.OS === "ios" ? 50 : 35,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    elevation: 3,
+    height: 100,
   },
-  leftContainer: {
-    flex: 1,
-    alignItems: "flex-start",
-  },
-  rightContainer: {
-    flex: 1,
+  headerGradient: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: "row",
-    justifyContent: "flex-end",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 25,
+    paddingTop: 7,
   },
-  title: {
-    fontSize: 20,
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
+    letterSpacing: 0.5,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    opacity: 0.8,
+    letterSpacing: 0.3,
+  },
+  headerActions: {
+    flexDirection: "row",
+    paddingTop: 16,
   },
   iconButton: {
+    marginLeft: 8,
     padding: 8,
-    marginHorizontal: 4,
-    borderRadius: 20,
+  },
+  iconButtonbacl: {
+    marginLeft: 8,
+    padding: 8,
+    right: 17,
   },
 });
 

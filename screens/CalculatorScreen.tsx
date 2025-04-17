@@ -348,7 +348,7 @@ const CalculatorScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <Header title="Forex Pip Calculator" onThemeToggle={toggleTheme} />
@@ -384,19 +384,6 @@ const CalculatorScreen: React.FC = () => {
                   borderColor: isDarkMode
                     ? colors.border + "30"
                     : "rgba(230, 235, 240, 0.9)",
-                  ...Platform.select({
-                    ios: {
-                      shadowColor: isDarkMode
-                        ? colors.primary + "40"
-                        : "#000000",
-                      shadowOffset: { width: 0, height: 6 },
-                      shadowOpacity: isDarkMode ? 0.3 : 0.1,
-                      shadowRadius: 10,
-                    },
-                    android: {
-                      elevation: 4,
-                    },
-                  }),
                 },
               ]}
             >
@@ -448,19 +435,6 @@ const CalculatorScreen: React.FC = () => {
                   borderColor: isDarkMode
                     ? colors.border + "30"
                     : "rgba(230, 235, 240, 0.9)",
-                  ...Platform.select({
-                    ios: {
-                      shadowColor: isDarkMode
-                        ? colors.primary + "40"
-                        : "#000000",
-                      shadowOffset: { width: 0, height: 6 },
-                      shadowOpacity: isDarkMode ? 0.3 : 0.1,
-                      shadowRadius: 10,
-                    },
-                    android: {
-                      elevation: 4,
-                    },
-                  }),
                 },
               ]}
             >
@@ -512,19 +486,6 @@ const CalculatorScreen: React.FC = () => {
                   borderColor: isDarkMode
                     ? colors.border + "30"
                     : "rgba(230, 235, 240, 0.9)",
-                  ...Platform.select({
-                    ios: {
-                      shadowColor: isDarkMode
-                        ? colors.primary + "40"
-                        : "#000000",
-                      shadowOffset: { width: 0, height: 6 },
-                      shadowOpacity: isDarkMode ? 0.3 : 0.1,
-                      shadowRadius: 10,
-                    },
-                    android: {
-                      elevation: 4,
-                    },
-                  }),
                 },
               ]}
             >
@@ -660,7 +621,7 @@ const CalculatorScreen: React.FC = () => {
           onClose={() => setLotSizeEditorVisible(false)}
         />
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -674,6 +635,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 25,
+    paddingTop: 10,
   },
   content: {
     padding: 20,

@@ -20,7 +20,11 @@ const InfoScreen: React.FC = () => {
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <StatusBar style="auto" />
-      <Header title="About" onThemeToggle={toggleTheme} />
+      <Header
+        title="About"
+        subtitle="App Information"
+        onThemeToggle={toggleTheme}
+      />
 
       <ScrollView style={styles.scrollView}>
         <View

@@ -11,7 +11,9 @@ export type GradientType =
   | "secondary"
   | "success"
   | "info"
-  | "card";
+  | "card"
+  | "header"
+  | "accent";
 
 // Define gradient options for both light and dark themes
 export interface GradientOptions {
@@ -28,93 +30,123 @@ export interface ColorTheme {
   subtext: string;
   border: string;
   primary: string;
+  secondary: string;
+  accent: string;
   placeholder: string;
   error: string;
   info: string;
   success: string;
   highlight: string;
+  input: string;
   gradients: Record<GradientType, GradientOptions>;
 }
 
-// Themes
+// Modern 2025 Light Theme
 export const lightTheme: ColorTheme = {
-  background: "#f8f9fb",
+  background: "#f8fafd",
   card: "#ffffff",
-  text: "#1a1a1a",
-  subtext: "#6e7687",
-  border: "#e0e5e9",
-  primary: "#6c8cf2",
-  placeholder: "#bfc5cf",
-  error: "#f44336",
-  info: "#6c8cf2",
-  success: "#4caf50",
-  highlight: "#f0f7ff",
+  text: "#1a1a2e",
+  subtext: "#5d6b98",
+  border: "#e4e9f2",
+  primary: "#4361ee",
+  secondary: "#3f37c9",
+  accent: "#4895ef",
+  placeholder: "#a0aec0",
+  error: "#e53e3e",
+  info: "#4299e1",
+  success: "#38b2ac",
+  highlight: "#ebf4ff",
+  input: "#f7fafc",
   gradients: {
     primary: {
-      colors: ["#6c8cf2", "#5476e5"],
+      colors: ["#4361ee", "#3a0ca3"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     secondary: {
-      colors: ["#7d9af4", "#6c8cf2"],
+      colors: ["#3f37c9", "#4361ee"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     success: {
-      colors: ["#4cdd93", "#32b47e"],
+      colors: ["#38b2ac", "#2f855a"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     info: {
-      colors: ["#7d9af4", "#5476e5"],
+      colors: ["#4299e1", "#3182ce"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     card: {
-      colors: ["#ffffff", "#f8f9fb"],
+      colors: ["#ffffff", "#f8fafd"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 1 },
+    },
+    header: {
+      colors: ["#4361ee", "#3a0ca3"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
+    },
+    accent: {
+      colors: ["#4895ef", "#4361ee"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
     },
   },
 };
 
+// Modern 2025 Dark Theme
 export const darkTheme: ColorTheme = {
-  background: "#121212",
-  card: "#1e1e1e",
-  text: "#f5f5f5",
-  subtext: "#a0a0a0",
-  border: "#2c2c2c",
-  primary: "#6c8cf2",
-  placeholder: "#5e5e5e",
-  error: "#f55246",
-  info: "#6c8cf2",
-  success: "#66bb6a",
-  highlight: "#303030",
+  background: "#0f172a",
+  card: "#1e293b",
+  text: "#f1f5f9",
+  subtext: "#94a3b8",
+  border: "#334155",
+  primary: "#4361ee",
+  secondary: "#3f37c9",
+  accent: "#4895ef",
+  placeholder: "#64748b",
+  error: "#ef4444",
+  info: "#38bdf8",
+  success: "#10b981",
+  highlight: "#1e3a8a",
+  input: "#1e293b",
   gradients: {
     primary: {
-      colors: ["#5476e5", "#3f61d3"],
+      colors: ["#4361ee", "#3a0ca3"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     secondary: {
-      colors: ["#6c8cf2", "#5476e5"],
+      colors: ["#3f37c9", "#4361ee"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     success: {
-      colors: ["#50c690", "#3fa876"],
+      colors: ["#10b981", "#059669"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     info: {
-      colors: ["#6c8cf2", "#5476e5"],
+      colors: ["#38bdf8", "#0284c7"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 0 },
     },
     card: {
-      colors: ["#1e1e1e", "#171717"],
+      colors: ["#1e293b", "#0f172a"],
       start: { x: 0, y: 0 },
       end: { x: 1, y: 1 },
+    },
+    header: {
+      colors: ["#1e293b", "#0f172a"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
+    },
+    accent: {
+      colors: ["#4895ef", "#4361ee"],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
     },
   },
 };

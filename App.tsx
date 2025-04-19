@@ -19,31 +19,44 @@ const Stack = createNativeStackNavigator();
 
 // Main app content with theme access
 const AppContent = () => {
-  const { theme } = useTheme();
+  const { theme, colors } = useTheme();
   const navigationTheme = theme === "dark" ? DarkTheme : DefaultTheme;
   const isDarkMode = theme === "dark";
+
+  // Customize navigation theme
+  const customNavigationTheme = {
+    ...navigationTheme,
+    colors: {
+      ...navigationTheme.colors,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
+      primary: colors.primary,
+    },
+  };
 
   // Set navigation bar and status bar color based on theme
   useEffect(() => {
     async function updateNavigationBar() {
       await NavigationBar.setBackgroundColorAsync(
-        isDarkMode ? "#121212" : "#FFFFFF"
+        isDarkMode ? colors.background : colors.background
       );
       await NavigationBar.setButtonStyleAsync(isDarkMode ? "light" : "dark");
     }
 
     updateNavigationBar();
-  }, [isDarkMode]);
+  }, [isDarkMode, colors]);
 
   return (
     <>
       <StatusBar style={isDarkMode ? "light" : "dark"} />
-      <NavigationContainer theme={navigationTheme}>
+      <NavigationContainer theme={customNavigationTheme}>
         <Stack.Navigator
           initialRouteName="Calculator"
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: "transparent" },
+            contentStyle: { backgroundColor: colors.background },
             animation: "slide_from_right",
           }}
         >

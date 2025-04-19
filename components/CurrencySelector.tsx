@@ -5,10 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  Image,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { Currency } from "../constants/currencies";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface CurrencySelectorProps {
   label: string;
@@ -21,7 +23,7 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
   selectedCurrency,
   onPress,
 }) => {
-  const { colors } = useTheme();
+  const { colors, getGradient } = useTheme();
 
   return (
     <View style={styles.container}>
@@ -36,42 +38,52 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
           Platform.select({
             ios: {
               shadowColor: "#000",
-              shadowOffset: { width: 0, height: 1 },
+              shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.1,
-              shadowRadius: 2,
+              shadowRadius: 4,
             },
             android: {
-              elevation: 1,
+              elevation: 3,
             },
           }),
         ]}
         onPress={onPress}
         activeOpacity={0.7}
       >
-        <View style={styles.currencyInfo}>
-          <Text style={[styles.currencyCode, { color: colors.text }]}>
-            {selectedCurrency.code}
-          </Text>
-          <Text style={[styles.currencyName, { color: colors.subtext }]}>
-            {selectedCurrency.name}
-          </Text>
-        </View>
-        <View style={styles.iconContainer}>
-          <View
-            style={[
-              styles.symbolContainer,
-              { backgroundColor: colors.primary + "15" },
-            ]}
-          >
-            <Text style={[styles.currencySymbol, { color: colors.primary }]}>
-              {selectedCurrency.symbol}
-            </Text>
+        <View style={styles.selectorContent}>
+          <View style={styles.leftContent}>
+            <Image
+              source={{
+                uri: `https://flagcdn.com/w40/${selectedCurrency.countryCode.toLowerCase()}.png`,
+              }}
+              style={styles.flag}
+            />
+            <View style={styles.currencyInfo}>
+              <Text style={[styles.currencyCode, { color: colors.text }]}>
+                {selectedCurrency.code}
+              </Text>
+              <Text style={[styles.currencyName, { color: colors.subtext }]}>
+                {selectedCurrency.name}
+              </Text>
+            </View>
           </View>
-          <MaterialIcons
-            name="keyboard-arrow-down"
-            size={24}
-            color={colors.primary}
-          />
+          <View style={styles.rightContent}>
+            <LinearGradient
+              colors={getGradient("primary").colors}
+              start={getGradient("primary").start}
+              end={getGradient("primary").end}
+              style={styles.symbolContainer}
+            >
+              <Text style={styles.currencySymbol}>
+                {selectedCurrency.symbol}
+              </Text>
+            </LinearGradient>
+            <MaterialIcons
+              name="keyboard-arrow-down"
+              size={24}
+              color={colors.primary}
+            />
+          </View>
         </View>
       </TouchableOpacity>
     </View>
@@ -86,14 +98,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 10,
+    marginLeft: 4,
   },
   selector: {
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  selectorContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-    borderRadius: 10,
-    borderWidth: 1,
+  },
+  leftContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  rightContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  flag: {
+    width: 30,
+    height: 20,
+    borderRadius: 4,
+    marginRight: 12,
+    borderWidth: 0.5,
+    borderColor: "rgba(0,0,0,0.1)",
   },
   currencyInfo: {
     flexDirection: "column",
@@ -106,14 +138,10 @@ const styles = StyleSheet.create({
   currencyName: {
     fontSize: 14,
   },
-  iconContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
   symbolContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 8,
@@ -121,6 +149,7 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 16,
     fontWeight: "bold",
+    color: "white",
   },
 });
 

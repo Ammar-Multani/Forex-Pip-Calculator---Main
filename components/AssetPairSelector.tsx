@@ -8,49 +8,31 @@ import {
   Image,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
-import { CurrencyPair, getCurrencyByCode } from "../constants/currencies";
-import { getAssetByCode } from "../constants/assetTypes";
+import { AssetPair, getAssetByCode } from "../constants/assetTypes";
+import { getCurrencyByCode } from "../constants/currencies";
 import { MaterialIcons } from "@expo/vector-icons";
 
-interface CurrencyPairSelectorProps {
+interface AssetPairSelectorProps {
   label: string;
-  selectedPair: CurrencyPair;
+  selectedPair: AssetPair;
   onPress: () => void;
-  showAsAssetPair?: boolean; // Optional flag to show as financial instrument (asset pair)
 }
 
-const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
+const AssetPairSelector: React.FC<AssetPairSelectorProps> = ({
   label,
   selectedPair,
   onPress,
-  showAsAssetPair = false, // Default to classic currency pair look
 }) => {
   const { colors } = useTheme();
 
-  // For currency pairs, use the existing logic
-  const baseCurrency = getCurrencyByCode(selectedPair.base);
+  // Get base asset info based on type
+  const baseAsset = getAssetByCode(selectedPair.base, selectedPair.baseType);
+
+  // Get quote currency - always a currency
   const quoteCurrency = getCurrencyByCode(selectedPair.quote);
 
-  // If showing as an asset pair, potentially get more asset info
-  let baseAsset, quoteAsset;
-  if (showAsAssetPair) {
-    // Treat this as potentially any asset type
-    baseAsset = getAssetByCode(
-      selectedPair.base,
-      (selectedPair as any).baseType || "currency"
-    );
-    quoteAsset = getAssetByCode(
-      selectedPair.quote,
-      (selectedPair as any).quoteType || "currency"
-    );
-  }
-
   // Function to get appropriate flag image URI based on asset type
-  const getFlagUri = (
-    code: string,
-    type: string = "currency",
-    countryCode?: string
-  ) => {
+  const getFlagUri = (code: string, type: string, countryCode?: string) => {
     if (type === "crypto") {
       // Use crypto logo instead of flag
       return `https://cryptologos.cc/logos/${code.toLowerCase()}-${code.toLowerCase()}-logo.png?v=024`;
@@ -75,53 +57,21 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
   };
 
   // Get appropriate icons for the assets
-  let baseFlagUri, quoteFlagUri;
+  const baseFlagUri = baseAsset
+    ? getFlagUri(
+        selectedPair.base,
+        selectedPair.baseType,
+        baseAsset.countryCode
+      )
+    : "https://img.icons8.com/color/96/000000/currency-exchange.png";
 
-  if (showAsAssetPair) {
-    const baseType = (selectedPair as any).baseType || "currency";
-    const quoteType = (selectedPair as any).quoteType || "currency";
-
-    baseFlagUri = baseAsset
-      ? getFlagUri(selectedPair.base, baseType, baseAsset.countryCode)
-      : baseCurrency
-      ? `https://flagcdn.com/w160/${baseCurrency.countryCode.toLowerCase()}.png`
-      : "https://img.icons8.com/color/96/000000/currency-exchange.png";
-
-    quoteFlagUri = quoteAsset
-      ? getFlagUri(selectedPair.quote, quoteType, quoteAsset.countryCode)
-      : quoteCurrency
-      ? `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`
-      : "https://img.icons8.com/color/96/000000/currency-exchange.png";
-  } else {
-    // Standard currency pair display
-    baseFlagUri = baseCurrency
-      ? `https://flagcdn.com/w160/${baseCurrency.countryCode.toLowerCase()}.png`
-      : "https://img.icons8.com/color/96/000000/currency-exchange.png";
-
-    quoteFlagUri = quoteCurrency
-      ? `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`
-      : "https://img.icons8.com/color/96/000000/currency-exchange.png";
-  }
+  const quoteFlagUri = quoteCurrency
+    ? `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`
+    : "https://img.icons8.com/color/96/000000/currency-exchange.png";
 
   // Get appropriate names for display
-  let baseDisplay, quoteDisplay;
-
-  if (showAsAssetPair) {
-    baseDisplay = baseAsset
-      ? baseAsset.name
-      : baseCurrency
-      ? baseCurrency.name
-      : selectedPair.base;
-
-    quoteDisplay = quoteAsset
-      ? quoteAsset.name
-      : quoteCurrency
-      ? quoteCurrency.name
-      : selectedPair.quote;
-  } else {
-    baseDisplay = baseCurrency?.name || selectedPair.base;
-    quoteDisplay = quoteCurrency?.name || selectedPair.quote;
-  }
+  const baseDisplay = baseAsset ? baseAsset.name : selectedPair.base;
+  const quoteDisplay = quoteCurrency ? quoteCurrency.name : selectedPair.quote;
 
   return (
     <View style={styles.container}>
@@ -168,11 +118,9 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
             <Text style={[styles.pairDetail, { color: colors.subtext }]}>
               {baseDisplay} / {quoteDisplay}
             </Text>
-            {showAsAssetPair && (selectedPair as any).group && (
-              <Text style={[styles.pairType, { color: colors.subtext }]}>
-                {(selectedPair as any).group}
-              </Text>
-            )}
+            <Text style={[styles.pairType, { color: colors.subtext }]}>
+              {selectedPair.group}
+            </Text>
           </View>
         </View>
         <MaterialIcons
@@ -264,4 +212,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CurrencyPairSelector;
+export default AssetPairSelector;

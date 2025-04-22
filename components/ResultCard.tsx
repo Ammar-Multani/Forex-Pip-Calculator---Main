@@ -10,7 +10,8 @@ import {
   Alert,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
-import { Currency, CurrencyPair } from "../constants/currencies";
+import { Currency } from "../constants/currencies";
+import { AssetPair } from "../constants/assetTypes";
 import { formatCurrencyValue, formatPipValue } from "../utils/pipCalculator";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -21,7 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ResultCardProps {
   accountCurrency: Currency;
-  currencyPair: CurrencyPair;
+  instrument: AssetPair;
   pipValueInQuoteCurrency: number;
   pipValueInAccountCurrency: number;
   totalValueInQuoteCurrency: number;
@@ -39,7 +40,7 @@ interface ResultCardProps {
 
 const ResultCard: React.FC<ResultCardProps> = ({
   accountCurrency,
-  currencyPair,
+  instrument,
   pipValueInQuoteCurrency,
   pipValueInAccountCurrency,
   totalValueInQuoteCurrency,
@@ -57,31 +58,68 @@ const ResultCard: React.FC<ResultCardProps> = ({
   const { colors, theme, getGradient } = useTheme();
   const isDarkMode = theme === "dark";
 
+  // Helper function to get currency symbol
+  const getSymbolForCode = (code: string): string => {
+    switch (code) {
+      case "USD":
+        return "$";
+      case "EUR":
+        return "€";
+      case "GBP":
+        return "£";
+      case "JPY":
+        return "¥";
+      case "INR":
+        return "₹";
+      default:
+        return "";
+    }
+  };
+
   // Get quote currency details
-  const quoteCurrencyCode = currencyPair.quote;
-  const quoteCurrencySymbol =
-    quoteCurrencyCode === "JPY"
-      ? "¥"
-      : quoteCurrencyCode === "USD"
-      ? "$"
-      : quoteCurrencyCode === "EUR"
-      ? "€"
-      : quoteCurrencyCode === "GBP"
-      ? "£"
-      : quoteCurrencyCode === "INR"
-      ? "₹"
-      : "";
+  const quoteCurrencyCode = instrument.quote;
+  const quoteCurrencySymbol = getSymbolForCode(quoteCurrencyCode);
+
+  // Get instrument type icon
+  const getInstrumentIcon = () => {
+    switch (instrument.baseType) {
+      case "currency":
+        return "attach-money";
+      case "index":
+        return "show-chart";
+      case "commodity":
+        return "local-offer";
+      case "crypto":
+        return "currency-bitcoin";
+      default:
+        return "attach-money";
+    }
+  };
+
+  // Get instrument type display name
+  const getInstrumentTypeDisplay = (): string => {
+    switch (instrument.baseType) {
+      case "currency":
+        return "Currency Pair";
+      case "index":
+        return "Stock Index";
+      case "commodity":
+        return "Commodity";
+      case "crypto":
+        return "Cryptocurrency";
+      default:
+        return "Instrument";
+    }
+  };
 
   // Determine exchange rate display text and explanation
   let exchangeRateText = "";
   let conversionExplanation = "";
 
   if (quoteCurrencyCode === accountCurrency.code) {
-    // Same currency case
     exchangeRateText = `Same currency (${quoteCurrencyCode})`;
     conversionExplanation = "No conversion needed";
   } else {
-    // Direct rate display matching professional trading platforms
     exchangeRateText = `1 ${quoteCurrencyCode} = ${
       accountCurrency.symbol
     }${exchangeRate.toFixed(6)} ${accountCurrency.code}`;
@@ -91,7 +129,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
   // Calculate pip values for different lot sizes
   const calculatePipForLotSize = (units: number) => {
     const pipValue = calculatePipValueInQuoteCurrency(
-      currencyPair,
+      instrument,
       units,
       1, // 1 pip
       pipDecimalPlaces
@@ -128,17 +166,22 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
   const handleSaveAsPdf = async () => {
     try {
-      // Get position size from props or calculate it if not provided
       const calculatedPositionSize =
         positionSize ||
         pipValueInQuoteCurrency /
-          (currencyPair.quote === "JPY" ? 0.01 : 0.0001) /
+          (quoteCurrencyCode === "JPY" ? 0.01 : 0.0001) /
           (pipCount || 1);
 
-      // Generate PDF
+      // Generate PDF with currencyPair for backward compatibility
       const filePath = await generatePdf({
         accountCurrency,
-        currencyPair,
+        currencyPair: {
+          name: instrument.name,
+          base: instrument.base,
+          quote: instrument.quote,
+          pipDecimalPlaces: instrument.pipDecimalPlaces,
+          group: instrument.group,
+        },
         pipValueInQuoteCurrency,
         pipValueInAccountCurrency,
         totalValueInQuoteCurrency,
@@ -146,9 +189,9 @@ const ResultCard: React.FC<ResultCardProps> = ({
         exchangeRate,
         pipCount,
         positionSize: calculatedPositionSize,
-        lotType: lotType || "Standard", // Use props or default
-        lotCount: lotCount || 1, // Use props or default
-        pipDecimalPlaces, // Add the pipDecimalPlaces parameter
+        lotType: lotType || "Standard",
+        lotCount: lotCount || 1,
+        pipDecimalPlaces,
       });
 
       if (filePath) {
@@ -176,7 +219,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
         id: Date.now().toString(),
         timestamp: new Date().toISOString(),
         accountCurrency,
-        currencyPair,
+        instrument,
         pipValueInQuoteCurrency,
         pipValueInAccountCurrency,
         totalValueInQuoteCurrency,
@@ -270,23 +313,34 @@ const ResultCard: React.FC<ResultCardProps> = ({
           style={styles.heroContainer}
         >
           <View style={styles.heroContent}>
+            {/* Instrument Type Badge */}
+            <View style={styles.instrumentTypeBadge}>
+              <MaterialIcons
+                name={getInstrumentIcon()}
+                size={14}
+                color="#fff"
+              />
+              <Text style={styles.instrumentTypeText}>
+                {getInstrumentTypeDisplay()}
+              </Text>
+            </View>
+
             <View style={styles.pipCountContainer}>
               <Text style={styles.pipCountLabel}>
                 {pipCount} pip{pipCount !== 1 ? "s" : ""}
               </Text>
-              {pipDecimalPlaces !== undefined && pipDecimalPlaces > 0 && (
+              {pipDecimalPlaces !== undefined && (
                 <Text style={styles.pipDecimalPlacesLabel}>
-                  {pipDecimalPlaces}
-                  {pipDecimalPlaces === 2
-                    ? "nd"
-                    : pipDecimalPlaces === 3
-                    ? "rd"
-                    : "th"}{" "}
-                  decimal place
+                  {pipDecimalPlaces === 0
+                    ? "whole units"
+                    : `${pipDecimalPlaces}${
+                        pipDecimalPlaces === 2
+                          ? "nd"
+                          : pipDecimalPlaces === 3
+                          ? "rd"
+                          : "th"
+                      } decimal place`}
                 </Text>
-              )}
-              {pipDecimalPlaces === 0 && (
-                <Text style={styles.pipDecimalPlacesLabel}>whole units</Text>
               )}
             </View>
 
@@ -1020,6 +1074,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "600",
     marginLeft: 8,
+  },
+  instrumentTypeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  instrumentTypeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 6,
   },
 });
 

@@ -1,30 +1,65 @@
 import { CurrencyPair } from "../constants/currencies";
+import { AssetPair } from "../constants/assetTypes";
 
 /**
  * Calculate pip value in quote currency
  * This follows standard forex pip calculation used by professional trading platforms
+ * Updated to handle different asset types
  */
 export const calculatePipValueInQuoteCurrency = (
-  currencyPair: CurrencyPair,
+  pair: CurrencyPair | AssetPair,
   positionSize: number,
   pipCount: number,
   pipDecimalPlaces: number = 4
 ): number => {
   // For JPY pairs, pip value is different by default, but can be overridden
-  const isJpyPair = currencyPair.quote === "JPY";
+  const isJpyPair = pair.quote === "JPY";
 
-  // If pipDecimalPlaces is provided, use that, otherwise use default for the currency
+  // If pipDecimalPlaces is provided, use that, otherwise use default for the currency/asset
   let pipValue: number;
 
-  if (isJpyPair && pipDecimalPlaces === 4) {
-    // Default for JPY pairs is 2nd decimal place if user is using default setting
-    pipValue = 0.01;
-  } else if (pipDecimalPlaces === 0) {
-    // Special case for 0th decimal place (whole units)
-    pipValue = 1;
+  // Handle different asset types
+  if ("baseType" in pair) {
+    switch (pair.baseType) {
+      case "crypto":
+        // Crypto typically uses 8 decimal places unless specified
+        pipValue = pipDecimalPlaces === 0 ? 1 : Math.pow(10, -pipDecimalPlaces);
+        break;
+      case "index":
+        // Indices typically use 2 decimal places unless specified
+        pipValue = pipDecimalPlaces === 0 ? 1 : Math.pow(10, -pipDecimalPlaces);
+        break;
+      case "commodity":
+        // Commodities use different decimal places based on type
+        if (pair.base.startsWith("XAU") || pair.base.startsWith("XAG")) {
+          // Precious metals typically use 2 decimal places
+          pipValue =
+            pipDecimalPlaces === 0 ? 1 : Math.pow(10, -pipDecimalPlaces);
+        } else {
+          // Other commodities use 4 decimal places by default
+          pipValue =
+            pipDecimalPlaces === 0 ? 1 : Math.pow(10, -pipDecimalPlaces);
+        }
+        break;
+      default:
+        // Handle currency pairs as before
+        if (isJpyPair && pipDecimalPlaces === 4) {
+          pipValue = 0.01; // Default for JPY pairs
+        } else if (pipDecimalPlaces === 0) {
+          pipValue = 1;
+        } else {
+          pipValue = Math.pow(10, -pipDecimalPlaces);
+        }
+    }
   } else {
-    // For all other decimal places, calculate dynamically
-    pipValue = Math.pow(10, -pipDecimalPlaces);
+    // Legacy support for CurrencyPair type
+    if (isJpyPair && pipDecimalPlaces === 4) {
+      pipValue = 0.01;
+    } else if (pipDecimalPlaces === 0) {
+      pipValue = 1;
+    } else {
+      pipValue = Math.pow(10, -pipDecimalPlaces);
+    }
   }
 
   // Calculate pip value in quote currency for a single pip
@@ -64,50 +99,43 @@ export const getPipDecimalPlaces = (currencyCode: string): number => {
 };
 
 /**
- * Format currency value for display with proper precision
+ * Format currency value with appropriate decimal places
  */
 export const formatCurrencyValue = (
   value: number,
-  currencyCode: string,
-  currencySymbol: string
+  currencyCode: string
 ): string => {
-  // Format with appropriate decimal places based on currency
-  let decimalPlaces = currencyCode === "JPY" ? 0 : 2;
-
-  // For very large values from 0th decimal place calculations, reduce decimal places
-  if (value > 10000) {
-    decimalPlaces = Math.min(decimalPlaces, 0);
-  }
-
-  // Format with commas for thousands while preserving decimal places
-  return `${currencySymbol}${value.toLocaleString(undefined, {
-    minimumFractionDigits: decimalPlaces,
-    maximumFractionDigits: decimalPlaces,
-  })}`;
+  // JPY typically shows no decimal places
+  const decimalPlaces = currencyCode === "JPY" ? 0 : 2;
+  return value.toFixed(decimalPlaces);
 };
 
 /**
- * Format pip value for display with proper precision
+ * Format pip value with appropriate decimal places based on asset type
  */
 export const formatPipValue = (
   value: number,
-  currencyCode: string,
-  currencySymbol: string
+  assetCode: string,
+  assetType: string = "currency"
 ): string => {
-  // Format with appropriate precision for pip values
-  let decimalPlaces = currencyCode === "JPY" ? 0 : 2;
+  let decimalPlaces = 2; // Default
 
-  // For very large values from 0th decimal place calculations, reduce decimal places
-  if (value > 10000) {
-    decimalPlaces = Math.min(decimalPlaces, 0);
-  } else if (value < 0.01 && value > 0) {
-    // For very small values, show more decimal places
-    decimalPlaces = 4;
+  switch (assetType) {
+    case "crypto":
+      decimalPlaces = 8; // Most cryptos use 8 decimal places
+      break;
+    case "index":
+      decimalPlaces = 2; // Indices typically use 2 decimal places
+      break;
+    case "commodity":
+      // Precious metals use 2, others use 4
+      decimalPlaces =
+        assetCode.startsWith("XAU") || assetCode.startsWith("XAG") ? 2 : 4;
+      break;
+    default:
+      // For currencies, JPY pairs use 2 decimals, others use 4
+      decimalPlaces = assetCode === "JPY" ? 2 : 4;
   }
 
-  // Format with commas for thousands while preserving decimal places
-  return `${currencySymbol}${value.toLocaleString(undefined, {
-    minimumFractionDigits: decimalPlaces,
-    maximumFractionDigits: decimalPlaces,
-  })}`;
+  return value.toFixed(decimalPlaces);
 };

@@ -43,6 +43,7 @@ import { fetchExchangeRate } from "../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { AssetPair } from "../constants/assetTypes";
 
 // Storage keys
 const ACCOUNT_CURRENCY_KEY = "forex-pip-calculator-account-currency";
@@ -94,6 +95,14 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // State for refresh control
   const [refreshing, setRefreshing] = useState(false);
+
+  // Convert CurrencyPair to AssetPair for the selected pair
+  const selectedAssetPair: AssetPair = {
+    ...selectedPair,
+    baseType: "currency",
+    quoteType: "currency",
+    group: selectedPair.group || "Major",
+  };
 
   // Load saved preferences
   useEffect(() => {
@@ -236,18 +245,27 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       // Get pip count as number
       const pipCountNum = parseFloat(pipCount) || 0;
 
-      // Calculate pip value in quote currency with the selected decimal place
-      const pipValueQuote = calculatePipValueInQuoteCurrency(
-        selectedPair,
-        positionSize,
-        pipCountNum,
-        pipDecimalPlaces
-      );
-      setPipValueInQuoteCurrency(pipValueQuote);
+      // First get the base asset to quote currency rate
+      let baseToQuoteRate = 1;
 
       try {
-        // Get exchange rate between quote currency and account currency
-        // Professional trading platforms use this direct approach
+        // If base is not a regular currency, we need to get its USD rate first
+        if (selectedAssetPair.baseType !== "currency") {
+          baseToQuoteRate = await fetchExchangeRate(
+            selectedAssetPair.base,
+            selectedAssetPair.quote,
+            selectedAssetPair.baseType
+          );
+        }
+
+        // Calculate pip value in quote currency with the selected decimal place
+        const pipValueQuote = calculatePipValueInQuoteCurrency(
+          selectedPair,
+          positionSize,
+          pipCountNum,
+          pipDecimalPlaces
+        );
+        setPipValueInQuoteCurrency(pipValueQuote * baseToQuoteRate);
 
         // If quote currency is the same as account currency
         if (selectedPair.quote === accountCurrency.code) {
@@ -255,33 +273,37 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setExchangeRate(rate);
 
           const pipValueAccount = calculatePipValueInAccountCurrency(
-            pipValueQuote,
+            pipValueQuote * baseToQuoteRate,
             selectedPair.quote,
             accountCurrency.code,
             rate
           );
           setPipValueInAccountCurrency(pipValueAccount);
-          setTotalValueInQuoteCurrency(pipValueQuote * pipCountNum);
+          setTotalValueInQuoteCurrency(
+            pipValueQuote * baseToQuoteRate * pipCountNum
+          );
           setTotalValueInAccountCurrency(pipValueAccount * pipCountNum);
         }
         // For all other cases, get direct rate from quote to account currency
         else {
           // Get direct exchange rate from quote currency to account currency
-          // This matches professional trading platforms' calculation logic
           const rate = await fetchExchangeRate(
             selectedPair.quote,
-            accountCurrency.code
+            accountCurrency.code,
+            "currency" // Quote is always currency
           );
           setExchangeRate(rate);
 
           const pipValueAccount = calculatePipValueInAccountCurrency(
-            pipValueQuote,
+            pipValueQuote * baseToQuoteRate,
             selectedPair.quote,
             accountCurrency.code,
             rate
           );
           setPipValueInAccountCurrency(pipValueAccount);
-          setTotalValueInQuoteCurrency(pipValueQuote * pipCountNum);
+          setTotalValueInQuoteCurrency(
+            pipValueQuote * baseToQuoteRate * pipCountNum
+          );
           setTotalValueInAccountCurrency(pipValueAccount * pipCountNum);
         }
       } catch (error) {
@@ -296,11 +318,12 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               "Trading requires real-time exchange rates. Please connect to the internet."
             );
           } else if (
-            error.message.includes("All forex data sources unavailable")
+            error.message.includes("All forex data sources unavailable") ||
+            error.message.includes("Failed to fetch")
           ) {
             Alert.alert(
               "Exchange Rate Unavailable",
-              "Unable to fetch accurate exchange rates at this time. Please try again later."
+              `Unable to fetch accurate ${selectedAssetPair.baseType} rates at this time. Please try again later.`
             );
           }
         } else {
@@ -626,7 +649,7 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <View style={[styles.resultContainer]}>
             <ResultCard
               accountCurrency={accountCurrency}
-              currencyPair={selectedPair}
+              instrument={selectedAssetPair}
               pipValueInQuoteCurrency={pipValueInQuoteCurrency}
               pipValueInAccountCurrency={pipValueInAccountCurrency}
               totalValueInQuoteCurrency={totalValueInQuoteCurrency}
@@ -677,6 +700,7 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           onClose={() => setPairModalVisible(false)}
           onSelect={handleCurrencyPairSelect}
           selectedPair={selectedPair}
+          showAllAssets={true}
         />
       </Modal>
 

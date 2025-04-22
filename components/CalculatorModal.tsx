@@ -16,12 +16,18 @@ interface CalculatorModalProps {
   onClose: () => void;
   onSubmit: (value: number) => void;
   initialValue?: string;
+  instrumentType?: "currency" | "index" | "commodity" | "crypto";
+  instrumentName?: string;
+  pipDecimalPlaces?: number;
 }
 
 const CalculatorModal: React.FC<CalculatorModalProps> = ({
   onClose,
   onSubmit,
   initialValue = "",
+  instrumentType = "currency",
+  instrumentName = "",
+  pipDecimalPlaces = 4,
 }) => {
   const { colors, theme } = useTheme();
   const isDarkMode = theme === "dark";
@@ -289,6 +295,38 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({
     }
   };
 
+  // Get instrument icon based on type
+  const getInstrumentIcon = (): keyof typeof MaterialIcons.glyphMap => {
+    switch (instrumentType) {
+      case "currency":
+        return "attach-money";
+      case "index":
+        return "show-chart";
+      case "commodity":
+        return "local-offer";
+      case "crypto":
+        return "currency-bitcoin";
+      default:
+        return "attach-money";
+    }
+  };
+
+  // Get instrument type display name
+  const getInstrumentTypeDisplay = (): string => {
+    switch (instrumentType) {
+      case "currency":
+        return "Currency Pair";
+      case "index":
+        return "Stock Index";
+      case "commodity":
+        return "Commodity";
+      case "crypto":
+        return "Cryptocurrency";
+      default:
+        return "Instrument";
+    }
+  };
+
   return (
     <SafeAreaView
       style={[styles.modalContainer, { backgroundColor: "rgba(0,0,0,0.7)" }]}
@@ -309,12 +347,36 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({
           end={{ x: 0, y: 1 }}
           style={styles.headerContainer}
         >
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Calculator
-          </Text>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <MaterialIcons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <View style={styles.headerLeft}>
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <MaterialIcons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>
+                Calculator
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.instrumentBadge,
+                { backgroundColor: colors.primary + "20" },
+              ]}
+            >
+              <MaterialIcons
+                name={getInstrumentIcon()}
+                size={14}
+                color={colors.primary}
+              />
+              <Text style={[styles.instrumentType, { color: colors.primary }]}>
+                {getInstrumentTypeDisplay()}
+              </Text>
+            </View>
+          </View>
+          {instrumentName && (
+            <Text style={[styles.instrumentName, { color: colors.subtext }]}>
+              {instrumentName}
+            </Text>
+          )}
         </LinearGradient>
 
         {/* Display */}
@@ -500,6 +562,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
+  },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  instrumentBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  instrumentType: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  instrumentName: {
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 40,
   },
 });
 

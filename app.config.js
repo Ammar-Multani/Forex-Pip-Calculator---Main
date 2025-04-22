@@ -31,6 +31,14 @@ export default {
   },
   web: {
     favicon: "./assets/favicon.png",
+    name: "Forex Pip Calculator",
+    shortName: "Forex Calc",
+    lang: "en-US",
+    backgroundColor: "#FFFFFF",
+    themeColor: "#000000",
+    scope: "/",
+    startUrl: "/",
+    bundler: "webpack",
   },
   extra: {
     // API Keys

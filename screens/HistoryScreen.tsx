@@ -361,6 +361,7 @@ const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       <Header
         title="Calculation History"
         onThemeToggle={toggleTheme}
+        showBackButton={true}
         onBackPress={() => navigation.goBack()}
       />
 
@@ -432,6 +433,15 @@ const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           }
           ListFooterComponent={<View style={{ height: 20 }} />}
         />
+
+        {/* Back Button */}
+        <TouchableOpacity
+          style={[styles.backButton, { backgroundColor: colors.primary }]}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back" size={18} color="#fff" />
+          <Text style={styles.backButtonText}>Back to Calculator</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -588,6 +598,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginTop: 16,
+    marginBottom: 24,
+    alignSelf: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  backButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
+    color: "#ffffff",
   },
 });
 

@@ -41,4 +41,7 @@ android/
 # ios
 ios/
 
+#env
+.env
+
 

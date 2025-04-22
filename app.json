@@ -22,7 +22,13 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "webpack",
+      "build": {
+        "babel": {
+          "include": ["@expo/vector-icons", "react-native-vector-icons"]
+        }
+      }
     },
     "plugins": ["expo-router"]
   }

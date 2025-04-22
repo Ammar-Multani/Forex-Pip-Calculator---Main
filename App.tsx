@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -8,7 +8,6 @@ import {
   DefaultTheme,
   DarkTheme,
 } from "@react-navigation/native";
-import * as NavigationBar from "expo-navigation-bar";
 import { StatusBar } from "expo-status-bar";
 import CalculatorScreen from "./screens/CalculatorScreen";
 import InfoScreen from "./screens/InfoScreen";
@@ -18,6 +17,12 @@ import DisclaimerScreen from "./screens/DisclaimerScreen";
 import PrivacyPolicyScreen from "./screens/PrivacyPolicyScreen";
 import HelpGuideScreen from "./screens/HelpGuideScreen";
 import HistoryScreen from "./screens/HistoryScreen";
+
+// For web compatibility
+let NavigationBar: any = null;
+if (Platform.OS !== "web") {
+  NavigationBar = require("expo-navigation-bar");
+}
 
 // Create stack navigator
 const Stack = createNativeStackNavigator();
@@ -31,17 +36,19 @@ const AppContent = () => {
   // Set navigation bar and status bar color based on theme
   useEffect(() => {
     async function updateNavigationBar() {
-      await NavigationBar.setBackgroundColorAsync(
-        isDarkMode ? "#121212" : "#FFFFFF"
-      );
-      await NavigationBar.setButtonStyleAsync(isDarkMode ? "light" : "dark");
+      if (Platform.OS !== "web" && NavigationBar) {
+        await NavigationBar.setBackgroundColorAsync(
+          isDarkMode ? "#121212" : "#FFFFFF"
+        );
+        await NavigationBar.setButtonStyleAsync(isDarkMode ? "light" : "dark");
+      }
     }
 
     updateNavigationBar();
   }, [isDarkMode]);
 
   return (
-    <>
+    <React.Fragment>
       <StatusBar style={isDarkMode ? "light" : "dark"} />
       <NavigationContainer theme={navigationTheme}>
         <Stack.Navigator
@@ -65,11 +72,11 @@ const AppContent = () => {
           <Stack.Screen name="HelpGuide" component={HelpGuideScreen} />
         </Stack.Navigator>
       </NavigationContainer>
-    </>
+    </React.Fragment>
   );
 };
 
-export default function App() {
+const App = () => {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
@@ -77,10 +84,12 @@ export default function App() {
       </ThemeProvider>
     </SafeAreaProvider>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
 });
+
+export default App;

@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  Modal,
+  ScrollView,
+  FlatList,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -13,15 +16,72 @@ interface PipInputProps {
   value: string;
   onChange: (text: string) => void;
   onCalculatorPress?: () => void;
+  pipDecimalPlaces?: number;
+  onPipDecimalPlacesChange?: (decimalPlaces: number) => void;
 }
 
 const PipInput: React.FC<PipInputProps> = ({
   value,
   onChange,
   onCalculatorPress,
+  pipDecimalPlaces = 4,
+  onPipDecimalPlacesChange,
 }) => {
   const { colors, theme } = useTheme();
   const isDarkMode = theme === "dark";
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+
+  const handleDecimalPlaceSelect = (places: number) => {
+    if (onPipDecimalPlacesChange) {
+      onPipDecimalPlacesChange(places);
+    }
+  };
+
+  // Get the denominator suffix (st, nd, rd, th)
+  const getDenominator = (places: number): string => {
+    if (places === 0) return "";
+    if (places === 1) return "st";
+    if (places === 2) return "nd";
+    if (places === 3) return "rd";
+    return "th";
+  };
+
+  // Generate example for the current decimal place selection
+  const getDecimalPlaceExample = (places: number): string => {
+    if (places === 0) return "1";
+    return `0.${"0".repeat(places - 1)}1`;
+  };
+
+  // Array of available decimal places
+  const decimalPlaceOptions = Array.from({ length: 11 }, (_, i) => i); // 0 to 10
+
+  // Render each decimal place option
+  const renderDecimalPlaceOption = ({ item }: { item: number }) => (
+    <TouchableOpacity
+      key={item}
+      style={[
+        styles.decimalPlaceOption,
+        {
+          backgroundColor:
+            pipDecimalPlaces === item ? colors.primary : colors.card,
+          borderColor: colors.border,
+        },
+      ]}
+      onPress={() => handleDecimalPlaceSelect(item)}
+    >
+      <Text
+        style={[
+          styles.decimalPlaceText,
+          {
+            color: pipDecimalPlaces === item ? "white" : colors.text,
+          },
+        ]}
+      >
+        {item}
+        {getDenominator(item)}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
@@ -65,6 +125,58 @@ const PipInput: React.FC<PipInputProps> = ({
           </View>
         </View>
       </View>
+
+      {/* Advanced Options Button */}
+      <TouchableOpacity
+        style={styles.advancedOptionsButton}
+        onPress={() => setShowAdvancedOptions(!showAdvancedOptions)}
+      >
+        <Text style={[styles.advancedOptionsText, { color: colors.primary }]}>
+          {showAdvancedOptions
+            ? "Hide Advanced Options"
+            : "Show Advanced Options"}
+        </Text>
+        <MaterialIcons
+          name={showAdvancedOptions ? "expand-less" : "expand-more"}
+          size={20}
+          color={colors.primary}
+        />
+      </TouchableOpacity>
+
+      {/* Advanced Options Section */}
+      {showAdvancedOptions && (
+        <View style={styles.advancedOptionsContainer}>
+          <Text style={[styles.advancedOptionLabel, { color: colors.subtext }]}>
+            Pip Decimal Places:
+          </Text>
+
+          <FlatList
+            data={decimalPlaceOptions}
+            renderItem={renderDecimalPlaceOption}
+            keyExtractor={(item) => item.toString()}
+            horizontal
+            showsHorizontalScrollIndicator={true}
+            contentContainerStyle={styles.decimalPlacesScrollContainer}
+          />
+
+          <View style={styles.decimalPlaceExampleContainer}>
+            <Text
+              style={[
+                styles.decimalPlaceDescription,
+                { color: colors.subtext },
+              ]}
+            >
+              {pipDecimalPlaces === 0
+                ? "1 pip = 1 (whole unit)"
+                : `1 pip = ${getDecimalPlaceExample(
+                    pipDecimalPlaces
+                  )} (${pipDecimalPlaces}${getDenominator(
+                    pipDecimalPlaces
+                  )} decimal place)`}
+            </Text>
+          </View>
+        </View>
+      )}
 
       <View
         style={[
@@ -128,6 +240,56 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 8,
     flex: 1,
+  },
+  advancedOptionsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  advancedOptionsText: {
+    fontSize: 14,
+    marginRight: 5,
+    fontWeight: "500",
+  },
+  advancedOptionsContainer: {
+    marginBottom: 15,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "rgba(0,0,0,0.03)",
+  },
+  advancedOptionLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  decimalPlacesScrollContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 2,
+  },
+  decimalPlaceOption: {
+    width: 45,
+    height: 38,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    borderWidth: 1,
+    marginRight: 8,
+  },
+  decimalPlaceText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  decimalPlaceExampleContainer: {
+    marginTop: 10,
+    padding: 8,
+    backgroundColor: "rgba(0,0,0,0.02)",
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  decimalPlaceDescription: {
+    fontSize: 13,
+    fontStyle: "italic",
+    textAlign: "center",
   },
 });
 

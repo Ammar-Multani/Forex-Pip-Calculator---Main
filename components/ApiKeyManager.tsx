@@ -46,8 +46,16 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
   const isDarkMode = theme === "dark";
 
   // API key states - initialize with values from env
-  const [traderMadeKey, setTraderMadeKey] = useState(env.traderMadeApiKey);
+  const [traderMadeKey, setTraderMadeKey] = useState(
+    env.traderMadeApiKey || ""
+  );
   const [loading, setLoading] = useState(false);
+  const [keyError, setKeyError] = useState("");
+
+  // Log current API key from env when component loads
+  useEffect(() => {
+    console.log("Current TraderMade API key from env:", env.traderMadeApiKey);
+  }, []);
 
   // Load stored API keys
   useEffect(() => {
@@ -66,10 +74,29 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
     loadApiKeys();
   }, []);
 
+  // Validate API key (basic validation)
+  const validateApiKey = (key: string): boolean => {
+    if (!key.trim()) {
+      setKeyError("API key cannot be empty");
+      return false;
+    }
+
+    // Clear any previous errors
+    setKeyError("");
+    return true;
+  };
+
   // Save API keys
   const saveApiKeys = async () => {
     setLoading(true);
+
     try {
+      // Validate before saving
+      if (!validateApiKey(traderMadeKey)) {
+        setLoading(false);
+        return;
+      }
+
       // Save API keys to storage
       await AsyncStorage.setItem(
         `${API_KEY_STORAGE_PREFIX}trader-made`,
@@ -115,6 +142,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
   const handleInputChange = (text: string, apiConfig: any) => {
     if (apiConfig.storageKey === "trader-made") {
       setTraderMadeKey(text);
+      setKeyError(""); // Clear error when user types
     }
   };
 
@@ -339,6 +367,17 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ onClose }) => {
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
+
+                {keyError ? (
+                  <Text
+                    style={[
+                      styles.errorText,
+                      { color: colors.error || "#FF6B6B" },
+                    ]}
+                  >
+                    {keyError}
+                  </Text>
+                ) : null}
               </LinearGradient>
             </View>
           ))}
@@ -482,6 +521,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 10,
     fontSize: 15,
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: "500",
+    paddingHorizontal: 4,
   },
 });
 

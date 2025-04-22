@@ -17,6 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { calculatePipValueInQuoteCurrency } from "../utils/pipCalculator";
 import { LotSize } from "../constants/lotSizes";
 import { generatePdf, sharePdf } from "../utils/pdfGenerator";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ResultCardProps {
   accountCurrency: Currency;
@@ -32,6 +33,8 @@ interface ResultCardProps {
   lotType?: string;
   lotCount?: number;
   positionSize?: number;
+  pipDecimalPlaces?: number;
+  onHistorySaved?: () => void;
 }
 
 const ResultCard: React.FC<ResultCardProps> = ({
@@ -48,6 +51,8 @@ const ResultCard: React.FC<ResultCardProps> = ({
   lotType,
   lotCount,
   positionSize,
+  pipDecimalPlaces,
+  onHistorySaved,
 }) => {
   const { colors, theme, getGradient } = useTheme();
   const isDarkMode = theme === "dark";
@@ -88,7 +93,8 @@ const ResultCard: React.FC<ResultCardProps> = ({
     const pipValue = calculatePipValueInQuoteCurrency(
       currencyPair,
       units,
-      1 // 1 pip
+      1, // 1 pip
+      pipDecimalPlaces
     );
 
     // Calculate in account currency if needed
@@ -142,6 +148,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
         positionSize: calculatedPositionSize,
         lotType: lotType || "Standard", // Use props or default
         lotCount: lotCount || 1, // Use props or default
+        pipDecimalPlaces, // Add the pipDecimalPlaces parameter
       });
 
       if (filePath) {
@@ -157,6 +164,67 @@ const ResultCard: React.FC<ResultCardProps> = ({
       Alert.alert(
         "Error",
         "An error occurred while saving the PDF. Please try again.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  const handleSaveToHistory = async () => {
+    try {
+      // Create calculation record to save
+      const calculationRecord = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        accountCurrency,
+        currencyPair,
+        pipValueInQuoteCurrency,
+        pipValueInAccountCurrency,
+        totalValueInQuoteCurrency,
+        totalValueInAccountCurrency,
+        exchangeRate,
+        pipCount,
+        positionSize: positionSize || 0,
+        lotType: lotType || "Standard",
+        lotCount: lotCount || 1,
+        pipDecimalPlaces: pipDecimalPlaces || 4,
+      };
+
+      // Get existing history
+      const historyJson = await AsyncStorage.getItem(
+        "forex-pip-calculator-history"
+      );
+      let history = historyJson ? JSON.parse(historyJson) : [];
+
+      // Add new calculation to history
+      history.unshift(calculationRecord); // Add to beginning of array
+
+      // Limit history to 50 entries
+      if (history.length > 50) {
+        history = history.slice(0, 50);
+      }
+
+      // Save updated history
+      await AsyncStorage.setItem(
+        "forex-pip-calculator-history",
+        JSON.stringify(history)
+      );
+
+      // Notify user
+      Alert.alert(
+        "Saved to History",
+        "This calculation has been saved to your history log.",
+        [{ text: "OK" }]
+      );
+
+      // Call callback if provided
+      if (onHistorySaved) {
+        onHistorySaved();
+      }
+    } catch (error) {
+      console.error("Error saving to history:", error);
+      Alert.alert(
+        "Error",
+        "An error occurred while saving to history. Please try again.",
         [{ text: "OK" }]
       );
     }
@@ -184,6 +252,16 @@ const ResultCard: React.FC<ResultCardProps> = ({
       ]}
     >
       <View style={styles.content}>
+        {/* Loading overlay when refreshing */}
+        {isRefreshing && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.refreshingText, { color: colors.primary }]}>
+              Refreshing data...
+            </Text>
+          </View>
+        )}
+
         {/* Main result hero section with gradient background */}
         <LinearGradient
           colors={getGradient("primary").colors}
@@ -196,6 +274,20 @@ const ResultCard: React.FC<ResultCardProps> = ({
               <Text style={styles.pipCountLabel}>
                 {pipCount} pip{pipCount !== 1 ? "s" : ""}
               </Text>
+              {pipDecimalPlaces !== undefined && pipDecimalPlaces > 0 && (
+                <Text style={styles.pipDecimalPlacesLabel}>
+                  {pipDecimalPlaces}
+                  {pipDecimalPlaces === 2
+                    ? "nd"
+                    : pipDecimalPlaces === 3
+                    ? "rd"
+                    : "th"}{" "}
+                  decimal place
+                </Text>
+              )}
+              {pipDecimalPlaces === 0 && (
+                <Text style={styles.pipDecimalPlacesLabel}>whole units</Text>
+              )}
             </View>
 
             <View style={styles.heroValueContainer}>
@@ -203,7 +295,10 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 {accountCurrency.symbol}
               </Text>
               <Text style={styles.heroValue}>
-                {totalValueInAccountCurrency.toFixed(2)}
+                {totalValueInAccountCurrency.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </Text>
             </View>
 
@@ -250,13 +345,13 @@ const ResultCard: React.FC<ResultCardProps> = ({
             <View style={styles.dataCardContent}>
               <View style={styles.dataRow}>
                 <Text style={[styles.dataLabel, { color: colors.subtext }]}>
-                  {quoteCurrencyCode}
+                  {accountCurrency.code}
                 </Text>
-                <Text style={[styles.dataValue, { color: colors.text }]}>
+                <Text style={[styles.dataValue, { color: colors.primary }]}>
                   {formatPipValue(
-                    pipValueInQuoteCurrency,
-                    quoteCurrencyCode,
-                    quoteCurrencySymbol
+                    pipValueInAccountCurrency,
+                    accountCurrency.code,
+                    accountCurrency.symbol
                   )}
                 </Text>
               </View>
@@ -270,13 +365,13 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
               <View style={styles.dataRow}>
                 <Text style={[styles.dataLabel, { color: colors.subtext }]}>
-                  {accountCurrency.code}
+                  {quoteCurrencyCode}
                 </Text>
-                <Text style={[styles.dataValue, { color: colors.primary }]}>
+                <Text style={[styles.dataValue, { color: colors.text }]}>
                   {formatPipValue(
-                    pipValueInAccountCurrency,
-                    accountCurrency.code,
-                    accountCurrency.symbol
+                    pipValueInQuoteCurrency,
+                    quoteCurrencyCode,
+                    quoteCurrencySymbol
                   )}
                 </Text>
               </View>
@@ -318,26 +413,6 @@ const ResultCard: React.FC<ResultCardProps> = ({
             <View style={styles.dataCardContent}>
               <View style={styles.dataRow}>
                 <Text style={[styles.dataLabel, { color: colors.subtext }]}>
-                  {quoteCurrencyCode}
-                </Text>
-                <Text style={[styles.dataValue, { color: colors.text }]}>
-                  {formatCurrencyValue(
-                    totalValueInQuoteCurrency,
-                    quoteCurrencyCode,
-                    quoteCurrencySymbol
-                  )}
-                </Text>
-              </View>
-
-              <View
-                style={[
-                  styles.dataDivider,
-                  { backgroundColor: colors.border + "30" },
-                ]}
-              />
-
-              <View style={styles.dataRow}>
-                <Text style={[styles.dataLabel, { color: colors.subtext }]}>
                   {accountCurrency.code}
                 </Text>
                 <Text
@@ -350,6 +425,25 @@ const ResultCard: React.FC<ResultCardProps> = ({
                     totalValueInAccountCurrency,
                     accountCurrency.code,
                     accountCurrency.symbol
+                  )}
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.dataDivider,
+                  { backgroundColor: colors.border + "30" },
+                ]}
+              />
+              <View style={styles.dataRow}>
+                <Text style={[styles.dataLabel, { color: colors.subtext }]}>
+                  {quoteCurrencyCode}
+                </Text>
+                <Text style={[styles.dataValue, { color: colors.text }]}>
+                  {formatCurrencyValue(
+                    totalValueInQuoteCurrency,
+                    quoteCurrencyCode,
+                    quoteCurrencySymbol
                   )}
                 </Text>
               </View>
@@ -374,7 +468,10 @@ const ResultCard: React.FC<ResultCardProps> = ({
           <View style={styles.exchangeRateContent}>
             <View style={styles.exchangeRateHeader}>
               <TouchableOpacity
-                style={styles.refreshButton}
+                style={[
+                  styles.refreshButton,
+                  isRefreshing && { backgroundColor: colors.primary + "15" },
+                ]}
                 onPress={handleRefresh}
                 disabled={isRefreshing || !onRefresh}
               >
@@ -387,13 +484,20 @@ const ResultCard: React.FC<ResultCardProps> = ({
               <Text style={[styles.exchangeRateTitle, { color: colors.text }]}>
                 Exchange Rate
               </Text>
+              {isRefreshing && (
+                <Text
+                  style={[styles.refreshingLabel, { color: colors.primary }]}
+                >
+                  Updating...
+                </Text>
+              )}
             </View>
             <Text style={[styles.exchangeRateValue, { color: colors.primary }]}>
               {exchangeRateText}
             </Text>
           </View>
 
-          <View
+          {/* <View
             style={[
               styles.liveRatesBadge,
               { backgroundColor: colors.success + "20" },
@@ -403,7 +507,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
             <Text style={[styles.liveRatesLabel, { color: colors.success }]}>
               LIVE
             </Text>
-          </View>
+          </View> */}
         </View>
 
         {/* Lot size pip value table - modern, clean design */}
@@ -585,20 +689,43 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
         {/* Save as PDF Button */}
         <View style={styles.saveButtonContainer}>
-          <TouchableOpacity
-            style={styles.saveAsPdfButtonWrapper}
-            onPress={handleSaveAsPdf}
-          >
-            <LinearGradient
-              colors={getGradient("secondary").colors}
-              start={getGradient("secondary").start}
-              end={getGradient("secondary").end}
-              style={styles.saveAsPdfButton}
+          <View style={styles.saveButtonsRow}>
+            <TouchableOpacity
+              style={[
+                styles.saveAsPdfButtonWrapper,
+                styles.historyButtonWrapper,
+              ]}
+              onPress={handleSaveToHistory}
             >
-              <MaterialIcons name="picture-as-pdf" size={18} color="#fff" />
-              <Text style={styles.saveAsPdfButtonText}>Save as PDF</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={[
+                  "rgba(100, 120, 200, 0.85)",
+                  "rgba(50, 80, 150, 0.85)",
+                ]}
+                start={getGradient("secondary").start}
+                end={getGradient("secondary").end}
+                style={styles.saveAsPdfButton}
+              >
+                <MaterialIcons name="history" size={18} color="#fff" />
+                <Text style={styles.saveAsPdfButtonText}>Save to History</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.saveAsPdfButtonWrapper}
+              onPress={handleSaveAsPdf}
+            >
+              <LinearGradient
+                colors={getGradient("secondary").colors}
+                start={getGradient("secondary").start}
+                end={getGradient("secondary").end}
+                style={styles.saveAsPdfButton}
+              >
+                <MaterialIcons name="picture-as-pdf" size={18} color="#fff" />
+                <Text style={styles.saveAsPdfButtonText}>Save as PDF</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -632,9 +759,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   pipCountLabel: {
-    fontSize: 15,
-    color: "rgba(255,255,255,0.95)",
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
+  },
+  pipDecimalPlacesLabel: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "center",
+    marginTop: 3,
   },
   heroValueContainer: {
     flexDirection: "row",
@@ -727,7 +862,7 @@ const styles = StyleSheet.create({
   },
   dataDivider: {
     height: 1,
-    marginVertical: 6,
+    marginVertical: 3,
   },
   // Exchange rate container styles
   exchangeRateContainer: {
@@ -837,23 +972,18 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginHorizontal: 16,
     marginBottom: 16,
-    alignItems: "center",
+  },
+  saveButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   saveAsPdfButtonWrapper: {
-    width: "100%",
+    flex: 0.55,
     borderRadius: 12,
     overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+  },
+  historyButtonWrapper: {
+    marginRight: 8,
   },
   saveAsPdfButton: {
     padding: 14,
@@ -867,6 +997,29 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 8,
     color: "#fff",
+  },
+  // Loading overlay
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 100,
+    borderRadius: 28,
+  },
+  refreshingText: {
+    marginTop: 10,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  refreshingLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    marginLeft: 8,
   },
 });
 

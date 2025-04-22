@@ -52,8 +52,9 @@ const LOT_TYPE_KEY = "forex-pip-calculator-lot-type";
 const LOT_COUNT_KEY = "forex-pip-calculator-lot-count";
 const CUSTOM_UNITS_KEY = "forex-pip-calculator-custom-units";
 const PIP_COUNT_KEY = "forex-pip-calculator-pip-count";
+const PIP_DECIMAL_PLACES_KEY = "forex-pip-calculator-pip-decimal-places";
 
-const CalculatorScreen: React.FC = () => {
+const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, theme, toggleTheme, getGradient } = useTheme();
   const isDarkMode = theme === "dark";
 
@@ -80,6 +81,7 @@ const CalculatorScreen: React.FC = () => {
 
   // State for pip input
   const [pipCount, setPipCount] = useState("10");
+  const [pipDecimalPlaces, setPipDecimalPlaces] = useState(4);
 
   // State for calculation results and errors
   const [pipValueInQuoteCurrency, setPipValueInQuoteCurrency] = useState(0);
@@ -143,6 +145,14 @@ const CalculatorScreen: React.FC = () => {
         if (savedPipCount) {
           setPipCount(savedPipCount);
         }
+
+        // Load pip decimal places
+        const savedPipDecimalPlaces = await AsyncStorage.getItem(
+          PIP_DECIMAL_PLACES_KEY
+        );
+        if (savedPipDecimalPlaces) {
+          setPipDecimalPlaces(parseInt(savedPipDecimalPlaces));
+        }
       } catch (error) {
         console.error("Error loading preferences:", error);
       }
@@ -174,6 +184,11 @@ const CalculatorScreen: React.FC = () => {
         await AsyncStorage.setItem(CUSTOM_UNITS_KEY, customUnits.toString());
 
         await AsyncStorage.setItem(PIP_COUNT_KEY, pipCount);
+
+        await AsyncStorage.setItem(
+          PIP_DECIMAL_PLACES_KEY,
+          pipDecimalPlaces.toString()
+        );
       } catch (error) {
         console.error("Error saving preferences:", error);
       }
@@ -188,12 +203,21 @@ const CalculatorScreen: React.FC = () => {
     lotCount,
     customUnits,
     pipCount,
+    pipDecimalPlaces,
   ]);
 
   // Calculate pip values when inputs change
   useEffect(() => {
     calculatePipValues();
-  }, [accountCurrency, selectedPair, lotType, lotCount, customUnits, pipCount]);
+  }, [
+    accountCurrency,
+    selectedPair,
+    lotType,
+    lotCount,
+    customUnits,
+    pipCount,
+    pipDecimalPlaces,
+  ]);
 
   // Calculate pip values
   const calculatePipValues = async () => {
@@ -212,11 +236,12 @@ const CalculatorScreen: React.FC = () => {
       // Get pip count as number
       const pipCountNum = parseFloat(pipCount) || 0;
 
-      // Calculate pip value in quote currency
+      // Calculate pip value in quote currency with the selected decimal place
       const pipValueQuote = calculatePipValueInQuoteCurrency(
         selectedPair,
         positionSize,
-        pipCountNum
+        pipCountNum,
+        pipDecimalPlaces
       );
       setPipValueInQuoteCurrency(pipValueQuote);
 
@@ -303,7 +328,15 @@ const CalculatorScreen: React.FC = () => {
     setRefreshing(true);
     await calculatePipValues();
     setRefreshing(false);
-  }, [accountCurrency, selectedPair, lotType, lotCount, customUnits, pipCount]);
+  }, [
+    accountCurrency,
+    selectedPair,
+    lotType,
+    lotCount,
+    customUnits,
+    pipCount,
+    pipDecimalPlaces,
+  ]);
 
   // Handle account currency selection
   const handleAccountCurrencySelect = (currency: Currency) => {
@@ -355,242 +388,270 @@ const CalculatorScreen: React.FC = () => {
     setPipCalculatorVisible(false);
   };
 
+  // Handle pip decimal places change
+  const handlePipDecimalPlacesChange = (places: number) => {
+    setPipDecimalPlaces(places);
+  };
+
+  // Custom header with history button
+  const renderHeader = () => {
+    return (
+      <Header
+        title="Forex Pip Calculator"
+        onThemeToggle={toggleTheme}
+        rightComponent={
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={() => navigation.navigate("History")}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <View style={styles.historyButtonInner}>
+              <MaterialIcons name="history" size={24} color={colors.primary} />
+            </View>
+          </TouchableOpacity>
+        }
+      />
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Header title="Forex Pip Calculator" onThemeToggle={toggleTheme} />
+      {renderHeader()}
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        scrollEnabled={true}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          scrollEnabled={true}
-          nestedScrollEnabled={true}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[colors.primary]}
-              tintColor={colors.primary}
-            />
-          }
-        >
-          <View style={styles.content}>
-            {/* Currency Setup Card */}
-            <View
-              style={[
-                styles.card,
-                {
-                  backgroundColor: isDarkMode
-                    ? "rgba(45, 52, 65, 0.8)"
-                    : "rgba(255, 255, 255, 0.9)",
-                  borderColor: isDarkMode
-                    ? colors.border + "30"
-                    : "rgba(230, 235, 240, 0.9)",
-                },
-              ]}
+        <View style={styles.content}>
+          {/* Currency Setup Card */}
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: isDarkMode
+                  ? "rgba(45, 52, 65, 0.8)"
+                  : "rgba(255, 255, 255, 0.9)",
+                borderColor: isDarkMode
+                  ? colors.border + "30"
+                  : "rgba(230, 235, 240, 0.9)",
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={getGradient("card").colors}
+              start={getGradient("card").start}
+              end={getGradient("card").end}
+              style={styles.cardContent}
             >
-              <LinearGradient
-                colors={getGradient("card").colors}
-                start={getGradient("card").start}
-                end={getGradient("card").end}
-                style={styles.cardContent}
-              >
-                <View style={styles.cardHeaderRow}>
-                  <View
-                    style={[
-                      styles.iconContainer,
-                      { backgroundColor: colors.primary + "20" },
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="monetization-on"
-                      size={24}
-                      color={colors.primary}
-                    />
-                  </View>
-                  <Text style={[styles.cardTitle, { color: colors.text }]}>
-                    Currency Setup
-                  </Text>
-                </View>
-                <CurrencySelector
-                  label="Account Currency"
-                  selectedCurrency={accountCurrency}
-                  onPress={() => setCurrencyModalVisible(true)}
-                />
-
-                <CurrencyPairSelector
-                  label="Currency Pair"
-                  selectedPair={selectedPair}
-                  onPress={() => setPairModalVisible(true)}
-                />
-              </LinearGradient>
-            </View>
-
-            {/* Position Size Card */}
-            <View
-              style={[
-                styles.card,
-                {
-                  backgroundColor: isDarkMode
-                    ? "rgba(45, 52, 65, 0.8)"
-                    : "rgba(255, 255, 255, 0.9)",
-                  borderColor: isDarkMode
-                    ? colors.border + "30"
-                    : "rgba(230, 235, 240, 0.9)",
-                },
-              ]}
-            >
-              <LinearGradient
-                colors={getGradient("card").colors}
-                start={getGradient("card").start}
-                end={getGradient("card").end}
-                style={styles.cardContent}
-              >
-                <View style={styles.cardHeaderRow}>
-                  <View
-                    style={[
-                      styles.iconContainer,
-                      { backgroundColor: colors.primary + "20" },
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="account-balance"
-                      size={24}
-                      color={colors.primary}
-                    />
-                  </View>
-                  <Text style={[styles.cardTitle, { color: colors.text }]}>
-                    Position Size
-                  </Text>
-                </View>
-                <LotSizeSelector
-                  label="Position Size"
-                  lotType={lotType}
-                  lotCount={lotCount}
-                  customUnits={customUnits}
-                  lotSizes={lotSizes}
-                  onLotTypeChange={handleLotTypeChange}
-                  onLotCountChange={handleLotCountChange}
-                  onCustomUnitsChange={handleCustomUnitsChange}
-                  onEditPress={() => setLotSizeEditorVisible(true)}
-                />
-              </LinearGradient>
-            </View>
-
-            {/* Pip Input Card */}
-            <View
-              style={[
-                styles.card,
-                {
-                  backgroundColor: isDarkMode
-                    ? "rgba(45, 52, 65, 0.8)"
-                    : "rgba(255, 255, 255, 0.9)",
-                  borderColor: isDarkMode
-                    ? colors.border + "30"
-                    : "rgba(230, 235, 240, 0.9)",
-                },
-              ]}
-            >
-              <LinearGradient
-                colors={getGradient("card").colors}
-                start={getGradient("card").start}
-                end={getGradient("card").end}
-                style={styles.cardContent}
-              >
-                <View style={styles.cardHeaderRow}>
-                  <View
-                    style={[
-                      styles.iconContainer,
-                      { backgroundColor: colors.primary + "20" },
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="trending-up"
-                      size={24}
-                      color={colors.primary}
-                    />
-                  </View>
-                  <Text style={[styles.cardTitle, { color: colors.text }]}>
-                    Pip Value
-                  </Text>
-                </View>
-                <PipInput
-                  value={pipCount}
-                  onChange={handlePipCountChange}
-                  onCalculatorPress={() => setPipCalculatorVisible(true)}
-                />
-              </LinearGradient>
-            </View>
-
-            {/* Error Message */}
-            {errorMessage && (
-              <View
-                style={[
-                  styles.errorContainer,
-                  {
-                    backgroundColor: isDarkMode
-                      ? "rgba(220, 53, 69, 0.12)"
-                      : "rgba(255, 235, 238, 0.9)",
-                    borderColor: colors.error + "40",
-                    borderWidth: 1,
-                    borderRadius: 16,
-                    ...Platform.select({
-                      ios: {
-                        shadowColor: colors.error + "30",
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 8,
-                      },
-                      android: {
-                        elevation: 2,
-                      },
-                    }),
-                  },
-                ]}
-              >
-                <View style={styles.errorIconContainer}>
+              <View style={styles.cardHeaderRow}>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    { backgroundColor: colors.primary + "20" },
+                  ]}
+                >
                   <MaterialIcons
-                    name="error-outline"
-                    size={20}
-                    color={colors.error}
+                    name="monetization-on"
+                    size={24}
+                    color={colors.primary}
                   />
                 </View>
-                <Text style={[styles.errorText, { color: colors.error }]}>
-                  {errorMessage}
+                <Text style={[styles.cardTitle, { color: colors.text }]}>
+                  Currency Setup
                 </Text>
               </View>
-            )}
+              <CurrencySelector
+                label="Account Currency"
+                selectedCurrency={accountCurrency}
+                onPress={() => setCurrencyModalVisible(true)}
+              />
 
-            {/* Results */}
-            <View style={[styles.resultContainer]}>
-              <ResultCard
-                accountCurrency={accountCurrency}
-                currencyPair={selectedPair}
-                pipValueInQuoteCurrency={pipValueInQuoteCurrency}
-                pipValueInAccountCurrency={pipValueInAccountCurrency}
-                totalValueInQuoteCurrency={totalValueInQuoteCurrency}
-                totalValueInAccountCurrency={totalValueInAccountCurrency}
-                exchangeRate={exchangeRate}
-                pipCount={parseFloat(pipCount) || 0}
-                onRefresh={onRefresh}
-                isRefreshing={refreshing}
+              <CurrencyPairSelector
+                label="Currency Pair"
+                selectedPair={selectedPair}
+                onPress={() => setPairModalVisible(true)}
+              />
+            </LinearGradient>
+          </View>
+
+          {/* Position Size Card */}
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: isDarkMode
+                  ? "rgba(45, 52, 65, 0.8)"
+                  : "rgba(255, 255, 255, 0.9)",
+                borderColor: isDarkMode
+                  ? colors.border + "30"
+                  : "rgba(230, 235, 240, 0.9)",
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={getGradient("card").colors}
+              start={getGradient("card").start}
+              end={getGradient("card").end}
+              style={styles.cardContent}
+            >
+              <View style={styles.cardHeaderRow}>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    { backgroundColor: colors.primary + "20" },
+                  ]}
+                >
+                  <MaterialIcons
+                    name="account-balance"
+                    size={24}
+                    color={colors.primary}
+                  />
+                </View>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>
+                  Position Size
+                </Text>
+              </View>
+              <LotSizeSelector
+                label="Position Size"
                 lotType={lotType}
                 lotCount={lotCount}
-                positionSize={calculateTotalUnits(
-                  lotType,
-                  lotCount,
-                  customUnits,
-                  lotSizes
-                )}
+                customUnits={customUnits}
+                lotSizes={lotSizes}
+                onLotTypeChange={handleLotTypeChange}
+                onLotCountChange={handleLotCountChange}
+                onCustomUnitsChange={handleCustomUnitsChange}
+                onEditPress={() => setLotSizeEditorVisible(true)}
               />
-            </View>
+            </LinearGradient>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          {/* Pip Input Card */}
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: isDarkMode
+                  ? "rgba(45, 52, 65, 0.8)"
+                  : "rgba(255, 255, 255, 0.9)",
+                borderColor: isDarkMode
+                  ? colors.border + "30"
+                  : "rgba(230, 235, 240, 0.9)",
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={getGradient("card").colors}
+              start={getGradient("card").start}
+              end={getGradient("card").end}
+              style={styles.cardContent}
+            >
+              <View style={styles.cardHeaderRow}>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    { backgroundColor: colors.primary + "20" },
+                  ]}
+                >
+                  <MaterialIcons
+                    name="trending-up"
+                    size={24}
+                    color={colors.primary}
+                  />
+                </View>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>
+                  Pip Value
+                </Text>
+              </View>
+              <PipInput
+                value={pipCount}
+                onChange={handlePipCountChange}
+                onCalculatorPress={() => setPipCalculatorVisible(true)}
+                pipDecimalPlaces={pipDecimalPlaces}
+                onPipDecimalPlacesChange={handlePipDecimalPlacesChange}
+              />
+            </LinearGradient>
+          </View>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <View
+              style={[
+                styles.errorContainer,
+                {
+                  backgroundColor: isDarkMode
+                    ? "rgba(220, 53, 69, 0.12)"
+                    : "rgba(255, 235, 238, 0.9)",
+                  borderColor: colors.error + "40",
+                  borderWidth: 1,
+                  borderRadius: 16,
+                  ...Platform.select({
+                    ios: {
+                      shadowColor: colors.error + "30",
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 8,
+                    },
+                    android: {
+                      elevation: 2,
+                    },
+                  }),
+                },
+              ]}
+            >
+              <View style={styles.errorIconContainer}>
+                <MaterialIcons
+                  name="error-outline"
+                  size={20}
+                  color={colors.error}
+                />
+              </View>
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errorMessage}
+              </Text>
+            </View>
+          )}
+
+          {/* Results */}
+          <View style={[styles.resultContainer]}>
+            <ResultCard
+              accountCurrency={accountCurrency}
+              currencyPair={selectedPair}
+              pipValueInQuoteCurrency={pipValueInQuoteCurrency}
+              pipValueInAccountCurrency={pipValueInAccountCurrency}
+              totalValueInQuoteCurrency={totalValueInQuoteCurrency}
+              totalValueInAccountCurrency={totalValueInAccountCurrency}
+              exchangeRate={exchangeRate}
+              pipCount={parseFloat(pipCount) || 0}
+              onRefresh={onRefresh}
+              isRefreshing={refreshing}
+              lotType={lotType}
+              lotCount={lotCount}
+              positionSize={calculateTotalUnits(
+                lotType,
+                lotCount,
+                customUnits,
+                lotSizes
+              )}
+              pipDecimalPlaces={pipDecimalPlaces}
+              onHistorySaved={() => {
+                // Display toast or subtle notification
+                // You could add a visual feedback here if desired
+              }}
+            />
+          </View>
+        </View>
+      </ScrollView>
 
       {/* Modals */}
       <Modal
@@ -761,6 +822,20 @@ const styles = StyleSheet.create({
   resultContainer: {
     marginBottom: 24,
     marginTop: 10,
+  },
+  historyButton: {
+    height: 40,
+    width: 38,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 0,
+  },
+  historyButtonInner: {
+    height: 38,
+    width: 38,
+    borderRadius: 19,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

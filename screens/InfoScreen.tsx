@@ -76,7 +76,7 @@ const InfoScreen: React.FC = () => {
             How Pip Value is Calculated
           </Text>
           <Text style={[styles.paragraph, { color: colors.subtext }]}>
-            For most currency pairs:
+            By default, for most currency pairs:
           </Text>
           <Text style={[styles.formula, { color: colors.primary }]}>
             Pip Value = (0.0001 × Position Size)
@@ -86,6 +86,36 @@ const InfoScreen: React.FC = () => {
           </Text>
           <Text style={[styles.formula, { color: colors.primary }]}>
             Pip Value = (0.01 × Position Size)
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            With the advanced options, you can customize the pip decimal places
+            from 0th to 10th place:
+          </Text>
+          <Text style={[styles.formula, { color: colors.primary }]}>
+            Pip Value = (10^-n × Position Size)
+          </Text>
+          <Text
+            style={[
+              styles.paragraph,
+              { color: colors.subtext, fontStyle: "italic" },
+            ]}
+          >
+            where n is your selected decimal place (0-10)
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            Examples:
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            • 0th place: 1 pip = 1 unit
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            • 1st place: 1 pip = 0.1 unit
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            • 2nd place: 1 pip = 0.01 unit
+          </Text>
+          <Text style={[styles.paragraph, { color: colors.subtext }]}>
+            • 4th place: 1 pip = 0.0001 unit (standard forex)
           </Text>
           <Text style={[styles.paragraph, { color: colors.subtext }]}>
             The pip value is calculated in the quote currency. To convert to

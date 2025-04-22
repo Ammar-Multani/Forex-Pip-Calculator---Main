@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { useNavigation } from "@react-navigation/native";
 import ApiKeyManager from "../components/ApiKeyManager";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import env from "../config/env";
 
 // Define a type for MaterialIcons names we use in this file
 type IconName =
@@ -43,6 +44,11 @@ const SettingsScreen: React.FC = () => {
   const [apiKeyModalVisible, setApiKeyModalVisible] = useState(false);
 
   const isDarkMode = theme === "dark";
+
+  // Log current API key from env when component loads
+  useEffect(() => {
+    console.log("Current TraderMade API key from env:", env.traderMadeApiKey);
+  }, []);
 
   const handleApiKeysPress = () => {
     setApiKeyModalVisible(true);
@@ -97,10 +103,6 @@ const SettingsScreen: React.FC = () => {
     } catch (error) {
       Alert.alert("Error", "Failed to share the app.");
     }
-  };
-
-  const handleOpenLink = (url: string) => {
-    Linking.openURL(url);
   };
 
   const handleSubmitBugReport = () => {
@@ -274,7 +276,7 @@ const SettingsScreen: React.FC = () => {
           </>
         )}
 
-        {renderSection(
+        {/* {renderSection(
           "API DATA SOURCES",
           <>
             {renderSettingItem(
@@ -283,16 +285,15 @@ const SettingsScreen: React.FC = () => {
               handleApiKeysPress
             )}
           </>
-        )}
-
+        )} */}
         {renderSection(
           "LEGAL",
           <>
             {renderSettingItem("description", "Terms of service", () =>
-              handleOpenLink("https://example.com/terms")
+              navigation.navigate("TermsOfService" as never)
             )}
             {renderSettingItem("warning", "Disclaimer", () =>
-              handleOpenLink("https://example.com/disclaimer")
+              navigation.navigate("Disclaimer" as never)
             )}
           </>
         )}
@@ -301,7 +302,7 @@ const SettingsScreen: React.FC = () => {
           "PRIVACY",
           <>
             {renderSettingItem("security", "Privacy policy", () =>
-              handleOpenLink("https://example.com/privacy")
+              navigation.navigate("PrivacyPolicy" as never)
             )}
           </>
         )}
@@ -310,7 +311,7 @@ const SettingsScreen: React.FC = () => {
           "FOREX PIP CALCULATOR",
           <>
             {renderSettingItem("help-outline", "Help Guide", () =>
-              handleOpenLink("https://example.com/help")
+              navigation.navigate("HelpGuide" as never)
             )}
             {renderSettingItem(
               "share",

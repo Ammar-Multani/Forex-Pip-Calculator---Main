@@ -13,6 +13,11 @@ import { StatusBar } from "expo-status-bar";
 import CalculatorScreen from "./screens/CalculatorScreen";
 import InfoScreen from "./screens/InfoScreen";
 import SettingsScreen from "./screens/SettingsScreen";
+import TermsOfServiceScreen from "./screens/TermsOfServiceScreen";
+import DisclaimerScreen from "./screens/DisclaimerScreen";
+import PrivacyPolicyScreen from "./screens/PrivacyPolicyScreen";
+import HelpGuideScreen from "./screens/HelpGuideScreen";
+import HistoryScreen from "./screens/HistoryScreen";
 
 // Create stack navigator
 const Stack = createNativeStackNavigator();
@@ -48,8 +53,16 @@ const AppContent = () => {
           }}
         >
           <Stack.Screen name="Calculator" component={CalculatorScreen} />
+          <Stack.Screen name="History" component={HistoryScreen} />
           <Stack.Screen name="Info" component={InfoScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen
+            name="TermsOfService"
+            component={TermsOfServiceScreen}
+          />
+          <Stack.Screen name="Disclaimer" component={DisclaimerScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+          <Stack.Screen name="HelpGuide" component={HelpGuideScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

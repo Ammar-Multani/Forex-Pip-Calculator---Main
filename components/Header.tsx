@@ -17,6 +17,8 @@ interface HeaderProps {
   subtitle?: string;
   onThemeToggle?: () => void;
   showBackButton?: boolean;
+  onBackPress?: () => void;
+  rightComponent?: React.ReactNode;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -24,6 +26,8 @@ const Header: React.FC<HeaderProps> = ({
   subtitle,
   onThemeToggle,
   showBackButton = false,
+  onBackPress,
+  rightComponent,
 }) => {
   const { colors, theme } = useTheme();
   const navigation = useNavigation();
@@ -35,7 +39,11 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const handleBackPress = () => {
-    navigation.goBack();
+    if (onBackPress) {
+      onBackPress();
+    } else {
+      navigation.goBack();
+    }
   };
 
   const handleInfoPress = () => {
@@ -63,17 +71,17 @@ const Header: React.FC<HeaderProps> = ({
         <LinearGradient
           colors={
             isDarkMode
-              ? ["rgba(40, 40, 40, 0.8)", "rgba(30, 30, 30, 0.8)"]
-              : ["rgba(255, 255, 255, 1)", "rgba(250, 250, 250, 0.95)"]
+              ? ["rgba(40, 40, 40, 0.9)", "rgba(25, 25, 25, 0.9)"]
+              : ["rgba(255, 255, 255, 1)", "rgba(250, 250, 250, 0.98)"]
           }
           style={styles.headerGradient}
         >
           <View style={styles.headerLeft}>
             {showBackButton ? (
               <TouchableOpacity
-                style={styles.iconButtonbacl}
+                style={styles.backButton}
                 onPress={handleBackPress}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 0 }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
                 <MaterialIcons
                   name="arrow-back"
@@ -82,12 +90,14 @@ const Header: React.FC<HeaderProps> = ({
                 />
               </TouchableOpacity>
             ) : null}
-            <View style={showBackButton ? { marginLeft: -10 } : {}}>
+            <View style={styles.titleContainer}>
               <Text
                 style={[
                   styles.headerTitle,
                   { color: isDarkMode ? "#FFFFFF" : "#333333" },
                 ]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 {title}
               </Text>
@@ -97,6 +107,7 @@ const Header: React.FC<HeaderProps> = ({
                     styles.headerSubtitle,
                     { color: isDarkMode ? "#AAAAAA" : "#757575" },
                   ]}
+                  numberOfLines={1}
                 >
                   {subtitle}
                 </Text>
@@ -105,7 +116,9 @@ const Header: React.FC<HeaderProps> = ({
           </View>
 
           <View style={styles.headerActions}>
-            {!showBackButton && (
+            {rightComponent}
+
+            {/* {!showBackButton && (
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={handleInfoPress}
@@ -117,32 +130,36 @@ const Header: React.FC<HeaderProps> = ({
                   color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
                 />
               </TouchableOpacity>
-            )}
+            )} */}
 
             {onThemeToggle && (
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={onThemeToggle}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
-                <MaterialIcons
-                  name={isDarkMode ? "light-mode" : "dark-mode"}
-                  size={24}
-                  color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
-                />
+                <View style={styles.iconButtonInner}>
+                  <MaterialIcons
+                    name={isDarkMode ? "light-mode" : "dark-mode"}
+                    size={24}
+                    color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
+                  />
+                </View>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity
               style={styles.iconButton}
               onPress={handleSettingsPress}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <MaterialIcons
-                name="settings"
-                size={24}
-                color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
-              />
+              <View style={styles.iconButtonInner}>
+                <MaterialIcons
+                  name="settings"
+                  size={24}
+                  color={isDarkMode ? "#6c8cf2" : "#6c8cf2"}
+                />
+              </View>
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -156,12 +173,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 25,
     paddingTop: Platform.OS === "ios" ? 50 : 35,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    elevation: 3,
-    height: 100,
+    height: Platform.OS === "ios" ? 100 : 95,
+    zIndex: 10,
   },
   headerGradient: {
     position: "absolute",
@@ -172,36 +188,57 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 25,
-    paddingTop: 7,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === "ios" ? 50 : 25,
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 16,
+    flex: 1,
+  },
+  titleContainer: {
+    flex: 1,
+    justifyContent: "center",
+    marginRight: 8,
+    marginLeft: 5,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    letterSpacing: 0.5,
+    fontSize: 22,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     opacity: 0.8,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
+    marginTop: 2,
   },
   headerActions: {
     flexDirection: "row",
-    paddingTop: 16,
+    alignItems: "center",
+    gap: 2,
   },
   iconButton: {
-    marginLeft: 8,
-    padding: 8,
+    marginLeft: -3,
+    height: 40,
+    width: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  iconButtonbacl: {
-    marginLeft: 8,
-    padding: 8,
-    right: 17,
+  iconButtonInner: {
+    height: 38,
+    width: 38,
+    borderRadius: 19,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backButton: {
+    height: 40,
+    width: 38,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 4,
   },
 });
 

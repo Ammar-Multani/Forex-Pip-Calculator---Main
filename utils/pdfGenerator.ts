@@ -16,6 +16,7 @@ interface GeneratePdfOptions {
   positionSize: number;
   lotType: string;
   lotCount: number;
+  pipDecimalPlaces?: number;
 }
 
 /**
@@ -36,7 +37,23 @@ export const generatePdf = async (
     positionSize,
     lotType,
     lotCount,
+    pipDecimalPlaces = 4,
   } = options;
+
+  // Format pip decimal place information
+  const getDecimalPlaceText = (places: number): string => {
+    if (places === 0) return "0th (whole unit)";
+    if (places === 1) return "1st";
+    if (places === 2) return "2nd";
+    if (places === 3) return "3rd";
+    return `${places}th`;
+  };
+
+  // Get pip decimal place example
+  const getPipExample = (places: number): string => {
+    if (places === 0) return "1";
+    return `0.${"0".repeat(places - 1)}1`;
+  };
 
   // Get quote currency details
   const quoteCurrencyCode = currencyPair.quote;
@@ -216,7 +233,7 @@ export const generatePdf = async (
           <div class="result-row">
             <div class="result-label">Per Pip in ${quoteCurrencyCode}</div>
             <div class="result-value">${formatPipValue(
-              pipValueInQuoteCurrency,
+              pipValueInQuoteCurrency / (pipCount || 1),
               quoteCurrencyCode,
               quoteCurrencySymbol
             )}</div>
@@ -224,10 +241,16 @@ export const generatePdf = async (
           <div class="result-row">
             <div class="result-label">Per Pip in ${accountCurrency.code}</div>
             <div class="result-value">${formatPipValue(
-              pipValueInAccountCurrency,
+              pipValueInAccountCurrency / (pipCount || 1),
               accountCurrency.code,
               accountCurrency.symbol
             )}</div>
+          </div>
+          <div class="result-row">
+            <div class="result-label">Pip Decimal Place</div>
+            <div class="result-value">${getDecimalPlaceText(
+              pipDecimalPlaces
+            )} (1 pip = ${getPipExample(pipDecimalPlaces)})</div>
           </div>
         </div>
         

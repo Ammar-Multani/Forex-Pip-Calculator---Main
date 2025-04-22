@@ -16,8 +16,8 @@ interface EnvConfig {
 // Get the native config from Expo Constants
 const nativeConfig = Constants.expoConfig?.extra || {};
 
-// Hardcoded TraderMade API key for reliability - this is the working key
-let traderMadeApiKey = "ixh2QN-O4kmYz52jg3kd";
+// Use environment variable from .env file (with EXPO_PUBLIC_ prefix) instead of hardcoded key
+let traderMadeApiKey = process.env.EXPO_PUBLIC_TRADER_MADE_API_KEY || "";
 
 // API Priority - only using TraderMade
 const apiPriority = ["trader_made"];

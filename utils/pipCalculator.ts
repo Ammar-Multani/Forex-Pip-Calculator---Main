@@ -7,14 +7,31 @@ import { CurrencyPair } from "../constants/currencies";
 export const calculatePipValueInQuoteCurrency = (
   currencyPair: CurrencyPair,
   positionSize: number,
-  pipCount: number
+  pipCount: number,
+  pipDecimalPlaces: number = 4
 ): number => {
-  // For JPY pairs, pip value is different
+  // For JPY pairs, pip value is different by default, but can be overridden
   const isJpyPair = currencyPair.quote === "JPY";
-  const pipValue = isJpyPair ? 0.01 : 0.0001;
 
-  // Calculate pip value in quote currency
-  return positionSize * pipValue * pipCount;
+  // If pipDecimalPlaces is provided, use that, otherwise use default for the currency
+  let pipValue: number;
+
+  if (isJpyPair && pipDecimalPlaces === 4) {
+    // Default for JPY pairs is 2nd decimal place if user is using default setting
+    pipValue = 0.01;
+  } else if (pipDecimalPlaces === 0) {
+    // Special case for 0th decimal place (whole units)
+    pipValue = 1;
+  } else {
+    // For all other decimal places, calculate dynamically
+    pipValue = Math.pow(10, -pipDecimalPlaces);
+  }
+
+  // Calculate pip value in quote currency for a single pip
+  const singlePipValue = positionSize * pipValue;
+
+  // Return single pip value (we handle multiplying by pip count elsewhere)
+  return singlePipValue;
 };
 
 /**
@@ -42,7 +59,7 @@ export const calculatePipValueInAccountCurrency = (
  * Get the number of decimal places to use for a specific currency in pip calculations
  */
 export const getPipDecimalPlaces = (currencyCode: string): number => {
-  // JPY has 2 decimal places for pips, everything else has 4
+  // JPY has 2 decimal places for pips by default, everything else has 4
   return currencyCode === "JPY" ? 2 : 4;
 };
 
@@ -54,10 +71,19 @@ export const formatCurrencyValue = (
   currencyCode: string,
   currencySymbol: string
 ): string => {
-  // Format with 2 decimal places for most currencies, 0 for JPY
-  const decimalPlaces = currencyCode === "JPY" ? 0 : 3;
+  // Format with appropriate decimal places based on currency
+  let decimalPlaces = currencyCode === "JPY" ? 0 : 2;
 
-  return `${currencySymbol}${value.toFixed(decimalPlaces)}`;
+  // For very large values from 0th decimal place calculations, reduce decimal places
+  if (value > 10000) {
+    decimalPlaces = Math.min(decimalPlaces, 0);
+  }
+
+  // Format with commas for thousands while preserving decimal places
+  return `${currencySymbol}${value.toLocaleString(undefined, {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+  })}`;
 };
 
 /**
@@ -68,8 +94,20 @@ export const formatPipValue = (
   currencyCode: string,
   currencySymbol: string
 ): string => {
-  // Format with more precision for pip values, matching professional trading platforms
-  const decimalPlaces = currencyCode === "JPY" ? 0 : 3;
+  // Format with appropriate precision for pip values
+  let decimalPlaces = currencyCode === "JPY" ? 0 : 2;
 
-  return `${currencySymbol}${value.toFixed(decimalPlaces)}`;
+  // For very large values from 0th decimal place calculations, reduce decimal places
+  if (value > 10000) {
+    decimalPlaces = Math.min(decimalPlaces, 0);
+  } else if (value < 0.01 && value > 0) {
+    // For very small values, show more decimal places
+    decimalPlaces = 4;
+  }
+
+  // Format with commas for thousands while preserving decimal places
+  return `${currencySymbol}${value.toLocaleString(undefined, {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+  })}`;
 };

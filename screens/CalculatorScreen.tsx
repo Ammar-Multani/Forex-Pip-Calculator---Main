@@ -22,6 +22,7 @@ import LotSizeSelector from "../components/LotSizeSelector";
 import LotSizeEditorModal from "../components/LotSizeEditorModal";
 import PipInput from "../components/PipInput";
 import ResultCard from "../components/ResultCard";
+import CalculatorModal from "../components/CalculatorModal";
 import {
   currencies,
   currencyPairs,
@@ -68,6 +69,7 @@ const CalculatorScreen: React.FC = () => {
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [pairModalVisible, setPairModalVisible] = useState(false);
   const [lotSizeEditorVisible, setLotSizeEditorVisible] = useState(false);
+  const [pipCalculatorVisible, setPipCalculatorVisible] = useState(false);
 
   // State for lot size
   const [lotSizes, setLotSizes] =
@@ -347,10 +349,14 @@ const CalculatorScreen: React.FC = () => {
     setPipCount(filtered);
   };
 
+  // Handle pip value from calculator
+  const handlePipValueFromCalculator = (value: number) => {
+    setPipCount(value.toString());
+    setPipCalculatorVisible(false);
+  };
+
   return (
-    <View
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Header title="Forex Pip Calculator" onThemeToggle={toggleTheme} />
 
       <KeyboardAvoidingView
@@ -512,7 +518,11 @@ const CalculatorScreen: React.FC = () => {
                     Pip Value
                   </Text>
                 </View>
-                <PipInput value={pipCount} onChange={handlePipCountChange} />
+                <PipInput
+                  value={pipCount}
+                  onChange={handlePipCountChange}
+                  onCalculatorPress={() => setPipCalculatorVisible(true)}
+                />
               </LinearGradient>
             </View>
 
@@ -619,6 +629,21 @@ const CalculatorScreen: React.FC = () => {
           lotSizes={lotSizes}
           onSave={handleLotSizesSave}
           onClose={() => setLotSizeEditorVisible(false)}
+        />
+      </Modal>
+
+      {/* Calculator Modal for Pip Value */}
+      <Modal
+        visible={pipCalculatorVisible}
+        animationType="fade"
+        transparent={true}
+        statusBarTranslucent={true}
+        onRequestClose={() => setPipCalculatorVisible(false)}
+      >
+        <CalculatorModal
+          onClose={() => setPipCalculatorVisible(false)}
+          onSubmit={handlePipValueFromCalculator}
+          initialValue={pipCount}
         />
       </Modal>
     </View>

@@ -36,8 +36,7 @@ export const fetchExchangeRate = async (
       return rateCache[cacheKey].rate;
     }
 
-    // Make API call to TraderMade
-    console.log(`Calling TraderMade API for ${fromCurrency}/${toCurrency}`);
+
 
     const response = await fetch(
       `https://marketdata.tradermade.com/api/v1/live?api_key=${env.traderMadeApiKey}&currency=${fromCurrency}${toCurrency}`
@@ -50,7 +49,7 @@ export const fetchExchangeRate = async (
     }
 
     const data = await response.json();
-    console.log("TraderMade response:", JSON.stringify(data));
+
 
     let rate: number | null = null;
 
@@ -66,9 +65,7 @@ export const fetchExchangeRate = async (
       throw new Error("Could not find exchange rate in API response");
     }
 
-    console.log(
-      `TraderMade API returned rate: ${rate} for ${fromCurrency}/${toCurrency}`
-    );
+
 
     // Cache the result
     rateCache[cacheKey] = { rate, timestamp: Date.now() };
@@ -91,7 +88,7 @@ export const fetchAllExchangeRates = async (
       throw new Error("No internet connection. Real-time rates unavailable.");
     }
 
-    console.log(`Fetching all rates for ${baseCurrency} from TraderMade`);
+
 
     // TraderMade requires a list of currency pairs for live quotes
     const commonCurrencies = [
@@ -127,7 +124,7 @@ export const fetchAllExchangeRates = async (
     }
 
     const data = await response.json();
-    console.log("TraderMade response for all rates:", JSON.stringify(data));
+
 
     if (!data || !data.quotes || !Array.isArray(data.quotes)) {
       throw new Error("Invalid response format from TraderMade API");

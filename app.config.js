@@ -17,7 +17,7 @@ export default {
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.yourname.forexpipcalculator",
+    bundleIdentifier: "com.enacton.forexpipcalculator",
     buildNumber: "1.0.0",
   },
   android: {
@@ -25,7 +25,7 @@ export default {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#FFFFFF",
     },
-    package: "com.yourname.forexpipcalculator",
+    package: "com.enacton.forexpipcalculator",
     versionCode: 1,
     permissions: [],
   },
@@ -44,10 +44,10 @@ export default {
 
     // Environment
     NODE_ENV: process.env.NODE_ENV,
-    
+
     // EAS
     eas: {
-      projectId: "11aba8bb-8399-4c4b-b8dd-1c547005748f"
-    }
+      projectId: "11aba8bb-8399-4c4b-b8dd-1c547005748f",
+    },
   },
 };

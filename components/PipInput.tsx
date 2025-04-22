@@ -1,14 +1,25 @@
 import React from "react";
-import { View, Text, StyleSheet, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { MaterialIcons } from "@expo/vector-icons";
 
 interface PipInputProps {
   value: string;
   onChange: (text: string) => void;
+  onCalculatorPress?: () => void;
 }
 
-const PipInput: React.FC<PipInputProps> = ({ value, onChange }) => {
+const PipInput: React.FC<PipInputProps> = ({
+  value,
+  onChange,
+  onCalculatorPress,
+}) => {
   const { colors, theme } = useTheme();
   const isDarkMode = theme === "dark";
 
@@ -19,21 +30,39 @@ const PipInput: React.FC<PipInputProps> = ({ value, onChange }) => {
           Pips:
         </Text>
         <View style={styles.inputContainer}>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
-            value={value}
-            onChangeText={onChange}
-            keyboardType="numeric"
-            placeholder="Enter pip count (e.g., 10)"
-            placeholderTextColor={colors.placeholder}
-          />
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  color: colors.text,
+                  paddingRight: onCalculatorPress ? 45 : 12,
+                },
+              ]}
+              value={value}
+              onChangeText={onChange}
+              keyboardType="numeric"
+              placeholder="Enter pip count (e.g., 10)"
+              placeholderTextColor={colors.placeholder}
+            />
+            {onCalculatorPress && (
+              <TouchableOpacity
+                style={[
+                  styles.calculatorButton,
+                  { backgroundColor: colors.primary + "15" },
+                ]}
+                onPress={onCalculatorPress}
+              >
+                <MaterialIcons
+                  name="calculate"
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
 
@@ -69,12 +98,25 @@ const styles = StyleSheet.create({
   inputContainer: {
     flex: 1,
   },
+  inputWrapper: {
+    position: "relative",
+  },
   input: {
     height: 50,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 10,
     paddingHorizontal: 12,
     fontSize: 16,
+  },
+  calculatorButton: {
+    position: "absolute",
+    right: 5,
+    top: 5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   infoContainer: {
     flexDirection: "row",

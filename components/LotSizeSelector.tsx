@@ -20,6 +20,7 @@ import {
   calculateTotalUnits,
 } from "../constants/lotSizes";
 import { MaterialIcons } from "@expo/vector-icons";
+import CalculatorModal from "./CalculatorModal";
 
 interface LotSizeSelectorProps {
   label: string;
@@ -47,6 +48,10 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
   const { colors } = useTheme();
   const lotTypes = Object.keys(lotSizes);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [calculatorVisible, setCalculatorVisible] = useState(false);
+  const [calculatorTarget, setCalculatorTarget] = useState<
+    "lotCount" | "customUnits"
+  >("lotCount");
   const animatedValue = useRef(new Animated.Value(0)).current;
   const dropdownButtonRef = useRef<View>(null);
   const [dropdownPosition, setDropdownPosition] = useState({
@@ -110,6 +115,20 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
   const selectLotType = (type: LotType) => {
     onLotTypeChange(type);
     closeDropdown();
+  };
+
+  const handleCalculatorSubmit = (calculatedValue: number) => {
+    if (calculatorTarget === "lotCount") {
+      onLotCountChange(Math.max(0, Math.round(calculatedValue)));
+    } else {
+      onCustomUnitsChange(Math.max(0, Math.round(calculatedValue)));
+    }
+    setCalculatorVisible(false);
+  };
+
+  const openCalculator = (target: "lotCount" | "customUnits") => {
+    setCalculatorTarget(target);
+    setCalculatorVisible(true);
   };
 
   // Animations
@@ -235,49 +254,81 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
         </Text>
         <View style={styles.countContainer}>
           {lotType === "Custom" ? (
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              value={customUnits.toString()}
-              onChangeText={(text) => {
-                const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
-                onCustomUnitsChange(value);
-              }}
-              keyboardType="numeric"
-              placeholder="Units"
-              placeholderTextColor={colors.placeholder}
-              textAlign="center"
-              returnKeyType="done"
-              maxLength={10}
-            />
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    color: colors.text,
+                    paddingRight: 45, // Make room for calculator icon
+                  },
+                ]}
+                value={customUnits.toString()}
+                onChangeText={(text) => {
+                  const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
+                  onCustomUnitsChange(value);
+                }}
+                keyboardType="numeric"
+                placeholder="Units"
+                placeholderTextColor={colors.placeholder}
+                textAlign="center"
+                returnKeyType="done"
+                maxLength={10}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.calculatorButton,
+                  { backgroundColor: colors.primary + "15" },
+                ]}
+                onPress={() => openCalculator("customUnits")}
+              >
+                <MaterialIcons
+                  name="calculate"
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
           ) : (
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              value={lotCount.toString()}
-              onChangeText={(text) => {
-                const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
-                onLotCountChange(value);
-              }}
-              keyboardType="numeric"
-              placeholder="Count"
-              placeholderTextColor={colors.placeholder}
-              textAlign="center"
-              returnKeyType="done"
-              maxLength={10}
-            />
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    color: colors.text,
+                    paddingRight: 45, // Make room for calculator icon
+                  },
+                ]}
+                value={lotCount.toString()}
+                onChangeText={(text) => {
+                  const value = parseInt(text.replace(/[^0-9]/g, "")) || 0;
+                  onLotCountChange(value);
+                }}
+                keyboardType="numeric"
+                placeholder="Count"
+                placeholderTextColor={colors.placeholder}
+                textAlign="center"
+                returnKeyType="done"
+                maxLength={10}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.calculatorButton,
+                  { backgroundColor: colors.primary + "15" },
+                ]}
+                onPress={() => openCalculator("lotCount")}
+              >
+                <MaterialIcons
+                  name="calculate"
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
@@ -300,6 +351,25 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
           </Text>
         </View>
       </View>
+
+      {/* Calculator Modal */}
+      <Modal
+        visible={calculatorVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setCalculatorVisible(false)}
+        statusBarTranslucent={true}
+      >
+        <CalculatorModal
+          onClose={() => setCalculatorVisible(false)}
+          onSubmit={handleCalculatorSubmit}
+          initialValue={
+            calculatorTarget === "lotCount"
+              ? lotCount.toString()
+              : customUnits.toString()
+          }
+        />
+      </Modal>
     </View>
   );
 };
@@ -389,6 +459,9 @@ const styles = StyleSheet.create({
   countContainer: {
     flex: 1,
   },
+  inputWrapper: {
+    position: "relative",
+  },
   input: {
     height: 50,
     borderWidth: 1,
@@ -397,6 +470,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     fontWeight: "500",
+  },
+  calculatorButton: {
+    position: "absolute",
+    right: 5,
+    top: 5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   bottomRow: {
     flexDirection: "row",

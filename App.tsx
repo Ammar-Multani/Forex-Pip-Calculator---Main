@@ -1,6 +1,10 @@
 import React, { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
+import {
+  OnboardingProvider,
+  useOnboarding,
+} from "./contexts/OnboardingContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import {
@@ -18,6 +22,7 @@ import DisclaimerScreen from "./screens/DisclaimerScreen";
 import PrivacyPolicyScreen from "./screens/PrivacyPolicyScreen";
 import HelpGuideScreen from "./screens/HelpGuideScreen";
 import HistoryScreen from "./screens/HistoryScreen";
+import OnboardingScreen from "./screens/OnboardingScreen";
 
 // Create stack navigator
 const Stack = createNativeStackNavigator();
@@ -25,6 +30,7 @@ const Stack = createNativeStackNavigator();
 // Main app content with theme access
 const AppContent = () => {
   const { theme } = useTheme();
+  const { isOnboardingComplete } = useOnboarding();
   const navigationTheme = theme === "dark" ? DarkTheme : DefaultTheme;
   const isDarkMode = theme === "dark";
 
@@ -39,6 +45,10 @@ const AppContent = () => {
 
     updateNavigationBar();
   }, [isDarkMode]);
+
+  if (!isOnboardingComplete) {
+    return <OnboardingScreen onComplete={() => {}} />;
+  }
 
   return (
     <>
@@ -73,7 +83,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AppContent />
+        <OnboardingProvider>
+          <AppContent />
+        </OnboardingProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -1,59 +1,51 @@
-import React, { useEffect, useState } from "react";
-import { ThemeProvider } from "../contexts/ThemeContext";
+import React, { useEffect } from "react";
+import { View } from "react-native";
 import { Stack } from "expo-router";
+import { ThemeProvider } from "../contexts/ThemeContext";
+import { OnboardingProvider } from "../contexts/OnboardingContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import NetInfo from "@react-native-community/netinfo";
-import { Alert } from "react-native";
+import { OneSignal, LogLevel } from "react-native-onesignal";
 
 export default function RootLayout() {
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
-
-  // Check network connectivity on app startup
+  // Initialize OneSignal in useEffect to ensure it runs only once
   useEffect(() => {
-    const checkConnectivity = async () => {
-      const netInfoState = await NetInfo.fetch();
+    // Enable verbose logging for debugging (remove in production)
+    OneSignal.Debug.setLogLevel(LogLevel.Verbose);
+    // Initialize with your OneSignal App ID
+    OneSignal.initialize("65f7d9e0-6bb4-4d14-bc58-bf7e2c10b573");
 
-      // Only show the alert on first load and if not connected
-      if (isFirstLoad && !netInfoState.isConnected) {
-        Alert.alert(
-          "No Internet Connection",
-          "You're currently offline. Some features like real-time exchange rates won't be available until you reconnect to the internet.",
-          [{ text: "OK", onPress: () => setIsFirstLoad(false) }]
-        );
-      } else {
-        setIsFirstLoad(false);
-      }
-    };
+    // We'll handle permission requests in the NotificationScreen
+    // This ensures a better user experience during onboarding
 
-    checkConnectivity();
-
-    // Subscribe to network state updates
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      // No need to show alerts for subsequent changes
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [isFirstLoad]);
+    // Do not automatically request permission here
+    // That will be handled in the NotificationScreen component
+  }, []); // Ensure this only runs once on app mount
 
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <Stack>
-          <Stack.Screen
-            name="index"
-            options={{
+        <OnboardingProvider>
+          <Stack
+            screenOptions={{
               headerShown: false,
+              contentStyle: { backgroundColor: "transparent" },
+              animation: "slide_from_right",
             }}
-          />
-          <Stack.Screen
-            name="info"
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Stack>
+          >
+            <Stack.Screen
+              name="index"
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="info"
+              options={{
+                headerShown: false,
+              }}
+            />
+          </Stack>
+        </OnboardingProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

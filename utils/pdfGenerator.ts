@@ -283,7 +283,7 @@ export const generatePdf = async (
         </div>
         
         <div class="footer">
-          Created with Forex Pip Calculator App
+          Created with Forex Pip Calc
         </div>
       </body>
     </html>
@@ -316,8 +316,8 @@ export const generatePdf = async (
 export const sharePdf = async (filePath: string): Promise<void> => {
   try {
     const shareOptions = {
-      title: "Share Forex Calculation Results",
-      message: "Check out my forex pip calculation results",
+      title: "Share Calculation Results",
+      message: "Check out my pip calculation results",
       url: Platform.OS === "android" ? `file://${filePath}` : filePath,
       type: "application/pdf",
     };

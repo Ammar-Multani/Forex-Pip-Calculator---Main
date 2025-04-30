@@ -8,6 +8,8 @@ import {
   Animated,
   ActivityIndicator,
   Alert,
+  Clipboard,
+  ToastAndroid,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { Currency, CurrencyPair } from "../constants/currencies";
@@ -35,6 +37,7 @@ interface ResultCardProps {
   positionSize?: number;
   pipDecimalPlaces?: number;
   onHistorySaved?: () => void;
+  onInfoPress?: () => void;
 }
 
 const ResultCard: React.FC<ResultCardProps> = ({
@@ -53,6 +56,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
   positionSize,
   pipDecimalPlaces,
   onHistorySaved,
+  onInfoPress,
 }) => {
   const { colors, theme, getGradient } = useTheme();
   const isDarkMode = theme === "dark";
@@ -230,24 +234,61 @@ const ResultCard: React.FC<ResultCardProps> = ({
     }
   };
 
+  // Copy to clipboard function
+  const copyToClipboard = (value: string, label: string) => {
+    Clipboard.setString(value);
+
+    // Show feedback to user
+    if (Platform.OS === "android") {
+      ToastAndroid.show(`${label} copied to clipboard`, ToastAndroid.SHORT);
+    } else {
+      Alert.alert("Copied", `${label} copied to clipboard`, [{ text: "OK" }]);
+    }
+  };
+
+  // Helper function to format large numbers with abbreviations
+  const formatLargeNumber = (value: number): string => {
+    if (value >= 1_000_000_000_000) {
+      return `${(value / 1_000_000_000_000).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}T`;
+    } else if (value >= 1_000_000_000) {
+      return `${(value / 1_000_000_000).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}B`;
+    } else if (value >= 1_000_000) {
+      return `${(value / 1_000_000).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}M`;
+    } else {
+      return value.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+  };
+
+  // Check if values are very large - lower threshold to 100k for better readability
+  const hasLargeValues =
+    totalValueInAccountCurrency > 100_000 ||
+    totalValueInQuoteCurrency > 100_000 ||
+    pipValueInAccountCurrency > 100_000 ||
+    pipValueInQuoteCurrency > 100_000;
+
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: colors.card,
-          borderColor: colors.primary + "30",
-          ...Platform.select({
-            ios: {
-              shadowColor: colors.primary,
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.2,
-              shadowRadius: 20,
-            },
-            android: {
-              elevation: 10,
-            },
-          }),
+          backgroundColor: isDarkMode
+          ? "rgba(33, 33, 33, 0.8)"
+          : "rgba(255, 255, 255, 0.9)",
+        borderColor: isDarkMode
+          ? colors.border
+          : "rgba(230, 235, 240, 0.9)",   
         },
       ]}
     >
@@ -270,6 +311,19 @@ const ResultCard: React.FC<ResultCardProps> = ({
           style={styles.heroContainer}
         >
           <View style={styles.heroContent}>
+            {/* Info button */}
+            {onInfoPress && (
+              <TouchableOpacity
+                style={styles.infoButton}
+                onPress={onInfoPress}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <View style={styles.infoButtonInner}>
+                  <MaterialIcons name="info-outline" size={20} color="white" />
+                </View>
+              </TouchableOpacity>
+            )}
+
             <View style={styles.pipCountContainer}>
               <Text style={styles.pipCountLabel}>
                 {pipCount} pip{pipCount !== 1 ? "s" : ""}
@@ -290,17 +344,45 @@ const ResultCard: React.FC<ResultCardProps> = ({
               )}
             </View>
 
-            <View style={styles.heroValueContainer}>
-              <Text style={styles.currencySymbol}>
-                {accountCurrency.symbol}
-              </Text>
-              <Text style={styles.heroValue}>
-                {totalValueInAccountCurrency.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </Text>
-            </View>
+            <TouchableOpacity
+              onPress={() =>
+                copyToClipboard(
+                  `${
+                    accountCurrency.symbol
+                  }${totalValueInAccountCurrency.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`,
+                  "Total value"
+                )
+              }
+              style={styles.copyableValue}
+            >
+              <View style={styles.heroValueContainer}>
+                <Text style={styles.currencySymbol}>
+                  {accountCurrency.symbol}
+                </Text>
+                <Text
+                  style={styles.heroValue}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit={true}
+                  minimumFontScale={0.5}
+                >
+                  {hasLargeValues
+                    ? formatLargeNumber(totalValueInAccountCurrency)
+                    : totalValueInAccountCurrency.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                </Text>
+              </View>
+              <MaterialIcons
+                name="content-copy"
+                size={16}
+                color="rgba(255,255,255,0.7)"
+                style={styles.copyIcon}
+              />
+            </TouchableOpacity>
 
             <View style={styles.heroSubtextContainer}>
               <Text style={styles.heroSubtext}>{accountCurrency.code}</Text>
@@ -316,11 +398,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
               styles.dataCard,
               {
                 backgroundColor: isDarkMode
-                  ? "rgb(45, 52, 65)"
-                  : "rgb(255, 255, 255)",
-                borderColor: isDarkMode
-                  ? colors.border + "30"
-                  : "rgba(230, 235, 240, 0.9)",
+                ? "rgb(47, 47, 47)"
+                : "rgb(255, 255, 255)",
+              borderColor: isDarkMode
+                ? colors.border
+                : "rgba(230, 235, 240, 0.9)",   
               },
             ]}
           >
@@ -343,18 +425,47 @@ const ResultCard: React.FC<ResultCardProps> = ({
             </View>
 
             <View style={styles.dataCardContent}>
-              <View style={styles.dataRow}>
+              <TouchableOpacity
+                style={styles.dataRow}
+                onPress={() =>
+                  copyToClipboard(
+                    formatPipValue(
+                      pipValueInAccountCurrency,
+                      accountCurrency.code,
+                      accountCurrency.symbol
+                    ),
+                    `${accountCurrency.code} per pip value`
+                  )
+                }
+              >
                 <Text style={[styles.dataLabel, { color: colors.subtext }]}>
                   {accountCurrency.code}
                 </Text>
-                <Text style={[styles.dataValue, { color: colors.primary }]}>
-                  {formatPipValue(
-                    pipValueInAccountCurrency,
-                    accountCurrency.code,
-                    accountCurrency.symbol
-                  )}
-                </Text>
-              </View>
+                <View style={styles.valueWithCopyContainer}>
+                  <Text
+                    style={[styles.dataValue, { color: colors.primary }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit={true}
+                    minimumFontScale={0.5}
+                  >
+                    {hasLargeValues
+                      ? `${accountCurrency.symbol}${formatLargeNumber(
+                          pipValueInAccountCurrency
+                        )}`
+                      : formatPipValue(
+                          pipValueInAccountCurrency,
+                          accountCurrency.code,
+                          accountCurrency.symbol
+                        )}
+                  </Text>
+                  <MaterialIcons
+                    name="content-copy"
+                    size={14}
+                    color={colors.primary + "70"}
+                    style={styles.smallCopyIcon}
+                  />
+                </View>
+              </TouchableOpacity>
 
               <View
                 style={[
@@ -363,18 +474,47 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 ]}
               />
 
-              <View style={styles.dataRow}>
+              <TouchableOpacity
+                style={styles.dataRow}
+                onPress={() =>
+                  copyToClipboard(
+                    formatPipValue(
+                      pipValueInQuoteCurrency,
+                      quoteCurrencyCode,
+                      quoteCurrencySymbol
+                    ),
+                    `${quoteCurrencyCode} per pip value`
+                  )
+                }
+              >
                 <Text style={[styles.dataLabel, { color: colors.subtext }]}>
                   {quoteCurrencyCode}
                 </Text>
-                <Text style={[styles.dataValue, { color: colors.text }]}>
-                  {formatPipValue(
-                    pipValueInQuoteCurrency,
-                    quoteCurrencyCode,
-                    quoteCurrencySymbol
-                  )}
-                </Text>
-              </View>
+                <View style={styles.valueWithCopyContainer}>
+                  <Text
+                    style={[styles.dataValue, { color: colors.text }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit={true}
+                    minimumFontScale={0.5}
+                  >
+                    {hasLargeValues
+                      ? `${quoteCurrencySymbol}${formatLargeNumber(
+                          pipValueInQuoteCurrency
+                        )}`
+                      : formatPipValue(
+                          pipValueInQuoteCurrency,
+                          quoteCurrencyCode,
+                          quoteCurrencySymbol
+                        )}
+                  </Text>
+                  <MaterialIcons
+                    name="content-copy"
+                    size={14}
+                    color={colors.text + "70"}
+                    style={styles.smallCopyIcon}
+                  />
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -384,11 +524,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
               styles.dataCard,
               {
                 backgroundColor: isDarkMode
-                  ? "rgb(45, 52, 65)"
-                  : "rgb(255, 255, 255)",
-                borderColor: isDarkMode
-                  ? colors.border + "30"
-                  : "rgba(230, 235, 240, 0.9)",
+                ? "rgb(47, 47, 47)"
+                : "rgb(255, 255, 255)",
+              borderColor: isDarkMode
+                ? colors.border
+                : "rgba(230, 235, 240, 0.9)",   
               },
             ]}
           >
@@ -411,23 +551,50 @@ const ResultCard: React.FC<ResultCardProps> = ({
             </View>
 
             <View style={styles.dataCardContent}>
-              <View style={styles.dataRow}>
+              <TouchableOpacity
+                style={styles.dataRow}
+                onPress={() =>
+                  copyToClipboard(
+                    formatCurrencyValue(
+                      totalValueInAccountCurrency,
+                      accountCurrency.code,
+                      accountCurrency.symbol
+                    ),
+                    `${accountCurrency.code} total value`
+                  )
+                }
+              >
                 <Text style={[styles.dataLabel, { color: colors.subtext }]}>
                   {accountCurrency.code}
                 </Text>
-                <Text
-                  style={[
-                    styles.dataValue,
-                    { color: colors.primary, fontWeight: "700" },
-                  ]}
-                >
-                  {formatCurrencyValue(
-                    totalValueInAccountCurrency,
-                    accountCurrency.code,
-                    accountCurrency.symbol
-                  )}
-                </Text>
-              </View>
+                <View style={styles.valueWithCopyContainer}>
+                  <Text
+                    style={[
+                      styles.dataValue,
+                      { color: colors.primary, fontWeight: "700" },
+                    ]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit={true}
+                    minimumFontScale={0.5}
+                  >
+                    {hasLargeValues
+                      ? `${accountCurrency.symbol}${formatLargeNumber(
+                          totalValueInAccountCurrency
+                        )}`
+                      : formatCurrencyValue(
+                          totalValueInAccountCurrency,
+                          accountCurrency.code,
+                          accountCurrency.symbol
+                        )}
+                  </Text>
+                  <MaterialIcons
+                    name="content-copy"
+                    size={14}
+                    color={colors.primary + "70"}
+                    style={styles.smallCopyIcon}
+                  />
+                </View>
+              </TouchableOpacity>
 
               <View
                 style={[
@@ -435,18 +602,47 @@ const ResultCard: React.FC<ResultCardProps> = ({
                   { backgroundColor: colors.border + "30" },
                 ]}
               />
-              <View style={styles.dataRow}>
+              <TouchableOpacity
+                style={styles.dataRow}
+                onPress={() =>
+                  copyToClipboard(
+                    formatCurrencyValue(
+                      totalValueInQuoteCurrency,
+                      quoteCurrencyCode,
+                      quoteCurrencySymbol
+                    ),
+                    `${quoteCurrencyCode} total value`
+                  )
+                }
+              >
                 <Text style={[styles.dataLabel, { color: colors.subtext }]}>
                   {quoteCurrencyCode}
                 </Text>
-                <Text style={[styles.dataValue, { color: colors.text }]}>
-                  {formatCurrencyValue(
-                    totalValueInQuoteCurrency,
-                    quoteCurrencyCode,
-                    quoteCurrencySymbol
-                  )}
-                </Text>
-              </View>
+                <View style={styles.valueWithCopyContainer}>
+                  <Text
+                    style={[styles.dataValue, { color: colors.text }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit={true}
+                    minimumFontScale={0.5}
+                  >
+                    {hasLargeValues
+                      ? `${quoteCurrencySymbol}${formatLargeNumber(
+                          totalValueInQuoteCurrency
+                        )}`
+                      : formatCurrencyValue(
+                          totalValueInQuoteCurrency,
+                          quoteCurrencyCode,
+                          quoteCurrencySymbol
+                        )}
+                  </Text>
+                  <MaterialIcons
+                    name="content-copy"
+                    size={14}
+                    color={colors.text + "70"}
+                    style={styles.smallCopyIcon}
+                  />
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -457,11 +653,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
             styles.exchangeRateContainer,
             {
               backgroundColor: isDarkMode
-                ? "rgba(50, 55, 65, 0.7)"
-                : "rgba(250, 250, 255, 0.8)",
-              borderColor: isDarkMode
-                ? "rgba(80, 90, 110, 0.3)"
-                : "rgba(220, 225, 235, 0.8)",
+              ? "rgb(47, 47, 47)"
+              : "rgb(255, 255, 255)",
+            borderColor: isDarkMode
+              ? colors.border
+              : "rgba(230, 235, 240, 0.9)",   
             },
           ]}
         >
@@ -492,22 +688,23 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 </Text>
               )}
             </View>
-            <Text style={[styles.exchangeRateValue, { color: colors.primary }]}>
-              {exchangeRateText}
-            </Text>
+            <TouchableOpacity
+              onPress={() => copyToClipboard(exchangeRateText, "Exchange rate")}
+              style={styles.valueWithCopyContainer}
+            >
+              <Text
+                style={[styles.exchangeRateValue, { color: colors.primary }]}
+              >
+                {exchangeRateText}
+              </Text>
+              <MaterialIcons
+                name="content-copy"
+                size={14}
+                color={colors.primary + "70"}
+                style={styles.smallCopyIcon}
+              />
+            </TouchableOpacity>
           </View>
-
-          {/* <View
-            style={[
-              styles.liveRatesBadge,
-              { backgroundColor: colors.success + "20" },
-            ]}
-          >
-            <MaterialIcons name="public" size={10} color={colors.success} />
-            <Text style={[styles.liveRatesLabel, { color: colors.success }]}>
-              LIVE
-            </Text>
-          </View> */}
         </View>
 
         {/* Lot size pip value table - modern, clean design */}
@@ -537,11 +734,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 styles.lotSizeCard,
                 {
                   backgroundColor: isDarkMode
-                    ? "rgba(45, 52, 65, 0.7)"
-                    : "rgba(255, 255, 255, 0.8)",
-                  borderColor: isDarkMode
-                    ? "rgba(80, 100, 140, 0.2)"
-                    : "rgba(230, 235, 245, 0.9)",
+                  ? "rgb(47, 47, 47)"
+                  : "rgb(255, 255, 255)",
+                borderColor: isDarkMode
+                  ? colors.border
+                  : "rgba(230, 235, 240, 0.9)",   
                 },
               ]}
             >
@@ -556,13 +753,42 @@ const ResultCard: React.FC<ResultCardProps> = ({
               <Text style={[styles.lotSizeUnits, { color: colors.subtext }]}>
                 100,000 units
               </Text>
-              <Text style={[styles.lotSizeValue, { color: colors.primary }]}>
-                {formatPipValue(
-                  standardPipValues.accountValue,
-                  accountCurrency.code,
-                  accountCurrency.symbol
-                )}
-              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  copyToClipboard(
+                    formatPipValue(
+                      standardPipValues.accountValue,
+                      accountCurrency.code,
+                      accountCurrency.symbol
+                    ),
+                    "Standard lot pip value"
+                  )
+                }
+                style={styles.lotSizeValueContainer}
+              >
+                <Text
+                  style={[styles.lotSizeValue, { color: colors.primary }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit={true}
+                  minimumFontScale={0.5}
+                >
+                  {standardPipValues.accountValue > 10000
+                    ? `${accountCurrency.symbol}${formatLargeNumber(
+                        standardPipValues.accountValue
+                      )}`
+                    : formatPipValue(
+                        standardPipValues.accountValue,
+                        accountCurrency.code,
+                        accountCurrency.symbol
+                      )}
+                </Text>
+                <MaterialIcons
+                  name="content-copy"
+                  size={12}
+                  color={colors.primary + "70"}
+                  style={styles.lotSizeCopyIcon}
+                />
+              </TouchableOpacity>
               <Text style={[styles.lotSizePerPip, { color: colors.subtext }]}>
                 per pip
               </Text>
@@ -574,11 +800,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 styles.lotSizeCard,
                 {
                   backgroundColor: isDarkMode
-                    ? "rgba(45, 52, 65, 0.7)"
-                    : "rgba(255, 255, 255, 0.8)",
-                  borderColor: isDarkMode
-                    ? "rgba(80, 100, 140, 0.2)"
-                    : "rgba(230, 235, 245, 0.9)",
+                  ? "rgb(47, 47, 47)"
+                  : "rgb(255, 255, 255)",
+                borderColor: isDarkMode
+                  ? colors.border
+                  : "rgba(230, 235, 240, 0.9)",   
                 },
               ]}
             >
@@ -595,13 +821,42 @@ const ResultCard: React.FC<ResultCardProps> = ({
               <Text style={[styles.lotSizeUnits, { color: colors.subtext }]}>
                 10,000 units
               </Text>
-              <Text style={[styles.lotSizeValue, { color: colors.primary }]}>
-                {formatPipValue(
-                  miniPipValues.accountValue,
-                  accountCurrency.code,
-                  accountCurrency.symbol
-                )}
-              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  copyToClipboard(
+                    formatPipValue(
+                      miniPipValues.accountValue,
+                      accountCurrency.code,
+                      accountCurrency.symbol
+                    ),
+                    "Mini lot pip value"
+                  )
+                }
+                style={styles.lotSizeValueContainer}
+              >
+                <Text
+                  style={[styles.lotSizeValue, { color: colors.primary }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit={true}
+                  minimumFontScale={0.5}
+                >
+                  {miniPipValues.accountValue > 10000
+                    ? `${accountCurrency.symbol}${formatLargeNumber(
+                        miniPipValues.accountValue
+                      )}`
+                    : formatPipValue(
+                        miniPipValues.accountValue,
+                        accountCurrency.code,
+                        accountCurrency.symbol
+                      )}
+                </Text>
+                <MaterialIcons
+                  name="content-copy"
+                  size={12}
+                  color={colors.primary + "70"}
+                  style={styles.lotSizeCopyIcon}
+                />
+              </TouchableOpacity>
               <Text style={[styles.lotSizePerPip, { color: colors.subtext }]}>
                 per pip
               </Text>
@@ -613,11 +868,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 styles.lotSizeCard,
                 {
                   backgroundColor: isDarkMode
-                    ? "rgba(45, 52, 65, 0.7)"
-                    : "rgba(255, 255, 255, 0.8)",
-                  borderColor: isDarkMode
-                    ? "rgba(80, 100, 140, 0.2)"
-                    : "rgba(230, 235, 245, 0.9)",
+                  ? "rgb(47, 47, 47)"
+                  : "rgb(255, 255, 255)",
+                borderColor: isDarkMode
+                  ? colors.border
+                  : "rgba(230, 235, 240, 0.9)",   
                 },
               ]}
             >
@@ -634,13 +889,42 @@ const ResultCard: React.FC<ResultCardProps> = ({
               <Text style={[styles.lotSizeUnits, { color: colors.subtext }]}>
                 1,000 units
               </Text>
-              <Text style={[styles.lotSizeValue, { color: colors.primary }]}>
-                {formatPipValue(
-                  microPipValues.accountValue,
-                  accountCurrency.code,
-                  accountCurrency.symbol
-                )}
-              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  copyToClipboard(
+                    formatPipValue(
+                      microPipValues.accountValue,
+                      accountCurrency.code,
+                      accountCurrency.symbol
+                    ),
+                    "Micro lot pip value"
+                  )
+                }
+                style={styles.lotSizeValueContainer}
+              >
+                <Text
+                  style={[styles.lotSizeValue, { color: colors.primary }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit={true}
+                  minimumFontScale={0.5}
+                >
+                  {microPipValues.accountValue > 10000
+                    ? `${accountCurrency.symbol}${formatLargeNumber(
+                        microPipValues.accountValue
+                      )}`
+                    : formatPipValue(
+                        microPipValues.accountValue,
+                        accountCurrency.code,
+                        accountCurrency.symbol
+                      )}
+                </Text>
+                <MaterialIcons
+                  name="content-copy"
+                  size={12}
+                  color={colors.primary + "70"}
+                  style={styles.lotSizeCopyIcon}
+                />
+              </TouchableOpacity>
               <Text style={[styles.lotSizePerPip, { color: colors.subtext }]}>
                 per pip
               </Text>
@@ -652,11 +936,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 styles.lotSizeCard,
                 {
                   backgroundColor: isDarkMode
-                    ? "rgba(45, 52, 65, 0.7)"
-                    : "rgba(255, 255, 255, 0.8)",
-                  borderColor: isDarkMode
-                    ? "rgba(80, 100, 140, 0.2)"
-                    : "rgba(230, 235, 245, 0.9)",
+                  ? "rgb(47, 47, 47)"
+                  : "rgb(255, 255, 255)",
+                borderColor: isDarkMode
+                  ? colors.border
+                  : "rgba(230, 235, 240, 0.9)",   
                 },
               ]}
             >
@@ -673,13 +957,42 @@ const ResultCard: React.FC<ResultCardProps> = ({
               <Text style={[styles.lotSizeUnits, { color: colors.subtext }]}>
                 100 units
               </Text>
-              <Text style={[styles.lotSizeValue, { color: colors.primary }]}>
-                {formatPipValue(
-                  nanoPipValues.accountValue,
-                  accountCurrency.code,
-                  accountCurrency.symbol
-                )}
-              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  copyToClipboard(
+                    formatPipValue(
+                      nanoPipValues.accountValue,
+                      accountCurrency.code,
+                      accountCurrency.symbol
+                    ),
+                    "Nano lot pip value"
+                  )
+                }
+                style={styles.lotSizeValueContainer}
+              >
+                <Text
+                  style={[styles.lotSizeValue, { color: colors.primary }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit={true}
+                  minimumFontScale={0.5}
+                >
+                  {nanoPipValues.accountValue > 10000
+                    ? `${accountCurrency.symbol}${formatLargeNumber(
+                        nanoPipValues.accountValue
+                      )}`
+                    : formatPipValue(
+                        nanoPipValues.accountValue,
+                        accountCurrency.code,
+                        accountCurrency.symbol
+                      )}
+                </Text>
+                <MaterialIcons
+                  name="content-copy"
+                  size={12}
+                  color={colors.primary + "70"}
+                  style={styles.lotSizeCopyIcon}
+                />
+              </TouchableOpacity>
               <Text style={[styles.lotSizePerPip, { color: colors.subtext }]}>
                 per pip
               </Text>
@@ -774,6 +1087,7 @@ const styles = StyleSheet.create({
   heroValueContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
+    maxWidth: "85%",
   },
   currencySymbol: {
     fontSize: 26,
@@ -786,6 +1100,7 @@ const styles = StyleSheet.create({
     fontSize: 46,
     color: "#ffffff",
     fontWeight: "700",
+    flexShrink: 1,
   },
   heroSubtextContainer: {
     backgroundColor: "rgba(255,255,255,0.15)",
@@ -855,10 +1170,14 @@ const styles = StyleSheet.create({
   dataLabel: {
     fontSize: 13,
     fontWeight: "500",
+    maxWidth: "30%",
   },
   dataValue: {
     fontSize: 14,
     fontWeight: "600",
+    textAlign: "right",
+    flexShrink: 1,
+    maxWidth: "90%",
   },
   dataDivider: {
     height: 1,
@@ -962,6 +1281,8 @@ const styles = StyleSheet.create({
   lotSizeValue: {
     fontSize: 17,
     fontWeight: "700",
+    textAlign: "center",
+    flexShrink: 1,
   },
   lotSizePerPip: {
     fontSize: 11,
@@ -1020,6 +1341,51 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "600",
     marginLeft: 8,
+  },
+  infoButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 10,
+  },
+  infoButtonInner: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+  },
+  copyableValue: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  copyIcon: {
+    marginLeft: 8,
+    opacity: 0.7,
+  },
+  valueWithCopyContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    maxWidth: "65%",
+    justifyContent: "flex-end",
+  },
+  smallCopyIcon: {
+    marginLeft: 5,
+    opacity: 0.7,
+    flexShrink: 0,
+  },
+  lotSizeValueContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 1,
+    maxWidth: "90%",
+  },
+  lotSizeCopyIcon: {
+    marginLeft: 5,
+    opacity: 0.7,
   },
 });
 

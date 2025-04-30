@@ -332,24 +332,22 @@ const LotSizeSelector: React.FC<LotSizeSelectorProps> = ({
           )}
         </View>
       </View>
-
+      <View style={styles.totalContainer}>
+        <Text style={[styles.totalLabel, { color: colors.subtext }]}>
+          Total Units:
+        </Text>
+        <Text style={[styles.totalValue, { color: colors.text }]}>
+          {totalUnits.toLocaleString()}
+        </Text>
+      </View>
       <View style={styles.bottomRow}>
         <TouchableOpacity
           style={[styles.editButton, { backgroundColor: colors.primary }]}
           onPress={onEditPress}
         >
           <MaterialIcons name="edit" size={16} color="#fff" />
-          <Text style={styles.editButtonText}>Edit Lot Values</Text>
+          <Text style={styles.editButtonText}>Edit Default Lot Values</Text>
         </TouchableOpacity>
-
-        <View style={styles.totalContainer}>
-          <Text style={[styles.totalLabel, { color: colors.subtext }]}>
-            Total Units:
-          </Text>
-          <Text style={[styles.totalValue, { color: colors.text }]}>
-            {totalUnits.toLocaleString()}
-          </Text>
-        </View>
       </View>
 
       {/* Calculator Modal */}
@@ -483,7 +481,7 @@ const styles = StyleSheet.create({
   },
   bottomRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     marginTop: 20,
     marginBottom: 4,
@@ -491,9 +489,9 @@ const styles = StyleSheet.create({
   editButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 25,
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -509,9 +507,6 @@ const styles = StyleSheet.create({
   totalContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.05)",
-    padding: 10,
-    borderRadius: 8,
   },
   totalLabel: {
     fontSize: 14,
@@ -520,6 +515,9 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 16,
     fontWeight: "bold",
+    backgroundColor: "rgba(0,0,0,0.05)",
+    padding: 10,
+    borderRadius: 8,
   },
 });
 

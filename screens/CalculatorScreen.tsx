@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -11,8 +11,12 @@ import {
   Platform,
   Alert,
   Modal,
+  BackHandler,
+  ToastAndroid,
+  Image,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
+import { useFocusEffect } from "@react-navigation/native";
 import Header from "../components/Header";
 import CurrencySelector from "../components/CurrencySelector";
 import CurrencyModal from "../components/CurrencyModal";
@@ -23,6 +27,7 @@ import LotSizeEditorModal from "../components/LotSizeEditorModal";
 import PipInput from "../components/PipInput";
 import ResultCard from "../components/ResultCard";
 import CalculatorModal from "../components/CalculatorModal";
+import InfoModal from "../components/InfoModal";
 import {
   currencies,
   currencyPairs,
@@ -54,9 +59,55 @@ const CUSTOM_UNITS_KEY = "forex-pip-calculator-custom-units";
 const PIP_COUNT_KEY = "forex-pip-calculator-pip-count";
 const PIP_DECIMAL_PLACES_KEY = "forex-pip-calculator-pip-decimal-places";
 
+// Info modal content
+const INFO_CONTENT = {
+  currencySetup: {
+    title: "Currency Setup",
+    content:
+      "The Currency Setup section allows you to configure the base parameters for your pip value calculations:\n\n" +
+      "• Account Currency: The currency in which your trading account is denominated. All pip values will be converted to this currency.\n\n" +
+      "• Currency Pair: The forex pair you are trading. A currency pair consists of a base currency (first) and a quote currency (second). For example, in EUR/USD, EUR is the base currency and USD is the quote currency.\n\n" +
+      "These settings determine how pip values are calculated and how currency conversions are applied.",
+  },
+  positionSize: {
+    title: "Position Size",
+    content:
+      "The Position Size section determines the volume of your forex trade:\n\n" +
+      "• Standard Lot: 100,000 units of the base currency\n" +
+      "• Mini Lot: 10,000 units of the base currency\n" +
+      "• Micro Lot: 1,000 units of the base currency\n" +
+      "• Nano Lot: 100 units of the base currency\n" +
+      "• Custom Units: Set a specific number of currency units\n\n" +
+      "Your position size directly impacts your pip value. Larger positions mean each pip is worth more money, while smaller positions reduce the value of each pip.\n\n" +
+      "You can edit the lot sizes by tapping the edit button if your broker uses different lot size definitions.",
+  },
+  pipValue: {
+    title: "Pip Value",
+    content:
+      "The Pip Value section lets you specify how many pips you want to calculate the value for:\n\n" +
+      "• Pip Count: The number of pips you want to calculate the value for. You can enter this directly or use the calculator button.\n\n" +
+      "• Pip Decimal Places: Determines the precision of a pip for the selected currency pair. Most currency pairs use 4 decimal places (0.0001 = 1 pip), while JPY pairs typically use 2 decimal places (0.01 = 1 pip).\n\n" +
+      "The pip value is calculated based on your currency pair, position size, and the current exchange rates.",
+  },
+  results: {
+    title: "Understanding Results",
+    content:
+      "The Results section shows the detailed calculation of pip values based on your inputs:\n\n" +
+      "• Total Value: The main result showing the total value of your specified pips in your account currency.\n\n" +
+      "• Per Pip Value: Shows how much each pip is worth in both your account currency and the quote currency of the pair.\n\n" +
+      "• Exchange Rate: Displays the current exchange rate used for converting between currencies.\n\n" +
+      "• Pip Values by Lot Size: A reference table showing pip values for standard lot sizes (Standard, Mini, Micro, and Nano).\n\n" +
+      "• Save Options: You can save your calculation to history for future reference or export it as a PDF document.\n\n" +
+      "All calculations are performed using real-time exchange rates when available.",
+  },
+};
+
 const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, theme, toggleTheme, getGradient } = useTheme();
   const isDarkMode = theme === "dark";
+
+  // Add back handler tracking
+  const backPressedTimeRef = useRef<number | null>(null);
 
   // State for currency selection
   const [accountCurrency, setAccountCurrency] = useState<Currency>(
@@ -71,6 +122,11 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [pairModalVisible, setPairModalVisible] = useState(false);
   const [lotSizeEditorVisible, setLotSizeEditorVisible] = useState(false);
   const [pipCalculatorVisible, setPipCalculatorVisible] = useState(false);
+
+  // State for info modals
+  const [infoModalType, setInfoModalType] = useState<
+    "currencySetup" | "positionSize" | "pipValue" | "results" | null
+  >(null);
 
   // State for lot size
   const [lotSizes, setLotSizes] =
@@ -397,7 +453,7 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const renderHeader = () => {
     return (
       <Header
-        title="Forex Pip Calculator"
+        title=""
         onThemeToggle={toggleTheme}
         rightComponent={
           <TouchableOpacity
@@ -410,9 +466,98 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             </View>
           </TouchableOpacity>
         }
+        leftComponent={
+          <View style={styles.logoContainer}>
+            <View style={styles.logoImageContainer}>
+              <Image
+                source={
+                  isDarkMode
+                    ? require("../assets/adaptive-icon-dark.png")
+                    : require("../assets/adaptive-icon-light.png")
+                }
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
+        }
       />
     );
   };
+
+  // Handle showing the info modal
+  const showInfoModal = (
+    type: "currencySetup" | "positionSize" | "pipValue" | "results"
+  ) => {
+    setInfoModalType(type);
+  };
+
+  // Render card header with info button
+  const renderCardHeader = (
+    icon: React.ComponentProps<typeof MaterialIcons>["name"],
+    title: string,
+    infoType: "currencySetup" | "positionSize" | "pipValue" | "results"
+  ) => (
+    <View style={styles.cardHeaderRow}>
+      <View
+        style={[
+          styles.iconContainer,
+          { backgroundColor: colors.primary + "20" },
+        ]}
+      >
+        <MaterialIcons name={icon} size={24} color={colors.primary} />
+      </View>
+      <Text style={[styles.cardTitle, { color: colors.text }]}>{title}</Text>
+      <TouchableOpacity
+        style={[styles.infoButton, { backgroundColor: colors.primary + "20" }]}
+        onPress={() => showInfoModal(infoType)}
+      >
+        <MaterialIcons name="info-outline" size={20} color={colors.primary} />
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Replace existing back handler effect with useFocusEffect
+  useFocusEffect(
+    useCallback(() => {
+      // Handler for back press
+      const handleBackPress = () => {
+        const now = Date.now();
+
+        // First back press or more than 2 seconds since last press
+        if (
+          backPressedTimeRef.current === null ||
+          now - backPressedTimeRef.current > 2000
+        ) {
+          backPressedTimeRef.current = now;
+
+          // Show toast on Android or alert on iOS
+          if (Platform.OS === "android") {
+            ToastAndroid.show("Press back again to exit", ToastAndroid.SHORT);
+          } else {
+            Alert.alert(
+              "Exit App",
+              "Press back again to exit the app",
+              [{ text: "OK" }],
+              { cancelable: true }
+            );
+          }
+          return true; // Prevent default behavior
+        }
+
+        // Second back press within 2 seconds - exit directly without confirmation
+        BackHandler.exitApp();
+        return true;
+      };
+
+      // Add back press handler when screen comes into focus
+      BackHandler.addEventListener("hardwareBackPress", handleBackPress);
+
+      // Remove back press handler when screen loses focus
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", handleBackPress);
+    }, [])
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -454,23 +599,11 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               end={getGradient("card").end}
               style={styles.cardContent}
             >
-              <View style={styles.cardHeaderRow}>
-                <View
-                  style={[
-                    styles.iconContainer,
-                    { backgroundColor: colors.primary + "20" },
-                  ]}
-                >
-                  <MaterialIcons
-                    name="monetization-on"
-                    size={24}
-                    color={colors.primary}
-                  />
-                </View>
-                <Text style={[styles.cardTitle, { color: colors.text }]}>
-                  Currency Setup
-                </Text>
-              </View>
+              {renderCardHeader(
+                "monetization-on",
+                "Currency Setup",
+                "currencySetup"
+              )}
               <CurrencySelector
                 label="Account Currency"
                 selectedCurrency={accountCurrency}
@@ -481,6 +614,7 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 label="Currency Pair"
                 selectedPair={selectedPair}
                 onPress={() => setPairModalVisible(true)}
+                exchangeRate={exchangeRate}
               />
             </LinearGradient>
           </View>
@@ -505,23 +639,11 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               end={getGradient("card").end}
               style={styles.cardContent}
             >
-              <View style={styles.cardHeaderRow}>
-                <View
-                  style={[
-                    styles.iconContainer,
-                    { backgroundColor: colors.primary + "20" },
-                  ]}
-                >
-                  <MaterialIcons
-                    name="account-balance"
-                    size={24}
-                    color={colors.primary}
-                  />
-                </View>
-                <Text style={[styles.cardTitle, { color: colors.text }]}>
-                  Position Size
-                </Text>
-              </View>
+              {renderCardHeader(
+                "account-balance",
+                "Position Size",
+                "positionSize"
+              )}
               <LotSizeSelector
                 label="Position Size"
                 lotType={lotType}
@@ -556,23 +678,7 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               end={getGradient("card").end}
               style={styles.cardContent}
             >
-              <View style={styles.cardHeaderRow}>
-                <View
-                  style={[
-                    styles.iconContainer,
-                    { backgroundColor: colors.primary + "20" },
-                  ]}
-                >
-                  <MaterialIcons
-                    name="trending-up"
-                    size={24}
-                    color={colors.primary}
-                  />
-                </View>
-                <Text style={[styles.cardTitle, { color: colors.text }]}>
-                  Pip Value
-                </Text>
-              </View>
+              {renderCardHeader("trending-up", "Pip Value", "pipValue")}
               <PipInput
                 value={pipCount}
                 onChange={handlePipCountChange}
@@ -648,7 +754,22 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 // Display toast or subtle notification
                 // You could add a visual feedback here if desired
               }}
+              onInfoPress={() => showInfoModal("results")}
             />
+          </View>
+
+          {/* Disclaimer Footer */}
+          <View style={styles.disclaimerContainer}>
+            <Text style={[styles.disclaimerText, { color: colors.subtext }]}>
+              DISCLAIMER: The exchange rates provided herein are obtained from
+              third-party sources and are presented solely for informational
+              purposes. These rates may not reflect the exact spreads, markups,
+              or price fluctuations offered by your financial institution or
+              broker. Users should independently verify all rates before
+              executing any financial transactions. Trading foreign exchange
+              carries significant risk and may not be suitable for all
+              investors. Past performance does not guarantee future results.
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -707,6 +828,16 @@ const CalculatorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           initialValue={pipCount}
         />
       </Modal>
+
+      {/* Info Modal */}
+      {infoModalType && (
+        <InfoModal
+          isVisible={infoModalType !== null}
+          onClose={() => setInfoModalType(null)}
+          title={INFO_CONTENT[infoModalType].title}
+          content={INFO_CONTENT[infoModalType].content}
+        />
+      )}
     </View>
   );
 };
@@ -818,6 +949,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     marginLeft: 4,
+    flex: 1,
+  },
+  infoButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
   },
   resultContainer: {
     marginBottom: 24,
@@ -836,6 +976,43 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     justifyContent: "center",
     alignItems: "center",
+  },
+  disclaimerContainer: {
+    padding: 16,
+    paddingTop: 20,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(200, 200, 200, 0.2)",
+  },
+  disclaimerText: {
+    fontSize: 11,
+    textAlign: "justify",
+    lineHeight: 16,
+    letterSpacing: 0.25,
+    fontStyle: "italic",
+  },
+  logoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  logoImageContainer: {
+    width: 98,
+    height: 58,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  logoImage: {
+    width: 192,
+    height: 192,
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    marginLeft: 8,
   },
 });
 

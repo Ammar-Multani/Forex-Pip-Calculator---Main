@@ -132,6 +132,19 @@ const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
+  // Format large numbers with abbreviations
+  const formatLargeNumber = (value: number): string => {
+    if (value >= 1_000_000_000_000) {
+      return `${(value / 1_000_000_000_000).toFixed(2)}T`;
+    } else if (value >= 1_000_000_000) {
+      return `${(value / 1_000_000_000).toFixed(2)}B`;
+    } else if (value >= 1_000_000) {
+      return `${(value / 1_000_000).toFixed(2)}M`;
+    } else {
+      return value.toLocaleString();
+    }
+  };
+
   // Handle save as PDF
   const handleSaveAsPdf = async (item: HistoryItem) => {
     try {
@@ -185,9 +198,7 @@ const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         style={[
           styles.historyItem,
           {
-            backgroundColor: isDarkMode
-              ? "rgba(45, 52, 65, 0.9)"
-              : "rgba(255, 255, 255, 0.9)",
+            backgroundColor: isDarkMode ? "rgba(45, 52, 65, 1)" : "#FFFFFF",
             borderColor: isDarkMode
               ? colors.border + "30"
               : "rgba(230, 235, 240, 0.9)",
@@ -250,21 +261,26 @@ const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           style={[
             styles.detailsContainer,
             {
-              backgroundColor: isDarkMode
-                ? "rgba(30, 35, 45, 0.4)"
-                : "rgba(0,0,0,0.03)",
+              backgroundColor: isDarkMode ? "rgba(30, 35, 45, 1)" : "#F5F5F5",
             },
           ]}
         >
           {/* First row: Position size */}
-          <View style={styles.detailRow}>
+          <View style={[styles.detailRow, styles.positionSizeRow]}>
             <Text style={[styles.detailLabel, { color: colors.text }]}>
               Position Size:
             </Text>
-            <Text style={[styles.detailValue, { color: colors.text }]}>
-              {item.lotType} ({item.lotCount}) -{" "}
-              {item.positionSize.toLocaleString()} units
-            </Text>
+            <View style={styles.positionSizeValueContainer}>
+              <Text style={[styles.detailValue, { color: colors.text }]}>
+                {item.lotType} ({item.lotCount})
+              </Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>
+                {item.positionSize >= 1_000_000
+                  ? formatLargeNumber(item.positionSize)
+                  : item.positionSize.toLocaleString()}{" "}
+                units
+              </Text>
+            </View>
           </View>
 
           {/* Second row: Exchange rate */}
@@ -283,11 +299,15 @@ const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               Per Pip:
             </Text>
             <Text style={[styles.detailValue, { color: colors.text }]}>
-              {formatPipValue(
-                item.pipValueInAccountCurrency,
-                item.accountCurrency.code,
-                item.accountCurrency.symbol
-              )}
+              {item.pipValueInAccountCurrency >= 1_000_000
+                ? `${item.accountCurrency.symbol}${formatLargeNumber(
+                    item.pipValueInAccountCurrency
+                  )}`
+                : formatPipValue(
+                    item.pipValueInAccountCurrency,
+                    item.accountCurrency.code,
+                    item.accountCurrency.symbol
+                  )}
             </Text>
           </View>
 
@@ -302,11 +322,15 @@ const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 { color: colors.primary, fontWeight: "700" },
               ]}
             >
-              {formatCurrencyValue(
-                item.totalValueInAccountCurrency,
-                item.accountCurrency.code,
-                item.accountCurrency.symbol
-              )}
+              {item.totalValueInAccountCurrency >= 1_000_000
+                ? `${item.accountCurrency.symbol}${formatLargeNumber(
+                    item.totalValueInAccountCurrency
+                  )}`
+                : formatCurrencyValue(
+                    item.totalValueInAccountCurrency,
+                    item.accountCurrency.code,
+                    item.accountCurrency.symbol
+                  )}
             </Text>
           </View>
 
@@ -317,19 +341,31 @@ const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 In {item.currencyPair.quote}:
               </Text>
               <Text style={[styles.detailValue, { color: colors.text }]}>
-                {formatCurrencyValue(
-                  item.totalValueInQuoteCurrency,
-                  item.currencyPair.quote,
-                  item.currencyPair.quote === "JPY"
-                    ? "¥"
-                    : item.currencyPair.quote === "USD"
-                    ? "$"
-                    : item.currencyPair.quote === "EUR"
-                    ? "€"
-                    : item.currencyPair.quote === "GBP"
-                    ? "£"
-                    : ""
-                )}
+                {item.totalValueInQuoteCurrency >= 1_000_000
+                  ? `${
+                      item.currencyPair.quote === "JPY"
+                        ? "¥"
+                        : item.currencyPair.quote === "USD"
+                        ? "$"
+                        : item.currencyPair.quote === "EUR"
+                        ? "€"
+                        : item.currencyPair.quote === "GBP"
+                        ? "£"
+                        : ""
+                    }${formatLargeNumber(item.totalValueInQuoteCurrency)}`
+                  : formatCurrencyValue(
+                      item.totalValueInQuoteCurrency,
+                      item.currencyPair.quote,
+                      item.currencyPair.quote === "JPY"
+                        ? "¥"
+                        : item.currencyPair.quote === "USD"
+                        ? "$"
+                        : item.currencyPair.quote === "EUR"
+                        ? "€"
+                        : item.currencyPair.quote === "GBP"
+                        ? "£"
+                        : ""
+                    )}
               </Text>
             </View>
           )}
@@ -507,20 +543,26 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   detailsContainer: {
-    padding: 12,
+    padding: 16,
     borderRadius: 12,
+    marginBottom: 4,
   },
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginVertical: 4,
+    marginBottom: 8,
   },
   detailLabel: {
     fontSize: 14,
     fontWeight: "500",
+    flex: 1,
   },
   detailValue: {
     fontSize: 14,
+    textAlign: "right",
+    fontWeight: "500",
+    flex: 1,
   },
   exportButton: {
     flexDirection: "row",
@@ -588,6 +630,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
+  },
+  positionSizeRow: {
+    alignItems: "flex-start",
+  },
+  positionSizeValueContainer: {
+    flex: 1,
+    alignItems: "flex-end",
   },
 });
 

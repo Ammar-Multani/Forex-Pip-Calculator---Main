@@ -15,12 +15,14 @@ interface CurrencyPairSelectorProps {
   label: string;
   selectedPair: CurrencyPair;
   onPress: () => void;
+  exchangeRate?: number;
 }
 
 const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
   label,
   selectedPair,
   onPress,
+  exchangeRate,
 }) => {
   const { colors } = useTheme();
   const baseCurrency = getCurrencyByCode(selectedPair.base);
@@ -28,7 +30,14 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+      <View style={styles.labelContainer}>
+        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        {exchangeRate && (
+          <Text style={[styles.rateLabel, { color: colors.primary }]}>
+            {exchangeRate.toFixed(5)}
+          </Text>
+        )}
+      </View>
       <TouchableOpacity
         style={[
           styles.selector,
@@ -73,19 +82,30 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
             )}
           </View>
           <View style={styles.pairInfo}>
-            <Text style={[styles.pairName, { color: colors.text }]}>
+            <Text
+              style={[styles.pairName, { color: colors.text }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {selectedPair.name}
             </Text>
-            <Text style={[styles.pairDetail, { color: colors.subtext }]}>
+            <Text
+              style={[styles.pairDetail, { color: colors.subtext }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {baseCurrency?.name} / {quoteCurrency?.name}
             </Text>
           </View>
         </View>
-        <MaterialIcons
-          name="keyboard-arrow-down"
-          size={24}
-          color={colors.primary}
-        />
+
+        <View style={styles.rightContainer}>
+          <MaterialIcons
+            name="keyboard-arrow-down"
+            size={24}
+            color={colors.primary}
+          />
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -95,10 +115,20 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
   },
+  labelContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   label: {
     fontSize: 16,
     fontWeight: "600",
-    marginBottom: 10,
+  },
+  rateLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    paddingRight: 10,
   },
   selector: {
     flexDirection: "row",
@@ -108,19 +138,22 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     borderRadius: 10,
     borderWidth: 1,
+    minHeight: 72,
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    paddingRight: 8,
   },
   flagsContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginRight: 15,
     position: "relative",
-    width: 68,
+    width: 62,
     height: 40,
+    flexShrink: 0,
   },
   flag: {
     width: 35,
@@ -154,14 +187,31 @@ const styles = StyleSheet.create({
   },
   pairInfo: {
     flexDirection: "column",
+    flex: 1,
+    marginRight: 8,
   },
   pairName: {
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 2,
+    flexShrink: 1,
   },
   pairDetail: {
     fontSize: 14,
+    maxWidth: "100%",
+    flexShrink: 1,
+    opacity: 0.8,
+  },
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 0,
+    paddingLeft: 4,
+  },
+  exchangeRate: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginRight: 8,
   },
 });
 

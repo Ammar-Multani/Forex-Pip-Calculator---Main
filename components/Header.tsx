@@ -19,6 +19,7 @@ interface HeaderProps {
   showBackButton?: boolean;
   onBackPress?: () => void;
   rightComponent?: React.ReactNode;
+  leftComponent?: React.ReactNode;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -28,6 +29,7 @@ const Header: React.FC<HeaderProps> = ({
   showBackButton = false,
   onBackPress,
   rightComponent,
+  leftComponent,
 }) => {
   const { colors, theme } = useTheme();
   const navigation = useNavigation();
@@ -90,29 +92,33 @@ const Header: React.FC<HeaderProps> = ({
                 />
               </TouchableOpacity>
             ) : null}
-            <View style={styles.titleContainer}>
-              <Text
-                style={[
-                  styles.headerTitle,
-                  { color: isDarkMode ? "#FFFFFF" : "#333333" },
-                ]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {title}
-              </Text>
-              {subtitle && (
+            {leftComponent ? (
+              leftComponent
+            ) : (
+              <View style={styles.titleContainer}>
                 <Text
                   style={[
-                    styles.headerSubtitle,
-                    { color: isDarkMode ? "#AAAAAA" : "#757575" },
+                    styles.headerTitle,
+                    { color: isDarkMode ? "#FFFFFF" : "#333333" },
                   ]}
                   numberOfLines={1}
+                  ellipsizeMode="tail"
                 >
-                  {subtitle}
+                  {title}
                 </Text>
-              )}
-            </View>
+                {subtitle && (
+                  <Text
+                    style={[
+                      styles.headerSubtitle,
+                      { color: isDarkMode ? "#AAAAAA" : "#757575" },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {subtitle}
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
 
           <View style={styles.headerActions}>

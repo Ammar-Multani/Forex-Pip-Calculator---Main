@@ -4,6 +4,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Theme storage key
 const THEME_STORAGE_KEY = "forex-pip-calculator-theme";
+// Theme preference key
+export const THEME_PREFERENCE_KEY = "forex-pip-calculator-theme-preference";
+
+// Theme type
+export type ThemeType = "light" | "dark";
+export type ThemePreference = ThemeType | "system";
 
 // Define gradient types
 export type GradientType =
@@ -122,17 +128,21 @@ export const darkTheme: ColorTheme = {
 // Theme context
 interface ThemeContextProps {
   colors: ColorTheme;
-  theme: "light" | "dark";
+  theme: ThemeType;
+  themePreference: ThemePreference;
   toggleTheme: () => void;
-  setTheme: (theme: "light" | "dark") => void;
+  setTheme: (theme: ThemeType) => void;
+  setThemePreference: (preference: ThemePreference) => void;
   getGradient: (type: GradientType) => GradientOptions;
 }
 
 export const ThemeContext = createContext<ThemeContextProps>({
   colors: lightTheme,
   theme: "light",
+  themePreference: "system",
   toggleTheme: () => {},
   setTheme: () => {},
+  setThemePreference: () => {},
   getGradient: () => ({ colors: ["#ffffff", "#ffffff"] }),
 });
 
@@ -140,41 +150,72 @@ export const ThemeContext = createContext<ThemeContextProps>({
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const defaultTheme = (useColorScheme() as "light" | "dark") || "light";
-  const [theme, setTheme] = useState<"light" | "dark">(defaultTheme);
+  const systemTheme = (useColorScheme() as ThemeType) || "light";
+  const [theme, setTheme] = useState<ThemeType>(systemTheme);
+  const [themePreference, setThemePreference] =
+    useState<ThemePreference>("system");
 
-  // Load saved theme on app start
+  // Load saved theme preference on app start
   useEffect(() => {
-    const loadTheme = async () => {
+    const loadThemePreference = async () => {
       try {
-        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-        if (savedTheme) {
-          setTheme(savedTheme as "light" | "dark");
+        const savedPreference = await AsyncStorage.getItem(
+          THEME_PREFERENCE_KEY
+        );
+        if (savedPreference) {
+          setThemePreference(savedPreference as ThemePreference);
+
+          // If preference is not system, set the theme directly
+          if (savedPreference !== "system") {
+            setTheme(savedPreference as ThemeType);
+          }
         }
       } catch (error) {
-        console.error("Error loading theme:", error);
+        console.error("Error loading theme preference:", error);
       }
     };
 
-    loadTheme();
+    loadThemePreference();
   }, []);
 
-  // Save theme when it changes
+  // Update theme when system theme changes if preference is "system"
   useEffect(() => {
-    const saveTheme = async () => {
+    if (themePreference === "system") {
+      setTheme(systemTheme);
+    }
+  }, [systemTheme, themePreference]);
+
+  // Save theme preference when it changes
+  useEffect(() => {
+    const saveThemePreference = async () => {
       try {
-        await AsyncStorage.setItem(THEME_STORAGE_KEY, theme);
+        await AsyncStorage.setItem(THEME_PREFERENCE_KEY, themePreference);
       } catch (error) {
-        console.error("Error saving theme:", error);
+        console.error("Error saving theme preference:", error);
       }
     };
 
-    saveTheme();
-  }, [theme]);
+    saveThemePreference();
+  }, [themePreference]);
 
   // Toggle theme
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    setThemePreference(newTheme); // Set preference to the specific theme
+  };
+
+  // Set theme preference
+  const handleSetThemePreference = (preference: ThemePreference) => {
+    setThemePreference(preference);
+
+    // If the preference is a specific theme, update the theme
+    if (preference !== "system") {
+      setTheme(preference);
+    } else {
+      // If system theme, follow the device theme
+      setTheme(systemTheme);
+    }
   };
 
   // Get colors based on theme
@@ -190,8 +231,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         colors,
         theme,
+        themePreference,
         toggleTheme,
         setTheme,
+        setThemePreference: handleSetThemePreference,
         getGradient,
       }}
     >

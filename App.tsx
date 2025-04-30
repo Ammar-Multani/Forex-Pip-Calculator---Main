@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -18,6 +18,10 @@ import DisclaimerScreen from "./screens/DisclaimerScreen";
 import PrivacyPolicyScreen from "./screens/PrivacyPolicyScreen";
 import HelpGuideScreen from "./screens/HelpGuideScreen";
 import HistoryScreen from "./screens/HistoryScreen";
+import OnboardingScreen, {
+  ONBOARDING_COMPLETE_KEY,
+} from "./screens/OnboardingScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Create stack navigator
 const Stack = createNativeStackNavigator();
@@ -27,6 +31,24 @@ const AppContent = () => {
   const { theme } = useTheme();
   const navigationTheme = theme === "dark" ? DarkTheme : DefaultTheme;
   const isDarkMode = theme === "dark";
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState<
+    boolean | null
+  >(null);
+
+  // Check if onboarding has been completed
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const value = await AsyncStorage.getItem(ONBOARDING_COMPLETE_KEY);
+        setIsOnboardingComplete(value === "true");
+      } catch (error) {
+        console.error("Error checking onboarding status:", error);
+        setIsOnboardingComplete(false);
+      }
+    };
+
+    checkOnboarding();
+  }, []);
 
   // Set navigation bar and status bar color based on theme
   useEffect(() => {
@@ -40,18 +62,24 @@ const AppContent = () => {
     updateNavigationBar();
   }, [isDarkMode]);
 
+  // Show loading screen while checking onboarding status
+  if (isOnboardingComplete === null) {
+    return null;
+  }
+
   return (
     <>
       <StatusBar style={isDarkMode ? "light" : "dark"} />
       <NavigationContainer theme={navigationTheme}>
         <Stack.Navigator
-          initialRouteName="Calculator"
+          initialRouteName={isOnboardingComplete ? "Calculator" : "Onboarding"}
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: "transparent" },
             animation: "slide_from_right",
           }}
         >
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Calculator" component={CalculatorScreen} />
           <Stack.Screen name="History" component={HistoryScreen} />
           <Stack.Screen name="Info" component={InfoScreen} />

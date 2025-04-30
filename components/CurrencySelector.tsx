@@ -52,7 +52,11 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
             <Text style={[styles.currencyCode, { color: colors.text }]}>
               {selectedCurrency.code}
             </Text>
-            <Text style={[styles.currencyName, { color: colors.subtext }]}>
+            <Text
+              style={[styles.currencyName, { color: colors.subtext }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {selectedCurrency.name}
             </Text>
           </View>
@@ -98,11 +102,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 10,
     borderWidth: 1,
+    minHeight: 72,
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    paddingRight: 8,
   },
   flagContainer: {
     marginRight: 15,
@@ -112,6 +118,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1,
     elevation: 2,
+    flexShrink: 0,
   },
   flag: {
     width: 35,
@@ -123,6 +130,8 @@ const styles = StyleSheet.create({
   currencyInfo: {
     flexDirection: "column",
     marginLeft: 4,
+    flex: 1,
+    maxWidth: "70%",
   },
   currencyCode: {
     fontSize: 16,
@@ -136,11 +145,12 @@ const styles = StyleSheet.create({
   iconContainer: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 0,
   },
   symbolContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,

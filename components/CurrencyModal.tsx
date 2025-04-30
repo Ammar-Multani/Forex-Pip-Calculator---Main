@@ -11,6 +11,7 @@ import {
   Modal,
   StatusBar,
   Image,
+  ScrollView,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -37,6 +38,15 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredCurrencies, setFilteredCurrencies] =
     useState<Currency[]>(currencies);
+  const [showFavorites, setShowFavorites] = useState(false);
+
+  // Sample favorites - in a real app, this would be stored in a context or persistence
+  const [favorites, setFavorites] = useState<string[]>([
+    "USD",
+    "EUR",
+    "GBP",
+    "JPY",
+  ]);
 
   const itemStyle = {
     flexDirection: "row" as const,
@@ -49,14 +59,84 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
     borderWidth: 1,
   };
 
-  // Update filtered currencies when search term changes
+  // Update filtered currencies when search term or favorites filter changes
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredCurrencies(currencies);
-    } else {
-      setFilteredCurrencies(filterCurrencies(searchTerm));
+    let result = currencies;
+
+    // Apply initial alphabetical sorting by currency code
+    result = [...result].sort((a, b) => a.code.localeCompare(b.code));
+
+    // Filter by search term
+    if (searchTerm.trim() !== "") {
+      // Create improved search with prioritized results
+      const searchTerms = searchTerm.toLowerCase().trim().split(/\s+/);
+
+      result = result.filter((currency) => {
+        return searchTerms.every((term) => {
+          // Match currency code
+          if (currency.code.toLowerCase().includes(term)) {
+            return true;
+          }
+
+          // Match currency name
+          if (currency.name.toLowerCase().includes(term)) {
+            return true;
+          }
+
+          // Match currency symbol
+          if (currency.symbol.toLowerCase().includes(term)) {
+            return true;
+          }
+
+          return false;
+        });
+      });
+
+      // Sort search results with priority
+      const mainTerm = searchTerm.toLowerCase().trim().split(/\s+/)[0];
+
+      result.sort((a, b) => {
+        // Priority 1: Currency code starts with search term (highest priority)
+        const aCodeStartsWith = a.code.toLowerCase().startsWith(mainTerm);
+        const bCodeStartsWith = b.code.toLowerCase().startsWith(mainTerm);
+
+        if (aCodeStartsWith && !bCodeStartsWith) return -1;
+        if (!aCodeStartsWith && bCodeStartsWith) return 1;
+
+        // Priority 2: Currency name starts with search term
+        const aNameStartsWith = a.name.toLowerCase().startsWith(mainTerm);
+        const bNameStartsWith = b.name.toLowerCase().startsWith(mainTerm);
+
+        if (aNameStartsWith && !bNameStartsWith) return -1;
+        if (!aNameStartsWith && bNameStartsWith) return 1;
+
+        // Priority 3: Currency symbol starts with search term
+        const aSymbolStartsWith = a.symbol.toLowerCase().startsWith(mainTerm);
+        const bSymbolStartsWith = b.symbol.toLowerCase().startsWith(mainTerm);
+
+        if (aSymbolStartsWith && !bSymbolStartsWith) return -1;
+        if (!aSymbolStartsWith && bSymbolStartsWith) return 1;
+
+        // Priority 4: Major currencies at the top (USD, EUR, GBP, JPY)
+        const majorCurrencies = ["USD", "EUR", "GBP", "JPY"];
+        const aIsMajor = majorCurrencies.includes(a.code);
+        const bIsMajor = majorCurrencies.includes(b.code);
+
+        if (aIsMajor && !bIsMajor) return -1;
+        if (!aIsMajor && bIsMajor) return 1;
+
+        // Priority 5: Alphabetical order by code
+        return a.code.localeCompare(b.code);
+      });
     }
-  }, [searchTerm]);
+
+    // Filter by favorites
+    if (showFavorites) {
+      result = result.filter((currency) => favorites.includes(currency.code));
+    }
+
+    setFilteredCurrencies(result);
+  }, [searchTerm, showFavorites, favorites]);
 
   // Handle currency selection
   const handleSelect = (currency: Currency) => {
@@ -64,9 +144,35 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
     onClose();
   };
 
+  // Toggle favorite status
+  const toggleFavorite = (currencyCode: string) => {
+    if (favorites.includes(currencyCode)) {
+      setFavorites(favorites.filter((code) => code !== currencyCode));
+    } else {
+      setFavorites([...favorites, currencyCode]);
+    }
+  };
+
+  // Handle favorites toggle with optimized callback
+  const handleFavoritesToggle = useCallback(() => {
+    setShowFavorites(!showFavorites);
+    // Reset any search when toggling to ensure all favorites show
+    if (!showFavorites) {
+      setSearchTerm("");
+    }
+  }, [showFavorites]);
+
+  // Handle all currencies selection with optimized callback
+  const handleAllCategoriesSelection = useCallback(() => {
+    setShowFavorites(false);
+    // Reset any search when toggling to ensure all currencies show
+    setSearchTerm("");
+  }, []);
+
   // Render each currency item
   const renderCurrencyItem = ({ item }: { item: Currency }) => {
     const isSelected = selectedCurrency.code === item.code;
+    const isFavorite = favorites.includes(item.code);
 
     return (
       <TouchableOpacity
@@ -111,6 +217,16 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
               {item.symbol}
             </Text>
           </View>
+          <TouchableOpacity
+            onPress={() => toggleFavorite(item.code)}
+            style={styles.favoriteButton}
+          >
+            <MaterialIcons
+              name={isFavorite ? "star" : "star-outline"}
+              size={24}
+              color={isFavorite ? colors.primary : colors.subtext}
+            />
+          </TouchableOpacity>
           {isSelected && (
             <MaterialIcons
               name="check"
@@ -177,12 +293,78 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({
         )}
       </View>
 
+      <View
+        style={{
+          borderBottomWidth: 1,
+          borderBottomColor: "rgba(0,0,0,0.05)",
+          backgroundColor: colors.background,
+        }}
+      >
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContainer}
+          snapToAlignment="center"
+          decelerationRate="fast"
+          bounces={false}
+          removeClippedSubviews={false}
+        >
+          <TouchableOpacity
+            style={[
+              styles.filterPill,
+              {
+                backgroundColor: showFavorites ? colors.primary : colors.card,
+                borderColor: showFavorites ? colors.primary : colors.border,
+              },
+            ]}
+            onPress={handleFavoritesToggle}
+            activeOpacity={0.6}
+          >
+            <MaterialIcons
+              name={showFavorites ? "star" : "star-outline"}
+              size={16}
+              color={showFavorites ? "white" : colors.primary}
+              style={styles.filterIcon}
+            />
+            <Text
+              style={[
+                styles.filterText,
+                { color: showFavorites ? "white" : colors.text },
+              ]}
+            >
+              Favorites
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.filterPill,
+              {
+                backgroundColor: !showFavorites ? colors.primary : colors.card,
+                borderColor: !showFavorites ? colors.primary : colors.border,
+              },
+            ]}
+            onPress={handleAllCategoriesSelection}
+            activeOpacity={0.6}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                { color: !showFavorites ? "white" : colors.text },
+              ]}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
       <FlatList
         data={filteredCurrencies}
         renderItem={renderCurrencyItem}
         keyExtractor={(item) => item.code}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.listContent, { marginTop: 8 }]}
+        showsVerticalScrollIndicator={true}
         initialNumToRender={10}
         maxToRenderPerBatch={20}
         windowSize={10}
@@ -279,7 +461,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 8,
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.15)",  
+    borderColor: "rgba(0,0,0,0.15)",
   },
   currencySymbol: {
     fontSize: 16,
@@ -303,6 +485,42 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     borderWidth: 0.5,
     borderColor: "rgba(0,0,0,0.15)",
+  },
+  filterContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: "center",
+    height: 52,
+    justifyContent: "center",
+  },
+  filterPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    height: 36,
+    minWidth: 80,
+    borderWidth: 1,
+    borderRadius: 18,
+    marginRight: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+    marginVertical: 8,
+  },
+  filterIcon: {
+    marginRight: 6,
+  },
+  filterText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  favoriteButton: {
+    padding: 4,
+    marginRight: 8,
   },
 });
 

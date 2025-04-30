@@ -38,9 +38,12 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
   const { colors, theme, getGradient } = useTheme();
   const isDarkMode = theme === "dark";
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredPairs, setFilteredPairs] =
-    useState<CurrencyPair[]>(currencyPairs);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [filteredPairs, setFilteredPairs] = useState<CurrencyPair[]>(
+    currencyPairs.filter((pair) => pair.group === "Major")
+  );
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    "Major"
+  );
   const [showFavorites, setShowFavorites] = useState(false);
 
   // Sample favorites - in a real app, this would be stored in a context or persistence
@@ -50,6 +53,11 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     "USD/JPY",
     "USD/CHF",
   ]);
+
+  // Add this new filter category for USD-based pairs
+  const filterUsdPairs = useCallback((pairs: CurrencyPair[]) => {
+    return pairs.filter((pair) => pair.base === "USD" || pair.quote === "USD");
+  }, []);
 
   const pairItemStyle = {
     flexDirection: "row" as const,
@@ -65,13 +73,108 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
   useEffect(() => {
     let result = currencyPairs;
 
+    // Apply initial alphabetical sorting for all pairs
+    result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+
     // Filter by search term
     if (searchTerm.trim() !== "") {
-      result = filterCurrencyPairs(searchTerm);
+      // Handle space-separated search terms
+      const searchTerms = searchTerm.toLowerCase().trim().split(/\s+/);
+
+      result = result.filter((pair) => {
+        // Check if all search terms match something in this pair
+        return searchTerms.every((term) => {
+          // Direct name match
+          if (pair.name.toLowerCase().includes(term)) {
+            return true;
+          }
+
+          // Match base or quote currency code
+          if (
+            pair.base.toLowerCase().includes(term) ||
+            pair.quote.toLowerCase().includes(term)
+          ) {
+            return true;
+          }
+
+          // Match base or quote currency name
+          const baseCurrency = getCurrencyByCode(pair.base);
+          const quoteCurrency = getCurrencyByCode(pair.quote);
+
+          if (baseCurrency && baseCurrency.name.toLowerCase().includes(term)) {
+            return true;
+          }
+
+          if (
+            quoteCurrency &&
+            quoteCurrency.name.toLowerCase().includes(term)
+          ) {
+            return true;
+          }
+
+          // Check if the term is in the form "base/quote" or "base quote"
+          if (term.includes("/")) {
+            const [base, quote] = term.split("/");
+            return (
+              pair.base.toLowerCase().includes(base) &&
+              pair.quote.toLowerCase().includes(quote)
+            );
+          }
+
+          return false;
+        });
+      });
+
+      // Sort the results with priority given to pairs starting with the search term
+      const mainTerm = searchTerm.toLowerCase().trim().split(/\s+/)[0];
+
+      result.sort((a, b) => {
+        // Priority 1: Base currency starts with search term (highest priority)
+        const aBaseStartsWith = a.base.toLowerCase().startsWith(mainTerm);
+        const bBaseStartsWith = b.base.toLowerCase().startsWith(mainTerm);
+
+        if (aBaseStartsWith && !bBaseStartsWith) return -1;
+        if (!aBaseStartsWith && bBaseStartsWith) return 1;
+
+        // Priority 2: Pair name starts with search term
+        const aNameStartsWith = a.name.toLowerCase().startsWith(mainTerm);
+        const bNameStartsWith = b.name.toLowerCase().startsWith(mainTerm);
+
+        if (aNameStartsWith && !bNameStartsWith) return -1;
+        if (!aNameStartsWith && bNameStartsWith) return 1;
+
+        // Priority 3: Quote currency starts with search term
+        const aQuoteStartsWith = a.quote.toLowerCase().startsWith(mainTerm);
+        const bQuoteStartsWith = b.quote.toLowerCase().startsWith(mainTerm);
+
+        if (aQuoteStartsWith && !bQuoteStartsWith) return -1;
+        if (!aQuoteStartsWith && bQuoteStartsWith) return 1;
+
+        // Priority 4: Alphabetical order by name
+        return a.name.localeCompare(b.name);
+      });
     }
 
     // Filter by category
-    if (selectedCategory) {
+    if (selectedCategory === "USD") {
+      // Special case for USD category - show all pairs with USD as base or quote
+      result = filterUsdPairs(result);
+    } else if (selectedCategory === "EUR") {
+      // Show all pairs where EUR is base or quote
+      result = result.filter(
+        (pair) => pair.base === "EUR" || pair.quote === "EUR"
+      );
+    } else if (selectedCategory === "GBP") {
+      // Show all pairs where GBP is base or quote
+      result = result.filter(
+        (pair) => pair.base === "GBP" || pair.quote === "GBP"
+      );
+    } else if (selectedCategory === "JPY") {
+      // Show all pairs where JPY is base or quote
+      result = result.filter(
+        (pair) => pair.base === "JPY" || pair.quote === "JPY"
+      );
+    } else if (selectedCategory) {
       result = result.filter((pair) => pair.group === selectedCategory);
     }
 
@@ -81,7 +184,7 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     }
 
     setFilteredPairs(result);
-  }, [searchTerm, selectedCategory, showFavorites, favorites]);
+  }, [searchTerm, selectedCategory, showFavorites, favorites, filterUsdPairs]);
 
   // Handle pair selection
   const handleSelect = (pair: CurrencyPair) => {
@@ -102,17 +205,23 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
   const handleFavoritesToggle = useCallback(() => {
     setShowFavorites(!showFavorites);
     setSelectedCategory(null);
+    // Reset search when toggling filters
+    setSearchTerm("");
   }, [showFavorites]);
 
   const handleAllCategoriesSelection = useCallback(() => {
     setSelectedCategory(null);
     setShowFavorites(false);
+    // Reset search when toggling filters
+    setSearchTerm("");
   }, []);
 
   const handleCategorySelection = useCallback(
     (group: string) => {
       setSelectedCategory(selectedCategory === group ? null : group);
       setShowFavorites(false);
+      // Reset search when toggling filters
+      setSearchTerm("");
     },
     [selectedCategory]
   );
@@ -319,7 +428,7 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
             </Text>
           </TouchableOpacity>
 
-          {["Major", "EUR", "GBP", "JPY", "Other"].map((group) => (
+          {["Major", "USD", "EUR", "GBP", "JPY", "Other"].map((group) => (
             <TouchableOpacity
               key={group}
               style={[
@@ -352,7 +461,7 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
         renderItem={renderPairItem}
         keyExtractor={(item) => item.name}
         contentContainerStyle={[styles.listContent, { marginTop: 8 }]}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         initialNumToRender={10}
         maxToRenderPerBatch={20}
         windowSize={10}

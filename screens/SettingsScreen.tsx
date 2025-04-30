@@ -36,12 +36,54 @@ type IconName =
   | "delete"
   | "chevron-right"
   | "arrow-back"
-  | "brightness-6";
+  | "brightness-6"
+  | "wb-sunny"
+  | "nightlight-round"
+  | "settings-suggest";
+
+// Theme option type
+interface ThemeOption {
+  id: string;
+  name: string;
+  value: "light" | "dark" | "system";
+  icon: IconName;
+}
+
+// Theme options
+const themeOptions: ThemeOption[] = [
+  {
+    id: "light",
+    name: "Light Theme",
+    value: "light",
+    icon: "wb-sunny",
+  },
+  {
+    id: "dark",
+    name: "Dark Theme",
+    value: "dark",
+    icon: "nightlight-round",
+  },
+  {
+    id: "system",
+    name: "System Default",
+    value: "system",
+    icon: "settings-suggest",
+  },
+];
 
 const SettingsScreen: React.FC = () => {
-  const { colors, theme, toggleTheme, setTheme, getGradient } = useTheme();
+  const {
+    colors,
+    theme,
+    toggleTheme,
+    setTheme,
+    getGradient,
+    themePreference,
+    setThemePreference,
+  } = useTheme();
   const navigation = useNavigation();
   const [apiKeyModalVisible, setApiKeyModalVisible] = useState(false);
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
 
   const isDarkMode = theme === "dark";
 
@@ -58,8 +100,17 @@ const SettingsScreen: React.FC = () => {
     setApiKeyModalVisible(false);
   };
 
-  const handleThemeToggle = () => {
-    toggleTheme();
+  const handleThemePress = () => {
+    setThemeModalVisible(true);
+  };
+
+  const handleCloseThemeModal = () => {
+    setThemeModalVisible(false);
+  };
+
+  const handleThemeSelect = (themeValue: "light" | "dark" | "system") => {
+    setThemePreference(themeValue);
+    setThemeModalVisible(false);
   };
 
   const handleClearHistory = async () => {
@@ -130,12 +181,7 @@ const SettingsScreen: React.FC = () => {
       activeOpacity={rightContent ? 1 : 0.6}
     >
       <View style={styles.settingItemLeft}>
-        <View
-          style={[
-            styles.iconContainer,
-            { backgroundColor: colors.primary + "15" },
-          ]}
-        >
+        <View style={[styles.iconContainer]}>
           <MaterialIcons name={icon} size={22} color={colors.primary} />
         </View>
         <Text
@@ -199,6 +245,12 @@ const SettingsScreen: React.FC = () => {
     </>
   );
 
+  // Function to get theme option name
+  const getThemeOptionName = () => {
+    const option = themeOptions.find((opt) => opt.value === themePreference);
+    return option ? option.name : "System Default";
+  };
+
   return (
     <View
       style={[
@@ -261,17 +313,20 @@ const SettingsScreen: React.FC = () => {
           "APPEARANCE",
           <>
             {renderSettingItem(
-              "brightness-6",
-              "Dark Mode",
-              () => {},
-              false,
-              <Switch
-                value={isDarkMode}
-                onValueChange={handleThemeToggle}
-                trackColor={{ false: "#767577", true: colors.primary + "90" }}
-                thumbColor={isDarkMode ? colors.primary : "#f4f3f4"}
-                ios_backgroundColor="#3e3e3e"
-              />
+              "palette",
+              "Theme",
+              handleThemePress,
+              true,
+              <View style={styles.themePreviewContainer}>
+                <Text style={{ color: colors.subtext }}>
+                  {getThemeOptionName()}
+                </Text>
+                <MaterialIcons
+                  name="chevron-right"
+                  size={24}
+                  color={isDarkMode ? "#AAAAAA" : "#757575"}
+                />
+              </View>
             )}
           </>
         )}
@@ -354,7 +409,7 @@ const SettingsScreen: React.FC = () => {
           </>
         )}
 
-        <View style={styles.dangerSection}>
+        {/* <View style={styles.dangerSection}>
           <LinearGradient
             colors={
               isDarkMode
@@ -400,6 +455,33 @@ const SettingsScreen: React.FC = () => {
               />
             </TouchableOpacity>
           </LinearGradient>
+        </View> */}
+
+        <View style={styles.footer}>
+          <LinearGradient
+            colors={
+              isDarkMode
+                ? ["rgba(40, 40, 40, 0.5)", "rgba(30, 30, 30, 0.3)"]
+                : ["rgba(247, 247, 247, 0.5)", "rgba(255, 255, 255, 0.3)"]
+            }
+            style={[
+              styles.versionContainer,
+              {
+                borderColor: isDarkMode
+                  ? "rgba(75, 75, 75, 0.2)"
+                  : "rgba(230, 230, 230, 0.8)",
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.footerText,
+                { color: isDarkMode ? "#AAAAAA" : "#9E9E9E" },
+              ]}
+            >
+              Version 1.2.0
+            </Text>
+          </LinearGradient>
         </View>
       </ScrollView>
 
@@ -412,6 +494,81 @@ const SettingsScreen: React.FC = () => {
         statusBarTranslucent={true}
       >
         <ApiKeyManager onClose={handleCloseApiKeyModal} />
+      </Modal>
+
+      {/* Theme Selection Modal */}
+      <Modal
+        visible={themeModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={handleCloseThemeModal}
+        statusBarTranslucent={true}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.themeModalContainer,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <View style={styles.themeModalHeader}>
+              <Text style={[styles.themeModalTitle, { color: colors.text }]}>
+                Select Theme
+              </Text>
+              <TouchableOpacity onPress={handleCloseThemeModal}>
+                <MaterialIcons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.themeOptionsContainer}>
+              {themeOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.themeOption,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor:
+                        themePreference === option.value
+                          ? colors.primary
+                          : colors.border,
+                      borderWidth: themePreference === option.value ? 2 : 1,
+                    },
+                  ]}
+                  onPress={() => handleThemeSelect(option.value)}
+                >
+                  <View
+                    style={[
+                      styles.themeIconContainer,
+                      { backgroundColor: colors.primary + "15" },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name={option.icon}
+                      size={24}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <Text
+                    style={[styles.themeOptionText, { color: colors.text }]}
+                  >
+                    {option.name}
+                  </Text>
+                  {themePreference === option.value && (
+                    <MaterialIcons
+                      name="check-circle"
+                      size={22}
+                      color={colors.primary}
+                      style={styles.checkIcon}
+                    />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -481,8 +638,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
   },
   settingItemLeft: {
     flexDirection: "row",
@@ -505,7 +662,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 16,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
   },
   dangerButtonContent: {
     flexDirection: "row",
@@ -530,7 +687,7 @@ const styles = StyleSheet.create({
   },
   aboutContainer: {
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
   appName: {
     fontSize: 24,
@@ -554,12 +711,86 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   iconContainer: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 8,
+    marginRight: 12,
+  },
+  themePreviewContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  themeModalContainer: {
+    width: "100%",
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderWidth: 1,
+  },
+  themeModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  themeModalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  themeOptionsContainer: {
+    marginTop: 10,
+  },
+  themeOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  themeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  themeOptionText: {
+    fontSize: 16,
+    fontWeight: "500",
+    flex: 1,
+  },
+  checkIcon: {
+    marginLeft: 10,
+  },
+  footer: {
+    alignItems: "center",
+    marginBottom: 30,
+    marginTop: 10,
+  },
+  versionContainer: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  footerText: {
+    fontSize: 12,
+    fontWeight: "500",
   },
 });
 

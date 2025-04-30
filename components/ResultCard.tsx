@@ -10,9 +10,14 @@ import {
   Alert,
   Clipboard,
   ToastAndroid,
+  Image,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
-import { Currency, CurrencyPair } from "../constants/currencies";
+import {
+  Currency,
+  CurrencyPair,
+  getCurrencyByCode,
+} from "../constants/currencies";
 import { formatCurrencyValue, formatPipValue } from "../utils/pipCalculator";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -63,18 +68,16 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
   // Get quote currency details
   const quoteCurrencyCode = currencyPair.quote;
-  const quoteCurrencySymbol =
-    quoteCurrencyCode === "JPY"
-      ? "¥"
-      : quoteCurrencyCode === "USD"
-      ? "$"
-      : quoteCurrencyCode === "EUR"
-      ? "€"
-      : quoteCurrencyCode === "GBP"
-      ? "£"
-      : quoteCurrencyCode === "INR"
-      ? "₹"
-      : "";
+  const quoteCurrency = getCurrencyByCode(quoteCurrencyCode);
+  const isQuoteCrypto = quoteCurrency?.isCrypto;
+
+  // Get base currency details
+  const baseCurrencyCode = currencyPair.base;
+  const baseCurrency = getCurrencyByCode(baseCurrencyCode);
+  const isBaseCrypto = baseCurrency?.isCrypto;
+
+  // Get currency symbol, with special handling for cryptocurrencies
+  const quoteCurrencySymbol = quoteCurrency?.symbol || "";
 
   // Determine exchange rate display text and explanation
   let exchangeRateText = "";
@@ -88,7 +91,9 @@ const ResultCard: React.FC<ResultCardProps> = ({
     // Direct rate display matching professional trading platforms
     exchangeRateText = `1 ${quoteCurrencyCode} = ${
       accountCurrency.symbol
-    }${exchangeRate.toFixed(6)} ${accountCurrency.code}`;
+    }${exchangeRate.toFixed(isQuoteCrypto || isBaseCrypto ? 8 : 6)} ${
+      accountCurrency.code
+    }`;
     conversionExplanation = `Converting ${quoteCurrencyCode} to ${accountCurrency.code} using real-time rates`;
   }
 
@@ -284,11 +289,9 @@ const ResultCard: React.FC<ResultCardProps> = ({
         styles.container,
         {
           backgroundColor: isDarkMode
-          ? "rgba(33, 33, 33, 0.8)"
-          : "rgba(255, 255, 255, 0.9)",
-        borderColor: isDarkMode
-          ? colors.border
-          : "rgba(230, 235, 240, 0.9)",   
+            ? "rgba(33, 33, 33, 0.8)"
+            : "rgba(255, 255, 255, 0.9)",
+          borderColor: isDarkMode ? colors.border : "rgba(230, 235, 240, 0.9)",
         },
       ]}
     >
@@ -311,6 +314,50 @@ const ResultCard: React.FC<ResultCardProps> = ({
           style={styles.heroContainer}
         >
           <View style={styles.heroContent}>
+            {/* Display currency pair icons at the top */}
+            <View style={styles.currencyPairIconsContainer}>
+              {/* Base currency icon */}
+              {baseCurrency &&
+                (isBaseCrypto ? (
+                  <Image
+                    source={{ uri: baseCurrency.iconUrl }}
+                    style={styles.heroIcon}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Image
+                    source={{
+                      uri: `https://flagcdn.com/w160/${baseCurrency.countryCode.toLowerCase()}.png`,
+                    }}
+                    style={styles.heroIcon}
+                    resizeMode="cover"
+                  />
+                ))}
+
+              {/* Separator */}
+              <View style={styles.iconSeparator}>
+                <MaterialIcons name="compare-arrows" size={20} color="white" />
+              </View>
+
+              {/* Quote currency icon */}
+              {quoteCurrency &&
+                (isQuoteCrypto ? (
+                  <Image
+                    source={{ uri: quoteCurrency.iconUrl }}
+                    style={styles.heroIcon}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Image
+                    source={{
+                      uri: `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`,
+                    }}
+                    style={styles.heroIcon}
+                    resizeMode="cover"
+                  />
+                ))}
+            </View>
+
             {/* Info button */}
             {onInfoPress && (
               <TouchableOpacity
@@ -398,11 +445,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
               styles.dataCard,
               {
                 backgroundColor: isDarkMode
-                ? "rgb(47, 47, 47)"
-                : "rgb(255, 255, 255)",
-              borderColor: isDarkMode
-                ? colors.border
-                : "rgba(230, 235, 240, 0.9)",   
+                  ? "rgb(47, 47, 47)"
+                  : "rgb(255, 255, 255)",
+                borderColor: isDarkMode
+                  ? colors.border
+                  : "rgba(230, 235, 240, 0.9)",
               },
             ]}
           >
@@ -524,11 +571,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
               styles.dataCard,
               {
                 backgroundColor: isDarkMode
-                ? "rgb(47, 47, 47)"
-                : "rgb(255, 255, 255)",
-              borderColor: isDarkMode
-                ? colors.border
-                : "rgba(230, 235, 240, 0.9)",   
+                  ? "rgb(47, 47, 47)"
+                  : "rgb(255, 255, 255)",
+                borderColor: isDarkMode
+                  ? colors.border
+                  : "rgba(230, 235, 240, 0.9)",
               },
             ]}
           >
@@ -653,11 +700,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
             styles.exchangeRateContainer,
             {
               backgroundColor: isDarkMode
-              ? "rgb(47, 47, 47)"
-              : "rgb(255, 255, 255)",
-            borderColor: isDarkMode
-              ? colors.border
-              : "rgba(230, 235, 240, 0.9)",   
+                ? "rgb(47, 47, 47)"
+                : "rgb(255, 255, 255)",
+              borderColor: isDarkMode
+                ? colors.border
+                : "rgba(230, 235, 240, 0.9)",
             },
           ]}
         >
@@ -734,11 +781,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 styles.lotSizeCard,
                 {
                   backgroundColor: isDarkMode
-                  ? "rgb(47, 47, 47)"
-                  : "rgb(255, 255, 255)",
-                borderColor: isDarkMode
-                  ? colors.border
-                  : "rgba(230, 235, 240, 0.9)",   
+                    ? "rgb(47, 47, 47)"
+                    : "rgb(255, 255, 255)",
+                  borderColor: isDarkMode
+                    ? colors.border
+                    : "rgba(230, 235, 240, 0.9)",
                 },
               ]}
             >
@@ -800,11 +847,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 styles.lotSizeCard,
                 {
                   backgroundColor: isDarkMode
-                  ? "rgb(47, 47, 47)"
-                  : "rgb(255, 255, 255)",
-                borderColor: isDarkMode
-                  ? colors.border
-                  : "rgba(230, 235, 240, 0.9)",   
+                    ? "rgb(47, 47, 47)"
+                    : "rgb(255, 255, 255)",
+                  borderColor: isDarkMode
+                    ? colors.border
+                    : "rgba(230, 235, 240, 0.9)",
                 },
               ]}
             >
@@ -868,11 +915,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 styles.lotSizeCard,
                 {
                   backgroundColor: isDarkMode
-                  ? "rgb(47, 47, 47)"
-                  : "rgb(255, 255, 255)",
-                borderColor: isDarkMode
-                  ? colors.border
-                  : "rgba(230, 235, 240, 0.9)",   
+                    ? "rgb(47, 47, 47)"
+                    : "rgb(255, 255, 255)",
+                  borderColor: isDarkMode
+                    ? colors.border
+                    : "rgba(230, 235, 240, 0.9)",
                 },
               ]}
             >
@@ -936,11 +983,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
                 styles.lotSizeCard,
                 {
                   backgroundColor: isDarkMode
-                  ? "rgb(47, 47, 47)"
-                  : "rgb(255, 255, 255)",
-                borderColor: isDarkMode
-                  ? colors.border
-                  : "rgba(230, 235, 240, 0.9)",   
+                    ? "rgb(47, 47, 47)"
+                    : "rgb(255, 255, 255)",
+                  borderColor: isDarkMode
+                    ? colors.border
+                    : "rgba(230, 235, 240, 0.9)",
                 },
               ]}
             >
@@ -1386,6 +1433,23 @@ const styles = StyleSheet.create({
   lotSizeCopyIcon: {
     marginLeft: 5,
     opacity: 0.7,
+  },
+  currencyPairIconsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  heroIcon: {
+    width: 40,
+    height: 25,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+    backgroundColor: "rgba(255,255,255,0.15)",
+  },
+  iconSeparator: {
+    marginHorizontal: 10,
   },
 });
 

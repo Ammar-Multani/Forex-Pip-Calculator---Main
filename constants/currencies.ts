@@ -4,6 +4,8 @@ export interface Currency {
   name: string;
   symbol: string;
   countryCode: string; // ISO country code for flags
+  isCrypto?: boolean; // New flag to identify crypto currencies
+  iconUrl?: string; // URL for crypto icons
 }
 
 export interface CurrencyPair {
@@ -87,6 +89,198 @@ export const currencies: Currency[] = [
   { code: "IQD", name: "Iraqi Dinar", symbol: "ع.د", countryCode: "IQ" },
 ];
 
+// Add cryptocurrency currencies
+export const cryptocurrencies: Currency[] = [
+  {
+    code: "BTC",
+    name: "Bitcoin",
+    symbol: "₿",
+    countryCode: "crypto", // Using "crypto" for all cryptocurrencies
+    isCrypto: true,
+    iconUrl: "https://cryptologos.cc/logos/bitcoin-btc-logo.png",
+  },
+  {
+    code: "ETH",
+    name: "Ethereum",
+    symbol: "Ξ",
+    countryCode: "crypto",
+    isCrypto: true,
+    iconUrl: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
+  },
+  {
+    code: "XRP",
+    name: "Ripple",
+    symbol: "XRP",
+    countryCode: "crypto",
+    isCrypto: true,
+    iconUrl: "https://cryptologos.cc/logos/xrp-xrp-logo.png",
+  },
+  {
+    code: "LTC",
+    name: "Litecoin",
+    symbol: "Ł",
+    countryCode: "crypto",
+    isCrypto: true,
+    iconUrl: "https://cryptologos.cc/logos/litecoin-ltc-logo.png",
+  },
+  {
+    code: "ADA",
+    name: "Cardano",
+    symbol: "₳",
+    countryCode: "crypto",
+    isCrypto: true,
+    iconUrl: "https://cryptologos.cc/logos/cardano-ada-logo.png",
+  },
+  {
+    code: "DOT",
+    name: "Polkadot",
+    symbol: "DOT",
+    countryCode: "crypto",
+    isCrypto: true,
+    iconUrl: "https://cryptologos.cc/logos/polkadot-new-dot-logo.png",
+  },
+  {
+    code: "DOGE",
+    name: "Dogecoin",
+    symbol: "Ð",
+    countryCode: "crypto",
+    isCrypto: true,
+    iconUrl: "https://cryptologos.cc/logos/dogecoin-doge-logo.png",
+  },
+  {
+    code: "SOL",
+    name: "Solana",
+    symbol: "SOL",
+    countryCode: "crypto",
+    isCrypto: true,
+    iconUrl: "https://cryptologos.cc/logos/solana-sol-logo.png",
+  },
+];
+
+// Add cryptocurrency pairs
+export const cryptoPairs: CurrencyPair[] = [
+  // USD pairs (most common and useful for easy calculation)
+  {
+    name: "BTC/USD",
+    base: "BTC",
+    quote: "USD",
+    pipDecimalPlaces: 2,
+    group: "Crypto",
+  },
+  {
+    name: "ETH/USD",
+    base: "ETH",
+    quote: "USD",
+    pipDecimalPlaces: 2,
+    group: "Crypto",
+  },
+  {
+    name: "XRP/USD",
+    base: "XRP",
+    quote: "USD",
+    pipDecimalPlaces: 6,
+    group: "Crypto",
+  },
+  {
+    name: "LTC/USD",
+    base: "LTC",
+    quote: "USD",
+    pipDecimalPlaces: 2,
+    group: "Crypto",
+  },
+  {
+    name: "ADA/USD",
+    base: "ADA",
+    quote: "USD",
+    pipDecimalPlaces: 6,
+    group: "Crypto",
+  },
+  {
+    name: "DOT/USD",
+    base: "DOT",
+    quote: "USD",
+    pipDecimalPlaces: 4,
+    group: "Crypto",
+  },
+  {
+    name: "DOGE/USD",
+    base: "DOGE",
+    quote: "USD",
+    pipDecimalPlaces: 6,
+    group: "Crypto",
+  },
+  {
+    name: "SOL/USD",
+    base: "SOL",
+    quote: "USD",
+    pipDecimalPlaces: 4,
+    group: "Crypto",
+  },
+
+  // EUR pairs
+  {
+    name: "BTC/EUR",
+    base: "BTC",
+    quote: "EUR",
+    pipDecimalPlaces: 2,
+    group: "Crypto",
+  },
+  {
+    name: "ETH/EUR",
+    base: "ETH",
+    quote: "EUR",
+    pipDecimalPlaces: 2,
+    group: "Crypto",
+  },
+
+  // GBP pairs
+  {
+    name: "BTC/GBP",
+    base: "BTC",
+    quote: "GBP",
+    pipDecimalPlaces: 2,
+    group: "Crypto",
+  },
+  {
+    name: "ETH/GBP",
+    base: "ETH",
+    quote: "GBP",
+    pipDecimalPlaces: 2,
+    group: "Crypto",
+  },
+
+  // Crypto to crypto pairs
+  {
+    name: "ETH/BTC",
+    base: "ETH",
+    quote: "BTC",
+    pipDecimalPlaces: 8,
+    group: "Crypto",
+  },
+  {
+    name: "XRP/BTC",
+    base: "XRP",
+    quote: "BTC",
+    pipDecimalPlaces: 8,
+    group: "Crypto",
+  },
+  {
+    name: "LTC/BTC",
+    base: "LTC",
+    quote: "BTC",
+    pipDecimalPlaces: 8,
+    group: "Crypto",
+  },
+  {
+    name: "ADA/BTC",
+    base: "ADA",
+    quote: "BTC",
+    pipDecimalPlaces: 8,
+    group: "Crypto",
+  },
+];
+
+// Update currencyPairs to include crypto pairs
 export const currencyPairs: CurrencyPair[] = [
   // Major Pairs
   {
@@ -395,11 +589,16 @@ export const currencyPairs: CurrencyPair[] = [
     pipDecimalPlaces: 2,
     group: "EUR",
   },
+  ...cryptoPairs,
 ];
 
-// Get currency by code
-export const getCurrencyByCode = (code: string): Currency | undefined => {
-  return currencies.find((currency) => currency.code === code);
+// Update getCurrencyByCode to include cryptocurrencies
+export const getCurrencyByCode = (code: string): Currency | null => {
+  const forexCurrency = currencies.find((c) => c.code === code);
+  if (forexCurrency) return forexCurrency;
+
+  const cryptoCurrency = cryptocurrencies.find((c) => c.code === code);
+  return cryptoCurrency || null;
 };
 
 // Get currency pair by name
@@ -409,9 +608,9 @@ export const getCurrencyPairByName = (
   return currencyPairs.find((pair) => pair.name === name);
 };
 
-// Get all currency pair groups
+// Update currency pair groups to include Crypto
 export const getCurrencyPairGroups = (): string[] => {
-  return [...new Set(currencyPairs.map((pair) => pair.group))];
+  return ["Major", "Minor", "Exotic", "Crypto", "Other"];
 };
 
 // Get currency pairs by group

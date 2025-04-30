@@ -1,30 +1,43 @@
-import { CurrencyPair } from "../constants/currencies";
+import {
+  CurrencyPair,
+  getCurrencyByCode,
+  getCurrencyPairByName,
+} from "../constants/currencies";
 
 /**
  * Calculate pip value in quote currency
  * This follows standard forex pip calculation used by professional trading platforms
+ * and now supports cryptocurrency pairs
  */
 export const calculatePipValueInQuoteCurrency = (
   currencyPair: CurrencyPair,
   positionSize: number,
   pipCount: number,
-  pipDecimalPlaces: number = 4
+  pipDecimalPlaces?: number
 ): number => {
+  const baseCurrency = getCurrencyByCode(currencyPair.base);
+  const quoteCurrency = getCurrencyByCode(currencyPair.quote);
+
+  // Use pipDecimalPlaces from pair definition if not explicitly provided
+  // This ensures consistency with the defined decimal places in the currency pair
+  const effectivePipDecimalPlaces =
+    pipDecimalPlaces ?? currencyPair.pipDecimalPlaces;
+
   // For JPY pairs, pip value is different by default, but can be overridden
   const isJpyPair = currencyPair.quote === "JPY";
 
-  // If pipDecimalPlaces is provided, use that, otherwise use default for the currency
+  // For crypto pairs we may want to use different pip decimal places
+  const isCryptoPair = baseCurrency?.isCrypto || quoteCurrency?.isCrypto;
+
+  // Calculate pip value based on decimal places
   let pipValue: number;
 
-  if (isJpyPair && pipDecimalPlaces === 4) {
-    // Default for JPY pairs is 2nd decimal place if user is using default setting
-    pipValue = 0.01;
-  } else if (pipDecimalPlaces === 0) {
+  if (pipDecimalPlaces === 0) {
     // Special case for 0th decimal place (whole units)
     pipValue = 1;
   } else {
     // For all other decimal places, calculate dynamically
-    pipValue = Math.pow(10, -pipDecimalPlaces);
+    pipValue = Math.pow(10, -effectivePipDecimalPlaces);
   }
 
   // Calculate pip value in quote currency for a single pip
@@ -57,10 +70,33 @@ export const calculatePipValueInAccountCurrency = (
 
 /**
  * Get the number of decimal places to use for a specific currency in pip calculations
+ * Falls back to the pair's defined pipDecimalPlaces
  */
-export const getPipDecimalPlaces = (currencyCode: string): number => {
-  // JPY has 2 decimal places for pips by default, everything else has 4
-  return currencyCode === "JPY" ? 2 : 4;
+export const getPipDecimalPlaces = (currencyPairName: string): number => {
+  const pair = getCurrencyPairByName(currencyPairName);
+  if (pair) {
+    return pair.pipDecimalPlaces;
+  }
+
+  // Legacy fallback behavior if pair not found
+  const pairParts = currencyPairName.split("/");
+  if (pairParts.length === 2) {
+    const quoteCurrency = pairParts[1];
+    const currency = getCurrencyByCode(quoteCurrency);
+
+    // Crypto pairs typically use more decimal places
+    if (currency?.isCrypto) {
+      // Bitcoin uses 8 decimal places
+      if (quoteCurrency === "BTC") return 8;
+      // Most other cryptocurrencies use 6 decimal places
+      return 6;
+    }
+
+    // JPY has 2 decimal places for pips by default, everything else has 4
+    return quoteCurrency === "JPY" ? 2 : 4;
+  }
+
+  return 4; // Default fallback
 };
 
 /**
@@ -71,8 +107,21 @@ export const formatCurrencyValue = (
   currencyCode: string,
   currencySymbol: string
 ): string => {
+  const currency = getCurrencyByCode(currencyCode);
+
   // Format with appropriate decimal places based on currency
-  let decimalPlaces = currencyCode === "JPY" ? 0 : 2;
+  let decimalPlaces = 2; // Default for most currencies
+
+  if (currencyCode === "JPY") {
+    decimalPlaces = 0;
+  } else if (currency?.isCrypto) {
+    // Cryptocurrencies typically need more decimal places
+    if (currencyCode === "BTC") {
+      decimalPlaces = 8;
+    } else {
+      decimalPlaces = 6;
+    }
+  }
 
   // For very large values from 0th decimal place calculations, reduce decimal places
   if (value > 10000) {
@@ -94,15 +143,33 @@ export const formatPipValue = (
   currencyCode: string,
   currencySymbol: string
 ): string => {
+  const currency = getCurrencyByCode(currencyCode);
+
   // Format with appropriate precision for pip values
-  let decimalPlaces = currencyCode === "JPY" ? 0 : 2;
+  let decimalPlaces = 2; // Default for most currencies
+
+  if (currencyCode === "JPY") {
+    decimalPlaces = 0;
+  } else if (currency?.isCrypto) {
+    // Cryptocurrencies typically need more decimal places
+    if (currencyCode === "BTC") {
+      decimalPlaces = 8;
+    } else {
+      decimalPlaces = 6;
+    }
+  }
 
   // For very large values from 0th decimal place calculations, reduce decimal places
   if (value > 10000) {
     decimalPlaces = Math.min(decimalPlaces, 0);
   } else if (value < 0.01 && value > 0) {
     // For very small values, show more decimal places
-    decimalPlaces = 4;
+    decimalPlaces = Math.max(decimalPlaces, 4);
+
+    // For cryptocurrencies with very small values, show even more precision
+    if (currency?.isCrypto) {
+      decimalPlaces = Math.max(decimalPlaces, 8);
+    }
   }
 
   // Format with commas for thousands while preserving decimal places

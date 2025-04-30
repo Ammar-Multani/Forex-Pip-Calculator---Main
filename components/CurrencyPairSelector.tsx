@@ -28,6 +28,10 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
   const baseCurrency = getCurrencyByCode(selectedPair.base);
   const quoteCurrency = getCurrencyByCode(selectedPair.quote);
 
+  // Check if either currency is a cryptocurrency
+  const baseIsCrypto = baseCurrency?.isCrypto;
+  const quoteIsCrypto = quoteCurrency?.isCrypto;
+
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
@@ -62,24 +66,42 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
       >
         <View style={styles.content}>
           <View style={styles.flagsContainer}>
-            {baseCurrency && (
-              <Image
-                source={{
-                  uri: `https://flagcdn.com/w160/${baseCurrency.countryCode.toLowerCase()}.png`,
-                }}
-                style={[styles.flag, styles.flagFirst]}
-                resizeMode="cover"
-              />
-            )}
-            {quoteCurrency && (
-              <Image
-                source={{
-                  uri: `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`,
-                }}
-                style={[styles.flag, styles.flagSecond]}
-                resizeMode="cover"
-              />
-            )}
+            {baseCurrency &&
+              (baseIsCrypto ? (
+                <Image
+                  source={{
+                    uri: baseCurrency.iconUrl,
+                  }}
+                  style={[styles.flag, styles.flagFirst, styles.cryptoIcon]}
+                  resizeMode="contain"
+                />
+              ) : (
+                <Image
+                  source={{
+                    uri: `https://flagcdn.com/w160/${baseCurrency.countryCode.toLowerCase()}.png`,
+                  }}
+                  style={[styles.flag, styles.flagFirst]}
+                  resizeMode="cover"
+                />
+              ))}
+            {quoteCurrency &&
+              (quoteIsCrypto ? (
+                <Image
+                  source={{
+                    uri: quoteCurrency.iconUrl,
+                  }}
+                  style={[styles.flag, styles.flagSecond, styles.cryptoIcon]}
+                  resizeMode="contain"
+                />
+              ) : (
+                <Image
+                  source={{
+                    uri: `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`,
+                  }}
+                  style={[styles.flag, styles.flagSecond]}
+                  resizeMode="cover"
+                />
+              ))}
           </View>
           <View style={styles.pairInfo}>
             <Text
@@ -212,6 +234,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     marginRight: 8,
+  },
+  cryptoIcon: {
+    backgroundColor: "#f0f0f0", // Light background for crypto icons
+    padding: 2,
+    borderRadius: 3,
+    overflow: "hidden",
   },
 });
 

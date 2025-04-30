@@ -59,6 +59,21 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     return pairs.filter((pair) => pair.base === "USD" || pair.quote === "USD");
   }, []);
 
+  // Add this filter category for USD-based crypto pairs
+  const filterUsdCryptoPairs = useCallback((pairs: CurrencyPair[]) => {
+    return pairs.filter(
+      (pair) =>
+        (pair.quote === "USD" && isCryptoCurrency(pair.base)) ||
+        (pair.base === "USD" && isCryptoCurrency(pair.quote))
+    );
+  }, []);
+
+  // Helper function to check if a currency is crypto
+  const isCryptoCurrency = useCallback((code: string) => {
+    const currency = getCurrencyByCode(code);
+    return currency?.isCrypto || false;
+  }, []);
+
   const pairItemStyle = {
     flexDirection: "row" as const,
     alignItems: "center" as const,
@@ -73,8 +88,24 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
   useEffect(() => {
     let result = currencyPairs;
 
-    // Apply initial alphabetical sorting for all pairs
-    result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+    // Apply initial sorting:
+    // 1. USD Crypto pairs first (most commonly used for calculations)
+    // 2. Then other pairs alphabetically
+    result = [...result].sort((a, b) => {
+      // First sort by USD-Crypto pairs (put them at the top)
+      const aIsUsdCrypto =
+        (a.quote === "USD" && isCryptoCurrency(a.base)) ||
+        (a.base === "USD" && isCryptoCurrency(a.quote));
+      const bIsUsdCrypto =
+        (b.quote === "USD" && isCryptoCurrency(b.base)) ||
+        (b.base === "USD" && isCryptoCurrency(b.quote));
+
+      if (aIsUsdCrypto && !bIsUsdCrypto) return -1;
+      if (!aIsUsdCrypto && bIsUsdCrypto) return 1;
+
+      // For pairs that are both USD-Crypto or both non-USD-Crypto, sort alphabetically
+      return a.name.localeCompare(b.name);
+    });
 
     // Filter by search term
     if (searchTerm.trim() !== "") {
@@ -156,7 +187,10 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     }
 
     // Filter by category
-    if (selectedCategory === "USD") {
+    if (selectedCategory === "USD Crypto") {
+      // Special case for USD Crypto category - show all pairs with USD and a crypto
+      result = filterUsdCryptoPairs(result);
+    } else if (selectedCategory === "USD") {
       // Special case for USD category - show all pairs with USD as base or quote
       result = filterUsdPairs(result);
     } else if (selectedCategory === "EUR") {
@@ -184,7 +218,15 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     }
 
     setFilteredPairs(result);
-  }, [searchTerm, selectedCategory, showFavorites, favorites, filterUsdPairs]);
+  }, [
+    searchTerm,
+    selectedCategory,
+    showFavorites,
+    favorites,
+    filterUsdPairs,
+    filterUsdCryptoPairs,
+    isCryptoCurrency,
+  ]);
 
   // Handle pair selection
   const handleSelect = (pair: CurrencyPair) => {
@@ -233,6 +275,10 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
     const quoteCurrency = getCurrencyByCode(item.quote);
     const isFavorite = favorites.includes(item.name);
 
+    // Check if either currency is a cryptocurrency
+    const baseIsCrypto = baseCurrency?.isCrypto;
+    const quoteIsCrypto = quoteCurrency?.isCrypto;
+
     return (
       <TouchableOpacity
         style={[
@@ -249,24 +295,45 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
         activeOpacity={0.7}
       >
         <View style={styles.flagsContainer}>
-          {baseCurrency && (
-            <Image
-              source={{
-                uri: `https://flagcdn.com/w160/${baseCurrency.countryCode.toLowerCase()}.png`,
-              }}
-              style={[styles.flag, styles.flagFirst]}
-              resizeMode="cover"
-            />
-          )}
-          {quoteCurrency && (
-            <Image
-              source={{
-                uri: `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`,
-              }}
-              style={[styles.flag, styles.flagSecond]}
-              resizeMode="cover"
-            />
-          )}
+          {/* Base currency icon - show crypto icon or flag */}
+          {baseCurrency &&
+            (baseIsCrypto ? (
+              <Image
+                source={{
+                  uri: baseCurrency.iconUrl,
+                }}
+                style={[styles.flag, styles.flagFirst, styles.cryptoIcon]}
+                resizeMode="contain"
+              />
+            ) : (
+              <Image
+                source={{
+                  uri: `https://flagcdn.com/w160/${baseCurrency.countryCode.toLowerCase()}.png`,
+                }}
+                style={[styles.flag, styles.flagFirst]}
+                resizeMode="cover"
+              />
+            ))}
+
+          {/* Quote currency icon - show crypto icon or flag */}
+          {quoteCurrency &&
+            (quoteIsCrypto ? (
+              <Image
+                source={{
+                  uri: quoteCurrency.iconUrl,
+                }}
+                style={[styles.flag, styles.flagSecond, styles.cryptoIcon]}
+                resizeMode="contain"
+              />
+            ) : (
+              <Image
+                source={{
+                  uri: `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`,
+                }}
+                style={[styles.flag, styles.flagSecond]}
+                resizeMode="cover"
+              />
+            ))}
         </View>
         <View style={styles.pairInfo}>
           <Text style={[styles.pairName, { color: colors.text }]}>
@@ -428,7 +495,16 @@ const CurrencyPairModal: React.FC<CurrencyPairModalProps> = ({
             </Text>
           </TouchableOpacity>
 
-          {["Major", "USD", "EUR", "GBP", "JPY", "Other"].map((group) => (
+          {[
+            "Major",
+            "USD Crypto",
+            "USD",
+            "EUR",
+            "GBP",
+            "JPY",
+            "Crypto",
+            "Other",
+          ].map((group) => (
             <TouchableOpacity
               key={group}
               style={[
@@ -620,6 +696,12 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     padding: 4,
+  },
+  cryptoIcon: {
+    backgroundColor: "#f0f0f0", // Light background for crypto icons
+    padding: 2,
+    borderRadius: 3,
+    overflow: "hidden",
   },
 });
 

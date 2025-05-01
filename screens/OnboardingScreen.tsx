@@ -895,19 +895,14 @@ const OnboardingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               { opacity, transform: [{ translateY }] },
             ]}
           >
-            <LinearGradient
-              colors={getGradient("primary").colors}
-              start={getGradient("primary").start}
-              end={getGradient("primary").end}
-              style={styles.welcomeIconContainer}
-            >
+
               <MaterialIcons
                 name={item.icon as any}
-                size={60}
-                color="#fff"
-                style={{ marginBottom: 0 }}
+                size={55}
+                color={colors.primary}
+                style={styles.contentIcon}
               />
-            </LinearGradient>
+
 
             <Animated.Text
               style={[
@@ -1149,7 +1144,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4.65,
   },
   welcomeTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 30,

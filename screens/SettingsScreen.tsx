@@ -21,7 +21,7 @@ import ApiKeyManager from "../components/ApiKeyManager";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import env from "../config/env";
-
+import * as Haptics from "expo-haptics";
 // Define a type for MaterialIcons names we use in this file
 type IconName =
   | "palette"
@@ -39,7 +39,9 @@ type IconName =
   | "brightness-6"
   | "wb-sunny"
   | "nightlight-round"
-  | "settings-suggest";
+  | "settings-suggest"
+  | "thumb-up";
+
 
 // Theme option type
 interface ThemeOption {
@@ -111,6 +113,13 @@ const SettingsScreen: React.FC = () => {
   const handleThemeSelect = (themeValue: "light" | "dark" | "system") => {
     setThemePreference(themeValue);
     setThemeModalVisible(false);
+  };
+
+  const handleRateApp = () => {
+    Linking.openURL(
+      "https://play.google.com/store/apps/details?id=com.example.app"
+    );
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   const handleClearHistory = async () => {
@@ -373,6 +382,9 @@ const SettingsScreen: React.FC = () => {
               "Share this app",
               handleShareApp,
               false
+            )}
+            {renderSettingItem("thumb-up", "Rate this app", () =>
+              handleRateApp()
             )}
           </>
         )}

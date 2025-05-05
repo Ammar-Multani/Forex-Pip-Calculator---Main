@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar as RNStatusBar,
+  Platform,
 } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 import { StatusBar } from "expo-status-bar";
@@ -297,9 +298,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 60,
+    paddingTop: Platform.OS === "ios" ? 56 : 35,
     paddingBottom: 16,
-    height: 90,
+    borderBottomWidth: 1,
+    height: Platform.OS === "ios" ? 110 : 95,
+    zIndex: 10,
   },
   headerGradient: {
     position: "absolute",
@@ -310,8 +313,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 8,
-    paddingTop: 18,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === "ios" ? 50 : 25,
   },
   backButton: {
     padding: 8,

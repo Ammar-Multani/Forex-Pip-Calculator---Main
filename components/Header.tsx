@@ -179,10 +179,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: Platform.OS === "ios" ? 50 : 35,
+    paddingTop: Platform.OS === "ios" ? 56 : 35,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    height: Platform.OS === "ios" ? 100 : 95,
+    height: Platform.OS === "ios" ? 110 : 95,
     zIndex: 10,
   },
   headerGradient: {

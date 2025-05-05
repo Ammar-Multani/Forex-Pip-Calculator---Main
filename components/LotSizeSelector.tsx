@@ -403,6 +403,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 16,
     ...Platform.select({
+      web: { boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.1)" },
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
@@ -428,6 +429,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     maxHeight: 200,
     ...Platform.select({
+      web: { boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.25)" },
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
@@ -492,11 +494,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 25,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.5,
+    ...Platform.select({
+      web: { boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.2)" },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1.5,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   editButtonText: {
     color: "#fff",

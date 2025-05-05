@@ -81,9 +81,14 @@ const Header: React.FC<HeaderProps> = ({
           <View style={styles.headerLeft}>
             {showBackButton ? (
               <TouchableOpacity
-                style={styles.backButton}
+                style={[
+                  styles.backButton,
+                  Platform.OS === "web" && styles.webBackButton,
+                ]}
                 onPress={handleBackPress}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityRole="button"
+                accessibilityLabel="Back"
               >
                 <MaterialIcons
                   name="arrow-back"
@@ -245,6 +250,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 4,
+  },
+  webBackButton: {
+    cursor: "pointer",
+    transition: "background-color 0.2s",
+    backgroundColor: "rgba(108, 140, 242, 0.1)",
+    width: 40,
+    height: 40,
+    marginRight: 8,
+    borderRadius: 20,
+    boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)",
   },
 });
 

@@ -45,17 +45,19 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
             backgroundColor: colors.card,
             borderColor: colors.border,
           },
-          Platform.select({
-            ios: {
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.1,
-              shadowRadius: 2,
-            },
-            android: {
-              elevation: 1,
-            },
-          }),
+          Platform.OS === "web"
+            ? { boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.1)" }
+            : Platform.select({
+                ios: {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 2,
+                },
+                android: {
+                  elevation: 1,
+                },
+              }),
         ]}
         onPress={onPress}
         activeOpacity={0.7}
@@ -67,7 +69,13 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
                 source={{
                   uri: `https://flagcdn.com/w160/${baseCurrency.countryCode.toLowerCase()}.png`,
                 }}
-                style={[styles.flag, styles.flagFirst]}
+                style={[
+                  styles.flag,
+                  styles.flagFirst,
+                  Platform.OS === "web"
+                    ? { boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.2)" }
+                    : null,
+                ]}
                 resizeMode="cover"
               />
             )}
@@ -76,7 +84,13 @@ const CurrencyPairSelector: React.FC<CurrencyPairSelectorProps> = ({
                 source={{
                   uri: `https://flagcdn.com/w160/${quoteCurrency.countryCode.toLowerCase()}.png`,
                 }}
-                style={[styles.flag, styles.flagSecond]}
+                style={[
+                  styles.flag,
+                  styles.flagSecond,
+                  Platform.OS === "web"
+                    ? { boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.2)" }
+                    : null,
+                ]}
                 resizeMode="cover"
               />
             )}
@@ -168,22 +182,34 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   flagSecond: {
     position: "absolute",
     top: 8,
     left: 24,
     zIndex: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
   },
   pairInfo: {
     flexDirection: "column",
@@ -203,7 +229,6 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   rightContainer: {
-    flexDirection: "row",
     alignItems: "center",
     flexShrink: 0,
     paddingLeft: 4,

@@ -203,10 +203,20 @@ const OnboardingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   // Handle next button press
   const handleNext = () => {
     if (currentIndex < onboardingData.length - 1) {
-      flatListRef.current?.scrollToIndex({
-        index: currentIndex + 1,
-        animated: true,
-      });
+      // Add a small delay for web to ensure the animation completes properly
+      if (Platform.OS === "web") {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index: currentIndex + 1,
+            animated: true,
+          });
+        }, 50);
+      } else {
+        flatListRef.current?.scrollToIndex({
+          index: currentIndex + 1,
+          animated: true,
+        });
+      }
     } else {
       handleSkip();
     }
@@ -895,14 +905,12 @@ const OnboardingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               { opacity, transform: [{ translateY }] },
             ]}
           >
-
-              <MaterialIcons
-                name={item.icon as any}
-                size={55}
-                color={colors.primary}
-                style={styles.contentIcon}
-              />
-
+            <MaterialIcons
+              name={item.icon as any}
+              size={55}
+              color={colors.primary}
+              style={styles.contentIcon}
+            />
 
             <Animated.Text
               style={[
@@ -1027,6 +1035,12 @@ const OnboardingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setCurrentIndex(index);
         }}
         style={styles.flatList}
+        scrollEventThrottle={16}
+        initialNumToRender={2}
+        maxToRenderPerBatch={2}
+        windowSize={3}
+        removeClippedSubviews={Platform.OS !== "web"}
+        decelerationRate="fast"
       />
 
       {renderPaginationDots()}
@@ -1042,6 +1056,14 @@ const OnboardingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <TouchableOpacity
             onPress={handleNext}
             style={styles.nextButtonTouchable}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessible={true}
+            accessibilityLabel={
+              currentIndex === onboardingData.length - 1
+                ? "Get Started"
+                : "Continue"
+            }
           >
             <Text style={styles.nextButtonText}>
               {currentIndex === onboardingData.length - 1
@@ -1193,10 +1215,18 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     overflow: "hidden",
     width: "100%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    ...Platform.select({
+      web: { boxShadow: "0px 2px 3px rgba(0, 0, 0, 0.2)" },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   nextButtonTouchable: {
     flexDirection: "row",

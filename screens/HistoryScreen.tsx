@@ -397,7 +397,8 @@ const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       <Header
         title="Calculation History"
         onThemeToggle={toggleTheme}
-        onBackPress={() => navigation.goBack()}
+        showBackButton={true}
+        onBackPress={() => navigation.navigate("Calculator")}
       />
 
       {/* Main Content */}

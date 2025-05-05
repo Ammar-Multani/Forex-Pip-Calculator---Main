@@ -44,3 +44,6 @@ ios/
 
 #.env
 .env
+
+# Local Netlify folder
+.netlify

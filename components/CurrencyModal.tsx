@@ -504,11 +504,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 18,
     marginRight: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
-    elevation: 1,
+    ...Platform.select({
+      web: { boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.1)" },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 1,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
     marginVertical: 8,
   },
   filterIcon: {

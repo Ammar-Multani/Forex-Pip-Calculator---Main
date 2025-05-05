@@ -39,7 +39,20 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
         activeOpacity={0.7}
       >
         <View style={styles.content}>
-          <View style={styles.flagContainer}>
+          <View
+            style={[
+              styles.flagContainer,
+              Platform.OS === "web"
+                ? { boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.2)" }
+                : {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 1,
+                    elevation: 2,
+                  },
+            ]}
+          >
             <Image
               source={{
                 uri: `https://flagcdn.com/w160/${selectedCurrency.countryCode.toLowerCase()}.png`,
@@ -113,11 +126,6 @@ const styles = StyleSheet.create({
   flagContainer: {
     marginRight: 15,
     position: "relative",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 2,
     flexShrink: 0,
   },
   flag: {
